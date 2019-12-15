@@ -1,0 +1,11 @@
+[package]
+name = "vi-rs"
+version = "0.1.0"
+authors = ["Nguyễn Việt Hưng <hunggarena12@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[target."cfg(target_os = \"linux\")".dependencies.x11]
+version = "2.18.1"
+features = ["xlib"]
