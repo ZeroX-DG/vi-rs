@@ -1,9 +1,11 @@
 use super::{Keyboard};
-use crate::engine::{keycodes, PhysicKey, KeyState, KeyCap};
+use crate::engine::{PhysicKey, KeyState, KeyCap};
 use x11::xlib::{
     self as xlib,
-    Display, XOpenDisplay,
-    XEvent, XKeyEvent, XNextEvent
+    Display, XOpenDisplay, XDefaultRootWindow,
+    XEvent, XKeyEvent, XNextEvent,
+    KeyPressMask, FocusChangeMask,
+    XSelectInput, XGetInputFocus
 };
 use std::{ptr, mem};
 
@@ -36,21 +38,31 @@ impl Keyboard for KeyboardHandler {
     fn insert(&self, ch: char) {}
     fn wait_for_key(&self) -> PhysicKey {
         let mut ev: XEvent = unsafe { mem::zeroed() };
-        loop {
-            unsafe {
+        let mask = KeyPressMask | FocusChangeMask;
+        unsafe {
+            let mut root = XDefaultRootWindow(self.display);
+            XGetInputFocus(self.display, &mut root, &mut xlib::RevertToParent);
+            XSelectInput(self.display, root, mask);
+            loop {
                 XNextEvent(self.display, &mut ev);
                 match ev.get_type() {
                     xlib::KeyPress => {
                         if ev.key.send_event == 0 {
                             break;
                         }
-                    }
+                    },
+                    xlib::FocusOut => {
+                        XSelectInput(self.display, root, 0);
+                        XGetInputFocus(
+                            self.display,
+                            &mut root,
+                            &mut xlib::RevertToParent
+                        );
+                        XSelectInput(self.display, root, mask);
+                    },
                     _ => continue
                 }
             }
-        }
-
-        unsafe {
             let ev_key: XKeyEvent = ev.key;
             let cap: Option<KeyCap> = if self.is_capslock_down {
                 if self.is_shift_down || self.is_ctrl_down {
