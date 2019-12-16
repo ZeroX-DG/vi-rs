@@ -12,16 +12,15 @@ fn main() {
     keyboard.init();
 
     loop {
-        if let Some(key) = keyboard.wait_for_key() {
-            println!("{:?}", key);
-            let instructions = engine.handle_key(key);
-            for instruction in instructions {
-                match instruction {
-                    Action::Forward(amount) => keyboard.forward(amount),
-                    Action::Back(amount) => keyboard.back(amount),
-                    Action::Insert(ch) => keyboard.insert(ch),
-                    Action::Backspace(amount) => keyboard.backspace(amount),
-                }
+        let key = keyboard.wait_for_key();
+        println!("{:?}", key);
+        let instructions = engine.handle_key(key);
+        for instruction in instructions {
+            match instruction {
+                Action::Forward(amount) => keyboard.forward(amount),
+                Action::Back(amount) => keyboard.back(amount),
+                Action::Insert(ch) => keyboard.insert(ch),
+                Action::Backspace(amount) => keyboard.backspace(amount),
             }
         }
     }
