@@ -1,12 +1,13 @@
 use super::{Keyboard};
-use crate::engine::{PhysicKey, KeyState, KeyCap};
+use crate::engine::{keycodes, PhysicKey, KeyState, KeyCap};
 use x11::xlib::{
     self as xlib,
     Display, XOpenDisplay, XDefaultRootWindow,
-    XEvent, XKeyEvent, XNextEvent,
-    KeyPressMask, FocusChangeMask,
-    XSelectInput, XGetInputFocus
+    XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent,
+    KeyPressMask, FocusChangeMask, KeyReleaseMask,
+    XSelectInput, XGetInputFocus, XGetKeyboardMapping, XFree
 };
+use x11::keysym;
 use std::{ptr, mem};
 
 pub struct KeyboardHandler {
@@ -36,9 +37,9 @@ impl Keyboard for KeyboardHandler {
     fn backspace(&self, amount: usize) {
     }
     fn insert(&self, ch: char) {}
-    fn wait_for_key(&self) -> PhysicKey {
+    fn wait_for_key(&mut self) -> PhysicKey {
         let mut ev: XEvent = unsafe { mem::zeroed() };
-        let mask = KeyPressMask | FocusChangeMask;
+        let mask = KeyPressMask | KeyReleaseMask | FocusChangeMask;
         unsafe {
             let mut root = XDefaultRootWindow(self.display);
             XGetInputFocus(self.display, &mut root, &mut xlib::RevertToParent);
@@ -48,7 +49,79 @@ impl Keyboard for KeyboardHandler {
                 match ev.get_type() {
                     xlib::KeyPress => {
                         if ev.key.send_event == 0 {
-                            break;
+                            let mut keysyms_per_keycode_return: i32 = 0;
+                            let keysym = XGetKeyboardMapping(
+                                self.display,
+                                ev.key.keycode as u8,
+                                1,
+                                &mut keysyms_per_keycode_return
+                            );
+
+                            let mut need_break = false;
+
+                            match *keysym as u32 {
+                                keysym::XK_Shift_L | keysym::XK_Shift_R => {
+                                    self.is_shift_down = true;
+                                },
+                                keysym::XK_Control_L | keysym::XK_Control_R => {
+                                    self.is_ctrl_down = true;
+                                },
+                                keysym::XK_Caps_Lock => {
+                                    self.is_capslock_down = !self.is_capslock_down;
+                                },
+                                _ => need_break = true
+                            }
+
+                            XFree(keysym as *mut std::ffi::c_void);
+                            
+                            if need_break {
+                                break
+                            }
+                        }
+                    },
+                    xlib::KeyRelease => {
+                        let mut is_auto_repeat = false;
+                        // QueuedAfterReading = 1
+                        if XEventsQueued(self.display, 1) == 1 {
+                            let mut xev: XEvent = mem::zeroed();
+                            XPeekEvent(self.display, &mut xev);
+                            if xev.get_type() == xlib::KeyPress &&
+                                xev.key.time == ev.key.time &&
+                                xev.key.keycode == ev.key.keycode {
+                                is_auto_repeat = true;
+                            }
+                        }
+                        
+                        if ev.key.send_event == 0 && !is_auto_repeat {
+                            let mut keysyms_per_keycode_return: i32 = 0;
+                            let keysym = XGetKeyboardMapping(
+                                self.display,
+                                ev.key.keycode as u8,
+                                1,
+                                &mut keysyms_per_keycode_return
+                            );
+
+                            let mut need_break = false;
+                            match *keysym as u32 {
+                                keysym::XK_Shift_L | keysym::XK_Shift_R => {
+                                    self.is_shift_down = false;
+                                },
+                                keysym::XK_Control_L | keysym::XK_Control_R => {
+                                    self.is_ctrl_down = false;
+                                },
+                                keysym::XK_Caps_Lock => {
+                                    // do nothing
+                                    // simply to make the key invisible to the
+                                    // engine handler
+                                },
+                                _ => need_break = true
+                            };
+
+                            XFree(keysym as *mut std::ffi::c_void);
+
+                            if need_break {
+                                break
+                            }
                         }
                     },
                     xlib::FocusOut => {

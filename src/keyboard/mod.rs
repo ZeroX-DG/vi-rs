@@ -12,7 +12,7 @@ pub trait Keyboard {
     fn forward(&self, amount: usize);
     fn backspace(&self, amount: usize);
     fn insert(&self, ch: char);
-    fn wait_for_key(&self) -> PhysicKey;
+    fn wait_for_key(&mut self) -> PhysicKey;
 }
 
 pub fn get_keyboard() -> Box<dyn Keyboard> {
