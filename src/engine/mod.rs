@@ -5,20 +5,20 @@ pub struct Engine {
     buffer: Vec<char>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PhysicKey {
     pub keycode: u32,
     pub state: KeyState,
     pub cap: Option<KeyCap>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum KeyState {
     KeyPress,
     KeyRelease
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum KeyCap {
     Shift,
     CapsLock
@@ -33,7 +33,10 @@ pub enum Action {
 
 impl Into<char> for PhysicKey {
     fn into(self) -> char {
-        std::char::from_u32(self.keycode).unwrap_or('\0')
+        match self.keycode {
+            keycodes::KeyA => 'a',
+            _ => '\0'
+        }
     }
 }
 
@@ -45,14 +48,23 @@ impl Engine {
     }
 
     pub fn handle_key(&mut self, key: PhysicKey) -> Vec<Action> {
-        let ch: char = key.into();
-        if ch == 'a' && self.buffer.last().unwrap_or(&'\0') == &'a' {
-            return vec![
-                Action::Backspace(2),
-                Action::Insert('â')
-            ];
+        let ch: char = key.clone().into();
+        match key.state {
+            KeyState::KeyPress => {
+                if ch == 'a' && self.buffer.last().unwrap_or(&'\0') == &'a' {
+                    self.buffer.clear();
+                    return vec![
+                        Action::Backspace(2),
+                        Action::Insert('â')
+                    ];
+                }
+                if ch != '\0' {
+                    self.buffer.push(ch);
+                }
+            }
+            _ => {}
         }
-        self.buffer.push(ch);
-        vec![Action::Insert(ch)]
+        println!("{:?}", self.buffer);
+        vec![]
     }
 }

@@ -1,12 +1,13 @@
 use super::{Keyboard};
-use crate::engine::{keycodes, PhysicKey, KeyState, KeyCap};
+use crate::engine::{PhysicKey, KeyState, KeyCap};
 use x11::xlib::{
     self as xlib,
     Display, XOpenDisplay, XDefaultRootWindow,
     XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent,
     KeyPressMask, FocusChangeMask, KeyReleaseMask,
-    XSelectInput, XGetInputFocus, XGetKeyboardMapping, XFree
+    XSelectInput, XGetInputFocus, XGetKeyboardMapping, XKeysymToKeycode, XFree
 };
+use x11::xtest::XTestFakeKeyEvent;
 use x11::keysym;
 use std::{ptr, mem};
 
@@ -35,8 +36,25 @@ impl Keyboard for KeyboardHandler {
     fn forward(&self, amount: usize) {}
     fn back(&self, amount: usize) {}
     fn backspace(&self, amount: usize) {
+        unsafe {
+            let keycode = XKeysymToKeycode(
+                self.display,
+                keysym::XK_BackSpace.into()
+            );
+            for _ in 0..amount {
+                XTestFakeKeyEvent(self.display, keycode.into(), 1, 0);
+                XTestFakeKeyEvent(self.display, keycode.into(), 0, 0);
+            }
+        }
     }
-    fn insert(&self, ch: char) {}
+    fn insert(&self, ch: char) {
+        unsafe {
+            let keycode = 0x11af;
+            //let keycode = XKeysymToKeycode(self.display, ch as u64);
+            XTestFakeKeyEvent(self.display, keycode, 1, 0);
+            XTestFakeKeyEvent(self.display, keycode, 0, 0);
+        }
+    }
     fn wait_for_key(&mut self) -> PhysicKey {
         let mut ev: XEvent = unsafe { mem::zeroed() };
         let mask = KeyPressMask | KeyReleaseMask | FocusChangeMask;
@@ -48,7 +66,7 @@ impl Keyboard for KeyboardHandler {
                 XNextEvent(self.display, &mut ev);
                 match ev.get_type() {
                     xlib::KeyPress => {
-                        if ev.key.send_event == 0 {
+                        if ev.key.send_event == 0 && ev.key.time != 0 {
                             let mut keysyms_per_keycode_return: i32 = 0;
                             let keysym = XGetKeyboardMapping(
                                 self.display,
