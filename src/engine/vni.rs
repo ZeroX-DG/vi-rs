@@ -6,6 +6,7 @@ pub struct Vni {
 }
 
 const TRIGGER_CIRCUMFLEX: char = '6';
+const TRIGGER_HORN: char = '7';
 const TRIGGER_BREVE: char = '8';
 
 struct DiacriticMatch {
@@ -87,6 +88,18 @@ impl Vni {
                     ch: 'o',
                     pair_with: vec!['i', 'n', 'm', 'p', 't', 'c', 'y'],
                     replace_with: ('ô', 'Ô')
+                }
+            ]),
+            TRIGGER_HORN => self.add_diacritic(vec![
+                DiacriticMatch {
+                    ch: 'u',
+                    pair_with: vec!['i', 'n', 'm', 'a', 'p', 't', 'c'],
+                    replace_with: ('ư', 'Ư')
+                },
+                DiacriticMatch {
+                    ch: 'o',
+                    pair_with: vec!['i', 'n', 'm', 'p', 't', 'c', 'y', 'o'],
+                    replace_with: ('ơ', 'Ơ')
                 }
             ]),
             TRIGGER_BREVE => self.add_diacritic(vec![
