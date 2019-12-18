@@ -6,6 +6,13 @@ pub struct Vni {
 }
 
 const TRIGGER_CIRCUMFLEX: char = '6';
+const TRIGGER_BREVE: char = '8';
+
+struct DiacriticMatch {
+    pub ch: char,
+    pub pair_with: Vec<char>,
+    pub replace_with: (char, char) // lowercase && uppercase
+}
 
 impl Vni {
     pub fn new() -> Self {
@@ -33,7 +40,7 @@ impl Vni {
         steps
     }
 
-    fn add_circumflex(&mut self) -> Vec<Action> {
+    fn add_diacritic(&mut self, matches: Vec<DiacriticMatch>) -> Vec<Action> {
         let buffer_len = self.buffer.len();
         for i in 0..buffer_len {
             let ch = self.buffer[i];
@@ -42,50 +49,22 @@ impl Vni {
             } else {
                 self.buffer[i + 1]
             };
-            match util::remove_accents(ch) {
-                'a' | 'A' => {
-                    let pair = ['u', 'p', 'n', 'm', 't', 'c'];
-                    let replace_char = if ch == 'A' {
-                        'Â'
-                    } else {
-                        'â'
-                    };
+            let clean_ch = util::remove_accents(ch);
+            for diacritic_match in &matches {
+                if diacritic_match.ch == clean_ch.to_ascii_lowercase() {
                     let next_ch_lower = &next_ch.to_ascii_lowercase();
-                    if pair.contains(next_ch_lower) || i == buffer_len - 1 {
-                        let steps = self.replace_char_at(i, replace_char);
-                        self.buffer[i] = replace_char;
-                        return steps;
-                    }
-                },
-                'o' | 'O' => {
-                    let pair = ['i', 'p', 'n', 'm', 'p', 't', 'c'];
-                    let replace_char = if ch == 'O' {
-                        'Ô'
-                    } else {
-                        'ô'
-                    };
-                    let next_ch_lower = &next_ch.to_ascii_lowercase();
-                    if pair.contains(next_ch_lower) || i == buffer_len - 1 {
-                        let steps = self.replace_char_at(i, replace_char);
-                        self.buffer[i] = replace_char;
-                        return steps;
-                    }
-                },
-                'e' | 'E' => {
-                    let pair = ['u', 'n', 'm', 'p', 't', 'c'];
-                    let replace_char = if ch == 'E' {
-                        'Ê'
-                    } else {
-                        'ê'
-                    };
-                    let next_ch_lower = &next_ch.to_ascii_lowercase();
-                    if pair.contains(next_ch_lower) || i == buffer_len - 1 {
+                    if diacritic_match.pair_with.contains(next_ch_lower)
+                        || i == buffer_len - 1 {
+                        let replace_char = if ch.is_ascii_uppercase() {
+                            diacritic_match.replace_with.1
+                        } else {
+                            diacritic_match.replace_with.0
+                        };
                         let steps = self.replace_char_at(i, replace_char);
                         self.buffer[i] = replace_char;
                         return steps;
                     }
                 }
-                _ => {}
             }
         }
         vec![]
@@ -93,7 +72,30 @@ impl Vni {
 
     fn handle_normal_char(&mut self, ch: char) -> Vec<Action> {
         match ch {
-            TRIGGER_CIRCUMFLEX => self.add_circumflex(),
+            TRIGGER_CIRCUMFLEX => self.add_diacritic(vec![
+                DiacriticMatch {
+                    ch: 'a',
+                    pair_with: vec!['u', 'n', 'm', 'p', 't', 'c', 'y'],
+                    replace_with: ('â', 'Â')
+                },
+                DiacriticMatch {
+                    ch: 'e',
+                    pair_with: vec!['u', 'n', 'm', 'p', 't', 'c', 'y'],
+                    replace_with: ('ê', 'Ê')
+                },
+                DiacriticMatch {
+                    ch: 'o',
+                    pair_with: vec!['i', 'n', 'm', 'p', 't', 'c', 'y'],
+                    replace_with: ('ô', 'Ô')
+                }
+            ]),
+            TRIGGER_BREVE => self.add_diacritic(vec![
+                DiacriticMatch {
+                    ch: 'a',
+                    pair_with: vec!['p', 'n', 'm', 't', 'c'],
+                    replace_with: ('ă', 'Ă')
+                }
+            ]),
             _ => Vec::new()
         }
     }
