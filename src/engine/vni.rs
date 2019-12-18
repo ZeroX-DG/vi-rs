@@ -1,4 +1,5 @@
 use super::{PhysicKey, Action, KeyState};
+use super::util;
 
 pub struct Vni {
     buffer: Vec<char>
@@ -41,7 +42,7 @@ impl Vni {
             } else {
                 self.buffer[i + 1]
             };
-            match ch {
+            match util::remove_accents(ch) {
                 'a' | 'A' => {
                     let pair = ['u', 'p', 'n', 'm', 't', 'c'];
                     let replace_char = if ch == 'A' {

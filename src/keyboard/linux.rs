@@ -6,7 +6,7 @@ use x11::xlib::{
     XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent, XSync,
     KeyPressMask, FocusChangeMask, KeyReleaseMask,
     XSelectInput, XGetInputFocus, XGetKeyboardMapping, XKeysymToKeycode, XFree,
-    XFlush, XDisplayKeycodes, XChangeKeyboardMapping
+    XDisplayKeycodes, XChangeKeyboardMapping
 };
 use x11::xtest::XTestFakeKeyEvent;
 use x11::keysym;
