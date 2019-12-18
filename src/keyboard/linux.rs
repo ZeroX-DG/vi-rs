@@ -56,31 +56,30 @@ impl KeyboardHandler {
 }
 
 impl Keyboard for KeyboardHandler {
-    fn forward(&self, amount: usize) {}
-    fn back(&self, amount: usize) {}
     fn backspace(&self, amount: usize) {
         unsafe {
-            XSync(self.display, 1);
             let keycode = XKeysymToKeycode(
                 self.display,
                 keysym::XK_BackSpace.into()
             );
             for _ in 0..amount {
                 XTestFakeKeyEvent(self.display, keycode.into(), 1, 0);
+                // prevent XNextEvent to catch this fake key
+                XSync(self.display, 1); 
                 XTestFakeKeyEvent(self.display, keycode.into(), 0, 0);
-                XFlush(self.display);
+                XSync(self.display, 1);
             }
-            XSync(self.display, 0);
         }
     }
     fn insert(&self, ch: char) {
-        let keysym = keysym::XK_kana_E;
+        let keysym = ch as u32;
         unsafe {
             let scratch_keycode = self.find_keycode_to_remap();
             self.remap_scratch_keycode(scratch_keycode, keysym.into());
             XTestFakeKeyEvent(self.display, scratch_keycode as u32, 1, 0);
+            XSync(self.display, 1);
             XTestFakeKeyEvent(self.display, scratch_keycode as u32, 0, 0);
-            XFlush(self.display);
+            XSync(self.display, 1);
             std::thread::sleep(std::time::Duration::from_millis(30));
             self.remap_scratch_keycode(scratch_keycode, xlib::NoSymbol as u64);
         }

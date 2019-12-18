@@ -7,9 +7,6 @@ mod linux;
 use linux::KeyboardHandler;
 
 pub trait Keyboard {
-    fn init(&mut self) {}
-    fn back(&self, amount: usize);
-    fn forward(&self, amount: usize);
     fn backspace(&self, amount: usize);
     fn insert(&self, ch: char);
     fn wait_for_key(&mut self) -> PhysicKey;
