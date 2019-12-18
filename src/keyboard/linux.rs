@@ -3,9 +3,10 @@ use crate::engine::{PhysicKey, KeyState, KeyCap};
 use x11::xlib::{
     self as xlib,
     Display, XOpenDisplay, XDefaultRootWindow,
-    XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent,
+    XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent, XSync,
     KeyPressMask, FocusChangeMask, KeyReleaseMask,
-    XSelectInput, XGetInputFocus, XGetKeyboardMapping, XKeysymToKeycode, XFree
+    XSelectInput, XGetInputFocus, XGetKeyboardMapping, XKeysymToKeycode, XFree,
+    XFlush, XDisplayKeycodes, XChangeKeyboardMapping
 };
 use x11::xtest::XTestFakeKeyEvent;
 use x11::keysym;
@@ -30,6 +31,28 @@ impl KeyboardHandler {
             }
         }
     }
+
+    fn find_keycode_to_remap(&self) -> i32 {
+        let mut min_key_code = 0;
+        unsafe {
+            XDisplayKeycodes(self.display, &mut min_key_code, &mut 0);
+            min_key_code
+        }
+    }
+
+    fn remap_scratch_keycode(&self, scratch_keycode: i32, keysym: u64) {
+        unsafe {
+            let mut keysyms = [keysym];
+            XChangeKeyboardMapping(
+                self.display,
+                scratch_keycode,
+                1,
+                keysyms.as_mut_ptr(),
+                1
+            );
+            XSync(self.display, 0);
+        }
+    }
 }
 
 impl Keyboard for KeyboardHandler {
@@ -37,6 +60,7 @@ impl Keyboard for KeyboardHandler {
     fn back(&self, amount: usize) {}
     fn backspace(&self, amount: usize) {
         unsafe {
+            XSync(self.display, 1);
             let keycode = XKeysymToKeycode(
                 self.display,
                 keysym::XK_BackSpace.into()
@@ -44,15 +68,21 @@ impl Keyboard for KeyboardHandler {
             for _ in 0..amount {
                 XTestFakeKeyEvent(self.display, keycode.into(), 1, 0);
                 XTestFakeKeyEvent(self.display, keycode.into(), 0, 0);
+                XFlush(self.display);
             }
+            XSync(self.display, 0);
         }
     }
     fn insert(&self, ch: char) {
+        let keysym = keysym::XK_kana_E;
         unsafe {
-            let keycode = 0x11af;
-            //let keycode = XKeysymToKeycode(self.display, ch as u64);
-            XTestFakeKeyEvent(self.display, keycode, 1, 0);
-            XTestFakeKeyEvent(self.display, keycode, 0, 0);
+            let scratch_keycode = self.find_keycode_to_remap();
+            self.remap_scratch_keycode(scratch_keycode, keysym.into());
+            XTestFakeKeyEvent(self.display, scratch_keycode as u32, 1, 0);
+            XTestFakeKeyEvent(self.display, scratch_keycode as u32, 0, 0);
+            XFlush(self.display);
+            std::thread::sleep(std::time::Duration::from_millis(30));
+            self.remap_scratch_keycode(scratch_keycode, xlib::NoSymbol as u64);
         }
     }
     fn wait_for_key(&mut self) -> PhysicKey {
