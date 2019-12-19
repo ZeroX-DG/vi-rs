@@ -8,6 +8,7 @@ pub struct Vni {
 const TRIGGER_CIRCUMFLEX: char = '6';
 const TRIGGER_HORN: char = '7';
 const TRIGGER_BREVE: char = '8';
+const TRIGGER_CROSSED_D: char = '9';
 
 struct DiacriticMatch {
     pub ch: char,
@@ -59,7 +60,9 @@ impl Vni {
             let clean_ch = util::remove_accents(ch);
             for diacritic_match in &matches {
                 if diacritic_match.ch == clean_ch.to_ascii_lowercase() {
-                    let next_ch_lower = &next_ch.to_ascii_lowercase();
+                    let next_ch_lower = &util::remove_accents(
+                        next_ch.to_ascii_lowercase()
+                    );
                     if diacritic_match.pair_with.contains(next_ch_lower)
                         || i == buffer_len - 1 {
                         
@@ -119,6 +122,13 @@ impl Vni {
                     ch: 'a',
                     pair_with: vec!['p', 'n', 'm', 't', 'c'],
                     replace_with: ('ă', 'Ă')
+                }
+            ]),
+            TRIGGER_CROSSED_D => self.add_diacritic(vec![
+                DiacriticMatch {
+                    ch: 'd',
+                    pair_with: vec!['a', 'c', 'e', 'i', 'm', 'n', 'o', 'p', 't', 'u', 'y'],
+                    replace_with: ('đ', 'Đ')
                 }
             ]),
             _ => Vec::new()

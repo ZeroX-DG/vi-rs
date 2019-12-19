@@ -76,6 +76,10 @@ impl Keyboard for KeyboardHandler {
             0x10001b0
         } else if ch == 'ơ' {
             0x10001a1
+        } else if ch == 'đ' {
+            keysym::XK_dstroke
+        } else if ch == 'Đ' {
+            keysym::XK_Dstroke
         } else {
             ch as u32
         };
