@@ -5,6 +5,8 @@ pub struct Vni {
     buffer: Vec<char>
 }
 
+const TRIGGER_ACUTE: char = '1';
+
 const TRIGGER_CIRCUMFLEX: char = '6';
 const TRIGGER_HORN: char = '7';
 const TRIGGER_BREVE: char = '8';
@@ -46,6 +48,16 @@ impl Vni {
         steps
     }
 
+    /// Add diacritic (6789)
+    /// 
+    /// Loop through a list of predefined diacritic match
+    /// which contains a char to match against and a list
+    /// of chars to pair with that char. So for example
+    /// if user type au6, it will change to âu. However
+    /// if user type aq6, it will not do anything because
+    /// q is not in a list to pair with a
+    ///
+    /// return a list of actions to send to keyboard
     fn add_diacritic(&mut self, matches: Vec<DiacriticMatch>) -> Vec<Action> {
         let buffer_len = self.buffer.len();
         let mut steps: Vec<Action> = Vec::new();
@@ -57,10 +69,10 @@ impl Vni {
             } else {
                 self.buffer[i + 1]
             };
-            let clean_ch = util::remove_accents(ch);
+            let clean_ch = util::clean_char(ch);
             for diacritic_match in &matches {
                 if diacritic_match.ch == clean_ch.to_ascii_lowercase() {
-                    let next_ch_lower = &util::remove_accents(
+                    let next_ch_lower = &util::clean_char(
                         next_ch.to_ascii_lowercase()
                     );
                     if diacritic_match.pair_with.contains(next_ch_lower)
@@ -84,6 +96,11 @@ impl Vni {
             }
         }
         steps
+    }
+
+    fn add_acute(&mut self) -> Vec<Action> {
+        
+        vec![]
     }
 
     fn handle_normal_char(&mut self, ch: char) -> Vec<Action> {
@@ -131,6 +148,7 @@ impl Vni {
                     replace_with: ('đ', 'Đ')
                 }
             ]),
+            TRIGGER_ACUTE => self.add_acute(),
             _ => Vec::new()
         }
     }

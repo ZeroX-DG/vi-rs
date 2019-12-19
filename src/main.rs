@@ -11,7 +11,9 @@ fn main() {
     loop {
         let key = keyboard.wait_for_key();
         let instructions = engine.handle_key(key);
-        println!("{:?}", instructions);
+        if !instructions.is_empty() {
+            println!("{:?}", instructions);
+        }
         for instruction in instructions {
             match instruction {
                 Action::Insert(ch) => keyboard.insert(ch),
