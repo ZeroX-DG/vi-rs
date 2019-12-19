@@ -72,7 +72,13 @@ impl Keyboard for KeyboardHandler {
         }
     }
     fn insert(&self, ch: char) {
-        let keysym = ch as u32;
+        let keysym = if ch == 'ư' {
+            0x10001b0
+        } else if ch == 'ơ' {
+            0x10001a1
+        } else {
+            ch as u32
+        };
         unsafe {
             let scratch_keycode = self.find_keycode_to_remap();
             self.remap_scratch_keycode(scratch_keycode, keysym.into());

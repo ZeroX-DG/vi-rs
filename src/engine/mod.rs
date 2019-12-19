@@ -28,6 +28,7 @@ pub enum KeyCap {
     CapsLock
 }
 
+#[derive(Debug, Clone)]
 pub enum Action {
     Insert(char),
     Backspace(usize)
