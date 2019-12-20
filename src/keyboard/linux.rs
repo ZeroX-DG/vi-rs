@@ -53,6 +53,20 @@ impl KeyboardHandler {
             XSync(self.display, 0);
         }
     }
+
+    fn char_to_keysym(&self, ch: char) -> u32 {
+        match ch {
+            'ư' => 0x10001b0,
+            'Ư' => 0x10001af,
+            'ơ' => 0x10001a1,
+            'Ơ' => 0x10001a0,
+            'đ' => keysym::XK_dstroke,
+            'Đ' => keysym::XK_Dstroke,
+            'ă' => keysym::XK_abreve,
+            'Ă' => keysym::XK_Abreve,
+            _ => ch as u32
+        }
+    }
 }
 
 impl Keyboard for KeyboardHandler {
@@ -72,17 +86,7 @@ impl Keyboard for KeyboardHandler {
         }
     }
     fn insert(&self, ch: char) {
-        let keysym = if ch == 'ư' {
-            0x10001b0
-        } else if ch == 'ơ' {
-            0x10001a1
-        } else if ch == 'đ' {
-            keysym::XK_dstroke
-        } else if ch == 'Đ' {
-            keysym::XK_Dstroke
-        } else {
-            ch as u32
-        };
+        let keysym = self.char_to_keysym(ch);
         unsafe {
             let scratch_keycode = self.find_keycode_to_remap();
             self.remap_scratch_keycode(scratch_keycode, keysym.into());
@@ -90,6 +94,8 @@ impl Keyboard for KeyboardHandler {
             XSync(self.display, 1);
             XTestFakeKeyEvent(self.display, scratch_keycode as u32, 0, 0);
             XSync(self.display, 1);
+
+            // TODO: Somehow remap it back to NoSymbol without delaying
             std::thread::sleep(std::time::Duration::from_millis(30));
             self.remap_scratch_keycode(scratch_keycode, xlib::NoSymbol as u64);
         }

@@ -1,12 +1,14 @@
 use super::{PhysicKey, Action, KeyState};
 use super::util;
 use std::collections::HashMap;
+use std::iter::FromIterator;
 
 pub struct Vni {
     buffer: Vec<char>
 }
 
 const TRIGGER_ACUTE: char = '1';
+const TRIGGER_GRAVE: char = '2';
 
 const TRIGGER_CIRCUMFLEX: char = '6';
 const TRIGGER_HORN: char = '7';
@@ -100,13 +102,18 @@ impl Vni {
     }
 
     fn get_vowel_for_accent(&self) -> Option<(char, usize)> {
-        let vowel = None;
         let buffer_len = self.buffer.len();
         let diacritic_chars = ['ê', 'â', 'ô', 'ă', 'ư', 'Ê', 'Â', 'Ô', 'Ă', 'Ư'];
         let pair_with_o_chars = ['a', 'e', 'o', 'y', 'A', 'E', 'O', 'Y'];
-        // position: a e i o u y
-        //           0 1 2 3 4 5
-        let mut min_vowel_position = 0;
+        let mut vowel_positions = HashMap::new();
+        vowel_positions.insert('a', 5);
+        vowel_positions.insert('e', 4);
+        vowel_positions.insert('i', 3);
+        vowel_positions.insert('o', 2);
+        vowel_positions.insert('u', 1);
+        vowel_positions.insert('y', 0);
+        let mut max_vowel_position = -1;
+        let mut max_vowel_index = 0;
         for (idx, ch) in self.buffer.iter().enumerate() {
             let ch_clone = ch.clone();
             let ch_no_accent = util::remove_accents(ch_clone);
@@ -125,18 +132,30 @@ impl Vni {
                     return Some((next_ch, idx + 2));
                 }
             } else {
-                let vowel_position = if ch_no_accent == 'a' {
-                    0
-                } else if ch_no_accent == 'e' {
-                    1
+                let vowel_position = vowel_positions.get(&ch_no_accent);
+                if let Some(position) = vowel_position {
+                    if position > &max_vowel_position {
+                        max_vowel_position = position.clone();
+                        max_vowel_index = idx;
+                    }
                 }
             }
         }
-        vowel
+        if max_vowel_position >= 0 {
+            let ch = self.buffer[max_vowel_index];
+            return Some((ch, max_vowel_index));
+        }
+        None
     }
 
-    fn add_acute(&mut self) -> Vec<Action> {
-        
+    fn add_accent(&mut self, map: Vec<(char, char)>) -> Vec<Action> {
+        let vowel = self.get_vowel_for_accent();
+        if let Some(v) = vowel {
+            let ch = v.0;
+            let index = v.1;
+            let replace_ch = HashMap::<char, char>::from_iter(map)[&ch];
+            return self.replace_char_at(index, replace_ch, true);
+        }
         vec![]
     }
 
@@ -185,7 +204,32 @@ impl Vni {
                     replace_with: ('đ', 'Đ')
                 }
             ]),
-            TRIGGER_ACUTE => self.add_acute(),
+            TRIGGER_ACUTE => self.add_accent(vec![
+                ('a', 'á'),
+                ('ă', 'ắ'),
+                ('â', 'ấ'),
+                ('e', 'é'),
+                ('ê', 'ế'),
+                ('o', 'ó'),
+                ('ô', 'ố'),
+                ('ơ', 'ớ'),
+                ('i', 'í'),
+                ('u', 'ú'),
+                ('ư', 'ứ'),
+            ]),
+            TRIGGER_GRAVE => self.add_accent(vec![
+                ('a', 'à'),
+                ('ă', 'ằ'),
+                ('â', 'ầ'),
+                ('e', 'è'),
+                ('ê', 'ề'),
+                ('o', 'ò'),
+                ('ô', 'ồ'),
+                ('ơ', 'ờ'),
+                ('i', 'ì'),
+                ('u', 'ù'),
+                ('ư', 'ừ'),
+            ]),
             _ => Vec::new()
         }
     }

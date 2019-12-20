@@ -59,7 +59,10 @@ pub fn remove_accents(ch: char) -> char {
         "YỲỶỸÝỴ"
     ];
     for accent in accents {
-        let regex = Regex::new(&format!("[{}]", &accent[1..]));
+        let regex = Regex::new(&format!("[{}]", &accent
+                                        .chars()
+                                        .skip(1)
+                                        .collect::<String>()));
         let replace_char = accent.chars().nth(0).unwrap();
         match regex {
             Ok(re) => {
