@@ -1,5 +1,6 @@
 use super::{PhysicKey, Action, KeyState};
 use super::util;
+use std::collections::HashMap;
 
 pub struct Vni {
     buffer: Vec<char>
@@ -96,6 +97,42 @@ impl Vni {
             }
         }
         steps
+    }
+
+    fn get_vowel_for_accent(&self) -> Option<(char, usize)> {
+        let vowel = None;
+        let buffer_len = self.buffer.len();
+        let diacritic_chars = ['ê', 'â', 'ô', 'ă', 'ư', 'Ê', 'Â', 'Ô', 'Ă', 'Ư'];
+        let pair_with_o_chars = ['a', 'e', 'o', 'y', 'A', 'E', 'O', 'Y'];
+        // position: a e i o u y
+        //           0 1 2 3 4 5
+        let mut min_vowel_position = 0;
+        for (idx, ch) in self.buffer.iter().enumerate() {
+            let ch_clone = ch.clone();
+            let ch_no_accent = util::remove_accents(ch_clone);
+            if ch_no_accent == 'ơ' || ch_no_accent== 'Ơ' {
+                return Some((ch_no_accent, idx));
+            } else if diacritic_chars.contains(&ch_no_accent) {
+                return Some((ch_no_accent, idx));
+            } else if ch_no_accent == 'o' && idx < buffer_len - 1 {
+                let next_ch = self.buffer[idx + 1].clone();
+                if pair_with_o_chars.contains(&next_ch) {
+                    return Some((next_ch, idx + 1));
+                }
+            } else if ch_no_accent == 'g' && idx < buffer_len - 2 {
+                if self.buffer[idx + 1] == 'i' {
+                    let next_ch = self.buffer[idx + 2];
+                    return Some((next_ch, idx + 2));
+                }
+            } else {
+                let vowel_position = if ch_no_accent == 'a' {
+                    0
+                } else if ch_no_accent == 'e' {
+                    1
+                }
+            }
+        }
+        vowel
     }
 
     fn add_acute(&mut self) -> Vec<Action> {
