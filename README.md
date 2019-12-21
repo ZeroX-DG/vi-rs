@@ -25,6 +25,15 @@ Typing method
 - [x] VNI
 - [ ] Telex
 
+## Project status
+
+Currently this is just a prototype and not ready to be used yet, there is a huge amount of bugs to fix but you can still try this for yourself by following this instruction:
+
+1. Clone this repo
+2. Run the code using `cargo run`
+3. Start typing in some window
+4. Profit:)
+
 ## Creator
 
 - Viet Hung Nguyen (viethungax@gmail.com) ([Github](https://github.com/ZeroX-DG))
