@@ -104,6 +104,16 @@ impl Vni {
         steps
     }
 
+    // Get the vowel to put the accent on
+    //
+    // The rule:
+    // - If there's ơ put on top of it
+    // - otherwise if there's anything with diacritic (hat) put on top of it
+    // - otherwise if there's anything go with such as
+    //  - oa oe oo oy then put on top of it
+    // - otherwise if there's gi then put on top of the next char
+    // - otherwise what vowel come first, put it on
+    //  - a e i o u y
     fn get_vowel_for_accent(&self) -> Option<(char, usize)> {
         let buffer_len = self.buffer.len();
         let diacritic_chars = ['ê', 'â', 'ô', 'ă', 'ư', 'Ê', 'Â', 'Ô', 'Ă', 'Ư'];
@@ -117,18 +127,19 @@ impl Vni {
         vowel_positions.insert('y', 0);
         let mut max_vowel_position = -1;
         let mut max_vowel_index = 0;
+        let mut result_vowel = None;
         for (idx, ch) in self.buffer.iter().enumerate() {
             let ch_clone = ch.clone();
             let ch_no_accent = util::remove_accents(ch_clone);
             if ch_no_accent == 'ơ' || ch_no_accent== 'Ơ' {
                 return Some((ch_no_accent, idx));
             } else if diacritic_chars.contains(&ch_no_accent) {
-                return Some((ch_no_accent, idx));
-            } else if ch_no_accent == 'o' && idx < buffer_len - 1 {
-                let next_ch = self.buffer[idx + 1].clone();
-                if pair_with_o_chars.contains(&next_ch) {
-                    return Some((next_ch, idx + 1));
-                }
+                result_vowel = Some((ch_no_accent, idx));
+            } else if ch_no_accent == 'o'
+                && idx < buffer_len - 1
+                && pair_with_o_chars.contains(&self.buffer[idx + 1].clone()) {
+                let next_ch = self.buffer[idx + 1];
+                return Some((next_ch, idx + 1));
             } else if ch_no_accent == 'g' && idx < buffer_len - 2 {
                 if self.buffer[idx + 1] == 'i' {
                     let next_ch = self.buffer[idx + 2];
@@ -148,7 +159,7 @@ impl Vni {
             let ch = self.buffer[max_vowel_index];
             return Some((ch, max_vowel_index));
         }
-        None
+        result_vowel
     }
 
     fn add_accent(&mut self, map: Vec<(char, char)>) -> Vec<Action> {
