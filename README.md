@@ -2,6 +2,10 @@
 
 > A Vietnamese input engine written completely in rust
 
+<p align="center">
+  <img src="assets/demo.png" />
+</p>
+
 ## Yet another input engine?
 
 Yes, yet another input engine. I don't really like the preedit method that ibus is using so this input method used backspace method.
