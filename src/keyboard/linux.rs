@@ -96,7 +96,7 @@ impl Keyboard for KeyboardHandler {
             XSync(self.display, 1);
 
             // TODO: Somehow remap it back to NoSymbol without delaying
-            std::thread::sleep(std::time::Duration::from_millis(30));
+            std::thread::sleep(std::time::Duration::from_millis(20));
             self.remap_scratch_keycode(scratch_keycode, xlib::NoSymbol as u64);
         }
     }

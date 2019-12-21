@@ -155,11 +155,13 @@ impl Vni {
                 }
             }
         }
-        if max_vowel_position >= 0 {
+        if result_vowel != None {
+            return result_vowel
+        } else if max_vowel_position >= 0 {
             let ch = self.buffer[max_vowel_index];
             return Some((ch, max_vowel_index));
         }
-        result_vowel
+        None
     }
 
     fn add_accent(&mut self, map: Vec<(char, char)>) -> Vec<Action> {
