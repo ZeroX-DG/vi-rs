@@ -9,6 +9,9 @@ pub struct Vni {
 
 const TRIGGER_ACUTE: char = '1';
 const TRIGGER_GRAVE: char = '2';
+const TRIGGER_HOOK_ABOVE: char = '3';
+const TRIGGER_TILDE: char = '4';
+const TRIGGER_DOT: char = '5';
 
 const TRIGGER_CIRCUMFLEX: char = '6';
 const TRIGGER_HORN: char = '7';
@@ -229,6 +232,45 @@ impl Vni {
                 ('i', 'ì'),
                 ('u', 'ù'),
                 ('ư', 'ừ'),
+            ]),
+            TRIGGER_HOOK_ABOVE => self.add_accent(vec![
+                ('a', 'ả'),
+                ('ă', 'ẳ'),
+                ('â', 'ẩ'),
+                ('e', 'ẻ'),
+                ('ê', 'ể'),
+                ('o', 'ỏ'),
+                ('ô', 'ổ'),
+                ('ơ', 'ở'),
+                ('i', 'ỉ'),
+                ('u', 'ủ'),
+                ('ư', 'ử'),
+            ]),
+            TRIGGER_TILDE => self.add_accent(vec![
+                ('a', 'ã'),
+                ('ă', 'ẵ'),
+                ('â', 'ẫ'),
+                ('e', 'ẽ'),
+                ('ê', 'ễ'),
+                ('o', 'õ'),
+                ('ô', 'ỗ'),
+                ('ơ', 'ỡ'),
+                ('i', 'ĩ'),
+                ('u', 'ũ'),
+                ('ư', 'ữ'),
+            ]),
+            TRIGGER_DOT => self.add_accent(vec![
+                ('a', 'ạ'),
+                ('ă', 'ặ'),
+                ('â', 'ậ'),
+                ('e', 'ẹ'),
+                ('ê', 'ệ'),
+                ('o', 'ọ'),
+                ('ô', 'ộ'),
+                ('ơ', 'ợ'),
+                ('i', 'ị'),
+                ('u', 'ụ'),
+                ('ư', 'ự'),
             ]),
             _ => Vec::new()
         }
