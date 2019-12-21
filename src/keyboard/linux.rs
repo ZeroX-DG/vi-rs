@@ -64,6 +64,8 @@ impl KeyboardHandler {
             'Đ' => keysym::XK_Dstroke,
             'ă' => keysym::XK_abreve,
             'Ă' => keysym::XK_Abreve,
+            'ĩ' => keysym::XK_itilde,
+            'Ĩ' => keysym::XK_Itilde,
             _ => ch as u32
         }
     }
