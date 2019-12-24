@@ -1,6 +1,7 @@
 mod key_codes;
 mod vni;
 mod util;
+mod character_map;
 
 pub use key_codes::keycodes;
 use vni::Vni;

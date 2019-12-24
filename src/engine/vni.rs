@@ -1,5 +1,5 @@
 use super::{PhysicKey, Action, KeyState};
-use super::util;
+use super::{util, character_map};
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
@@ -125,6 +125,13 @@ impl Vni {
         vowel_positions.insert('o', 2);
         vowel_positions.insert('u', 1);
         vowel_positions.insert('y', 0);
+
+        vowel_positions.insert('A', 5);
+        vowel_positions.insert('E', 4);
+        vowel_positions.insert('I', 3);
+        vowel_positions.insert('O', 2);
+        vowel_positions.insert('U', 1);
+        vowel_positions.insert('Y', 0);
         let mut max_vowel_position = -1;
         let mut max_vowel_index = 0;
         let mut result_vowel = None;
@@ -220,71 +227,11 @@ impl Vni {
                     replace_with: ('đ', 'Đ')
                 }
             ]),
-            TRIGGER_ACUTE => self.add_accent(vec![
-                ('a', 'á'),
-                ('ă', 'ắ'),
-                ('â', 'ấ'),
-                ('e', 'é'),
-                ('ê', 'ế'),
-                ('o', 'ó'),
-                ('ô', 'ố'),
-                ('ơ', 'ớ'),
-                ('i', 'í'),
-                ('u', 'ú'),
-                ('ư', 'ứ'),
-            ]),
-            TRIGGER_GRAVE => self.add_accent(vec![
-                ('a', 'à'),
-                ('ă', 'ằ'),
-                ('â', 'ầ'),
-                ('e', 'è'),
-                ('ê', 'ề'),
-                ('o', 'ò'),
-                ('ô', 'ồ'),
-                ('ơ', 'ờ'),
-                ('i', 'ì'),
-                ('u', 'ù'),
-                ('ư', 'ừ'),
-            ]),
-            TRIGGER_HOOK_ABOVE => self.add_accent(vec![
-                ('a', 'ả'),
-                ('ă', 'ẳ'),
-                ('â', 'ẩ'),
-                ('e', 'ẻ'),
-                ('ê', 'ể'),
-                ('o', 'ỏ'),
-                ('ô', 'ổ'),
-                ('ơ', 'ở'),
-                ('i', 'ỉ'),
-                ('u', 'ủ'),
-                ('ư', 'ử'),
-            ]),
-            TRIGGER_TILDE => self.add_accent(vec![
-                ('a', 'ã'),
-                ('ă', 'ẵ'),
-                ('â', 'ẫ'),
-                ('e', 'ẽ'),
-                ('ê', 'ễ'),
-                ('o', 'õ'),
-                ('ô', 'ỗ'),
-                ('ơ', 'ỡ'),
-                ('i', 'ĩ'),
-                ('u', 'ũ'),
-                ('ư', 'ữ'),
-            ]),
-            TRIGGER_DOT => self.add_accent(vec![
-                ('a', 'ạ'),
-                ('ă', 'ặ'),
-                ('â', 'ậ'),
-                ('e', 'ẹ'),
-                ('ê', 'ệ'),
-                ('o', 'ọ'),
-                ('ô', 'ộ'),
-                ('ơ', 'ợ'),
-                ('i', 'ị'),
-                ('u', 'ụ'),
-                ('ư', 'ự'),
-            ]),
+            TRIGGER_ACUTE => self.add_accent(character_map::ACUTE_MAP),
+            TRIGGER_GRAVE => self.add_accent(character_map::GRAVE_MAP),
+            TRIGGER_HOOK_ABOVE => self.add_accent(character_map::HOOK_ABOVE_MAP),
+            TRIGGER_TILDE => self.add_accent(character_map::TILDE_MAP),
+            TRIGGER_DOT => self.add_accent(character_map::DOT_MAP),
             _ => Vec::new()
         }
     }
