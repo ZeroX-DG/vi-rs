@@ -42,7 +42,7 @@ impl KeyboardHandler {
 
     fn remap_scratch_keycode(&self, scratch_keycode: i32, keysym: u64) {
         unsafe {
-            let mut keysyms = [keysym, keysym];
+            let mut keysyms = [keysym];
             XChangeKeyboardMapping(
                 self.display,
                 scratch_keycode,

@@ -1,4 +1,4 @@
-pub const DOT_MAP: Vec<(char, char)> = vec![
+pub const DOT_MAP: [(char, char); 24] = [
     ('a', 'ạ'),
     ('ă', 'ặ'),
     ('â', 'ậ'),
@@ -25,7 +25,7 @@ pub const DOT_MAP: Vec<(char, char)> = vec![
     ('Y', 'Ỵ'),
 ];
 
-pub const TILDE_MAP: Vec<(char, char)> = vec![
+pub const TILDE_MAP: [(char, char); 24] = [
     ('a', 'ã'),
     ('ă', 'ẵ'),
     ('â', 'ẫ'),
@@ -52,7 +52,7 @@ pub const TILDE_MAP: Vec<(char, char)> = vec![
     ('Y', 'Ỹ'),
 ];
 
-pub const HOOK_ABOVE_MAP: Vec<(char, char)> = vec![
+pub const HOOK_ABOVE_MAP: [(char, char); 24] = [
     ('a', 'ả'),
     ('ă', 'ẳ'),
     ('â', 'ẩ'),
@@ -79,7 +79,7 @@ pub const HOOK_ABOVE_MAP: Vec<(char, char)> = vec![
     ('Y', 'Ỷ'),
 ];
 
-pub const GRAVE_MAP: Vec<(char, char)> = vec![
+pub const GRAVE_MAP: [(char, char); 24] = [
     ('a', 'à'),
     ('ă', 'ằ'),
     ('â', 'ầ'),
@@ -106,7 +106,7 @@ pub const GRAVE_MAP: Vec<(char, char)> = vec![
     ('Y', 'Ỳ'),
 ];
 
-pub const ACUTE_MAP: Vec<(char, char)> = vec![
+pub const ACUTE_MAP: [(char, char); 24] = [
     ('a', 'á'),
     ('ă', 'ắ'),
     ('â', 'ấ'),

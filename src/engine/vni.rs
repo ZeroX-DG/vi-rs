@@ -171,12 +171,13 @@ impl Vni {
         None
     }
 
-    fn add_accent(&mut self, map: Vec<(char, char)>) -> Vec<Action> {
+    fn add_accent(&mut self, map: [(char, char); 24]) -> Vec<Action> {
         let vowel = self.get_vowel_for_accent();
         if let Some(v) = vowel {
             let ch = v.0;
             let index = v.1;
-            let replace_ch = HashMap::<char, char>::from_iter(map)[&ch];
+            let iter = map.iter().map(|x| x.clone());
+            let replace_ch = HashMap::<char, char>::from_iter(iter)[&ch];
             return self.replace_char_at(index, replace_ch, true);
         }
         vec![]
