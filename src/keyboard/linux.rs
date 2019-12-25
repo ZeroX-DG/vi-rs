@@ -6,7 +6,7 @@ use x11::xlib::{
     XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent, XSync,
     KeyPressMask, FocusChangeMask, KeyReleaseMask,
     XSelectInput, XGetInputFocus, XGetKeyboardMapping, XKeysymToKeycode, XFree,
-    XDisplayKeycodes, XChangeKeyboardMapping, CurrentTime
+    XDisplayKeycodes, XChangeKeyboardMapping, CurrentTime, XFlush
 };
 use x11::xtest::{XTestFakeKeyEvent};
 use x11::keysym;
@@ -82,8 +82,10 @@ impl Keyboard for KeyboardHandler {
                 XTestFakeKeyEvent(self.display, keycode.into(), 1, CurrentTime);
                 // prevent XNextEvent to catch this fake key
                 XSync(self.display, 1); 
+                XFlush(self.display);
                 XTestFakeKeyEvent(self.display, keycode.into(), 0, CurrentTime);
                 XSync(self.display, 1);
+                XFlush(self.display);
             }
         }
     }
@@ -98,13 +100,10 @@ impl Keyboard for KeyboardHandler {
             }
             XTestFakeKeyEvent(self.display, keycode as u32, 1, CurrentTime);
             XSync(self.display, 1);
+            XFlush(self.display);
             XTestFakeKeyEvent(self.display, keycode as u32, 0, CurrentTime);
             XSync(self.display, 1);
-            if need_remap {
-                // TODO: Somehow remap it back to NoSymbol without delaying
-                std::thread::sleep(std::time::Duration::from_millis(30));
-                self.remap_scratch_keycode(keycode, xlib::NoSymbol as u64);
-            }
+            XFlush(self.display);
         }
     }
     fn wait_for_key(&mut self) -> PhysicKey {
