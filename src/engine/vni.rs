@@ -21,7 +21,7 @@ const TRIGGER_CROSSED_D: char = '9';
 struct DiacriticMatch {
     pub ch: char,
     pub pair_with: Vec<char>,
-    pub replace_with: (char, char) // lowercase && uppercase
+    pub replace_with: (char, char), // lowercase && uppercase
 }
 
 impl Vni {
@@ -32,7 +32,7 @@ impl Vni {
     }
 
     fn replace_char_at(&mut self, index: usize, ch: char, is_first_edit: bool)
-        -> Vec<Action> {
+                       -> Vec<Action> {
         let buffer_len = self.buffer.len();
         let mut backspace_amount = buffer_len - index;
         if is_first_edit {
@@ -42,7 +42,7 @@ impl Vni {
             .iter()
             .skip(index + 1)
             .take(backspace_amount)
-            .map(|c| c.clone())
+            .copied()
             .collect::<Vec<char>>();
         let mut steps: Vec<Action> = vec![
             Action::Backspace(backspace_amount),
@@ -70,7 +70,7 @@ impl Vni {
         let mut is_first_match = true;
         for i in 0..buffer_len {
             let ch = self.buffer[i];
-            let next_ch = if i == buffer_len - 1 {
+            let next_ch = if i + 1 == buffer_len {
                 self.buffer[i]
             } else {
                 self.buffer[i + 1]
@@ -82,8 +82,7 @@ impl Vni {
                         next_ch.to_ascii_lowercase()
                     );
                     if diacritic_match.pair_with.contains(next_ch_lower)
-                        || i == buffer_len - 1 {
-                        
+                        || i + 1 == buffer_len {
                         let replace_char = if ch.is_ascii_uppercase() {
                             diacritic_match.replace_with.1
                         } else {
@@ -135,35 +134,34 @@ impl Vni {
         let mut max_vowel_position = -1;
         let mut max_vowel_index = 0;
         let mut result_vowel = None;
-        for (idx, ch) in self.buffer.iter().enumerate() {
-            let ch_clone = ch.clone();
-            let ch_no_accent = util::remove_accents(ch_clone);
-            if ch_no_accent == 'ơ' || ch_no_accent== 'Ơ' {
+        for (idx, &ch) in self.buffer.iter().enumerate() {
+            let ch_no_accent = util::remove_accents(ch);
+            if ch_no_accent == 'ơ' || ch_no_accent == 'Ơ' {
                 return Some((ch_no_accent, idx));
             } else if diacritic_chars.contains(&ch_no_accent) {
                 result_vowel = Some((ch_no_accent, idx));
             } else if ch_no_accent == 'o'
-                && idx < buffer_len - 1
+                && idx + 1 < buffer_len
                 && pair_with_o_chars.contains(&self.buffer[idx + 1].clone()) {
                 let next_ch = self.buffer[idx + 1];
                 return Some((next_ch, idx + 1));
-            } else if ch_no_accent == 'g' && idx < buffer_len - 2 {
+            } else if ch_no_accent == 'g' && idx + 2 < buffer_len {
                 if self.buffer[idx + 1] == 'i' {
                     let next_ch = self.buffer[idx + 2];
                     return Some((next_ch, idx + 2));
                 }
             } else {
                 let vowel_position = vowel_positions.get(&ch_no_accent);
-                if let Some(position) = vowel_position {
-                    if position > &max_vowel_position {
-                        max_vowel_position = position.clone();
+                if let Some(&position) = vowel_position {
+                    if position > max_vowel_position {
+                        max_vowel_position = position;
                         max_vowel_index = idx;
                     }
                 }
             }
         }
         if result_vowel != None {
-            return result_vowel
+            return result_vowel;
         } else if max_vowel_position >= 0 {
             let ch = self.buffer[max_vowel_index];
             return Some((ch, max_vowel_index));
@@ -176,7 +174,7 @@ impl Vni {
         if let Some(v) = vowel {
             let ch = v.0;
             let index = v.1;
-            let iter = map.iter().map(|x| x.clone());
+            let iter = map.iter().copied();
             let replace_ch = HashMap::<char, char>::from_iter(iter)[&ch];
             return self.replace_char_at(index, replace_ch, true);
         }
@@ -189,43 +187,43 @@ impl Vni {
                 DiacriticMatch {
                     ch: 'a',
                     pair_with: vec!['u', 'n', 'm', 'p', 't', 'c', 'y'],
-                    replace_with: ('â', 'Â')
+                    replace_with: ('â', 'Â'),
                 },
                 DiacriticMatch {
                     ch: 'e',
                     pair_with: vec!['u', 'n', 'm', 'p', 't', 'c', 'y'],
-                    replace_with: ('ê', 'Ê')
+                    replace_with: ('ê', 'Ê'),
                 },
                 DiacriticMatch {
                     ch: 'o',
                     pair_with: vec!['i', 'n', 'm', 'p', 't', 'c', 'y'],
-                    replace_with: ('ô', 'Ô')
+                    replace_with: ('ô', 'Ô'),
                 }
             ]),
             TRIGGER_HORN => self.add_diacritic(vec![
                 DiacriticMatch {
                     ch: 'u',
                     pair_with: vec!['o', 'i', 'n', 'm', 'a', 'p', 't', 'c'],
-                    replace_with: ('ư', 'Ư')
+                    replace_with: ('ư', 'Ư'),
                 },
                 DiacriticMatch {
                     ch: 'o',
                     pair_with: vec!['i', 'n', 'm', 'p', 't', 'c', 'y'],
-                    replace_with: ('ơ', 'Ơ')
+                    replace_with: ('ơ', 'Ơ'),
                 }
             ]),
             TRIGGER_BREVE => self.add_diacritic(vec![
                 DiacriticMatch {
                     ch: 'a',
                     pair_with: vec!['p', 'n', 'm', 't', 'c'],
-                    replace_with: ('ă', 'Ă')
+                    replace_with: ('ă', 'Ă'),
                 }
             ]),
             TRIGGER_CROSSED_D => self.add_diacritic(vec![
                 DiacriticMatch {
                     ch: 'd',
                     pair_with: vec!['a', 'c', 'e', 'i', 'm', 'n', 'o', 'p', 't', 'u', 'y'],
-                    replace_with: ('đ', 'Đ')
+                    replace_with: ('đ', 'Đ'),
                 }
             ]),
             TRIGGER_ACUTE => self.add_accent(character_map::ACUTE_MAP),
@@ -240,30 +238,26 @@ impl Vni {
     pub fn handle_key(&mut self, key: PhysicKey) -> Vec<Action> {
         let mut ch: char = key.clone().into();
         let mut actions: Vec<Action> = Vec::new();
-        match key.state {
-            KeyState::KeyPress => {
-                let mut clear_buffer = false;
-                if key.is_arrow() || key.is_whitespace() {
-                    clear_buffer = true;
-                } else if key.is_backspace() {
-                    self.buffer.pop();
-                } else {
-                    ch = match key.cap {
-                        Some(_) => ch.to_ascii_uppercase(),
-                        None => ch
-                    };
-                    actions = self.handle_normal_char(ch);
-                }
-                if clear_buffer {
-                    self.buffer.clear();
-                } else {
-                    if ch != '\0' && actions.is_empty() {
-                        self.buffer.push(ch);
-                    }
-                }
-                println!("{:?}", self.buffer);
+        if let KeyState::KeyPress = key.state {
+            let mut clear_buffer = false;
+            if key.is_arrow() || key.is_whitespace() {
+                clear_buffer = true;
+            } else if key.is_backspace() {
+                self.buffer.pop();
+            } else {
+                ch = match key.cap {
+                    Some(_) => ch.to_ascii_uppercase(),
+                    None => ch
+                };
+                actions = self.handle_normal_char(ch);
             }
-            _ => {}
+            if clear_buffer {
+                self.buffer.clear();
+            } else if ch != '\0' && actions.is_empty() {
+                self.buffer.push(ch);
+            }
+
+            println!("{:?}", self.buffer);
         }
         actions
     }

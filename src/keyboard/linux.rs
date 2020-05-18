@@ -46,7 +46,7 @@ impl KeyboardHandler {
                 current_key_code += 1;
             }
         }
-        return min_key_code
+        min_key_code
     }
 
     fn remap_scratch_keycode(&self, scratch_keycode: i32, keysym: u64) {

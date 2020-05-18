@@ -18,14 +18,11 @@ pub fn clean_char(ch: char) -> char {
     ];
     for accent in accents {
         let regex = Regex::new(&format!("[{}]", &accent[1..]));
-        let replace_char = accent.chars().nth(0).unwrap();
-        match regex {
-            Ok(re) => {
-                if re.is_match(&ch.to_string()) {
-                    return replace_char;
-                }
-            },
-            Err(_) => {}
+        let replace_char = accent.chars().next().unwrap();
+        if let Ok(re) = regex {
+            if re.is_match(&ch.to_string()) {
+                return replace_char;
+            }
         }
     }
     ch
@@ -63,14 +60,11 @@ pub fn remove_accents(ch: char) -> char {
                                         .chars()
                                         .skip(1)
                                         .collect::<String>()));
-        let replace_char = accent.chars().nth(0).unwrap();
-        match regex {
-            Ok(re) => {
-                if re.is_match(&ch.to_string()) {
-                    return replace_char;
-                }
-            },
-            Err(_) => {}
+        let replace_char = accent.chars().next().unwrap();
+        if let Ok(re) = regex {
+            if re.is_match(&ch.to_string()) {
+                return replace_char;
+            }
         }
     }
     ch
