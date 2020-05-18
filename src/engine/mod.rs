@@ -31,7 +31,7 @@ pub enum KeyCap {
 
 #[derive(Debug, Clone)]
 pub enum Action {
-    Insert(char),
+    Insert(String),
     Backspace(usize)
 }
 

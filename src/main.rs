@@ -16,7 +16,7 @@ fn main() {
         }
         for instruction in instructions {
             match instruction {
-                Action::Insert(ch) => keyboard.insert(ch),
+                Action::Insert(text) => keyboard.insert(text),
                 Action::Backspace(amount) => keyboard.backspace(amount),
             }
         }

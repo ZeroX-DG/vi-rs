@@ -43,14 +43,11 @@ impl Vni {
             .skip(index + 1)
             .take(backspace_amount)
             .copied()
-            .collect::<Vec<char>>();
+            .collect::<String>();
         let mut steps: Vec<Action> = vec![
             Action::Backspace(backspace_amount),
-            Action::Insert(ch),
         ];
-        for deleted_char in deleted_chars {
-            steps.push(Action::Insert(deleted_char));
-        }
+        steps.push(Action::Insert(format!("{}{}", ch, deleted_chars)));
         steps
     }
 
@@ -256,8 +253,7 @@ impl Vni {
             } else if ch != '\0' && actions.is_empty() {
                 self.buffer.push(ch);
             }
-
-            println!("{:?}", self.buffer);
+            println!("Buffer: {}", self.buffer.iter().collect::<String>())
         }
         actions
     }

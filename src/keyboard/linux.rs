@@ -2,7 +2,7 @@ use super::{Keyboard};
 use crate::engine::{PhysicKey, KeyState, KeyCap};
 use x11::xlib::{
     self as xlib,
-    Display, XOpenDisplay, XDefaultRootWindow, XCloseDisplay,
+    Display, XOpenDisplay, XDefaultRootWindow,
     XEvent, XKeyEvent, XNextEvent, XEventsQueued, XPeekEvent, XSync, XFree,
     KeyPressMask, FocusChangeMask, KeyReleaseMask,
     XSelectInput, XGetInputFocus, XGetKeyboardMapping, XKeysymToKeycode, XKeycodeToKeysym,
@@ -175,45 +175,46 @@ impl Keyboard for KeyboardHandler {
             );
             for _ in 0..amount {
                 XTestFakeKeyEvent(self.display, keycode.into(), 1, CurrentTime);
-                // prevent XNextEvent to catch this fake key
-                XSync(self.display, 1); 
-                XFlush(self.display);
                 XTestFakeKeyEvent(self.display, keycode.into(), 0, CurrentTime);
                 XSync(self.display, 1);
-                XFlush(self.display);
             }
+            XFlush(self.display);
         }
     }
-    fn insert(&self, ch: char) {
-        let keysym = self.char_to_keysym(ch);
+    fn insert(&self, text: String) {
+        let scratch_keycode = self.find_keycode_to_remap();
+        let mut keymap_changed = false;
+        for ch in text.chars() {
+            let keysym = self.char_to_keysym(ch);
+            unsafe {
+                let mut keycode: i32 = XKeysymToKeycode(self.display, keysym.into()) as i32;
+                let need_remap = keycode > 255 || keycode < 8;
+                if need_remap {
+                    self.remap_scratch_keycode(scratch_keycode, keysym.into());
+                    keycode = scratch_keycode;
+                    keymap_changed = true;
+                }
+                XTestFakeKeyEvent(self.display, keycode as u32, 1, CurrentTime);
+                XTestFakeKeyEvent(self.display, keycode as u32, 0, CurrentTime);
+                XSync(self.display, 1);
+                if need_remap {
+                    XSync(self.display, 0);
+                }
+            }
+        }
+        if keymap_changed {
+            unsafe {
+                XChangeKeyboardMapping(
+                    self.display,
+                    scratch_keycode,
+                    1,
+                    [xlib::NoSymbol as u64].as_mut_ptr(),
+                    1
+                );
+            }
+        }
         unsafe {
-            let mut keycode: i32 = XKeysymToKeycode(self.display, keysym.into()) as i32;
-            let need_remap = keycode > 255 || keycode < 8;
-            if need_remap {
-                keycode = self.find_keycode_to_remap();
-                self.remap_scratch_keycode(keycode, keysym.into());
-            }
-            XTestFakeKeyEvent(self.display, keycode as u32, 1, CurrentTime);
-            XSync(self.display, 1);
             XFlush(self.display);
-            XTestFakeKeyEvent(self.display, keycode as u32, 0, CurrentTime);
-            XSync(self.display, 1);
-            XFlush(self.display);
-            if need_remap {
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                    let display = XOpenDisplay(std::ptr::null());
-                    XChangeKeyboardMapping(
-                        display,
-                        keycode,
-                        1,
-                        &mut (xlib::NoSymbol as u64),
-                        1
-                    );
-                    XSync(display, 0);
-                    XCloseDisplay(display);
-                });
-            }
         }
     }
     fn wait_for_key(&mut self) -> PhysicKey {

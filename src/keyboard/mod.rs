@@ -8,7 +8,7 @@ use linux::KeyboardHandler;
 
 pub trait Keyboard {
     fn backspace(&self, amount: usize);
-    fn insert(&self, ch: char);
+    fn insert(&self, text: String);
     fn wait_for_key(&mut self) -> PhysicKey;
 }
 
