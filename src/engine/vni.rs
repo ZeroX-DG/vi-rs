@@ -63,7 +63,12 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
                 content = modify_letter(&content, modification);
             }
             Action::RemoveTone => {
-                content = remove_tone(&content);
+                let new_content = remove_tone(&content);
+                if new_content == content {
+                    content.push('0');
+                } else {
+                    content = new_content;
+                }
             }
         }
     }
@@ -120,6 +125,14 @@ mod tests {
         let input: Vec<char> = vec!['c', 'h', 'e', 't', '6', '1', '0', '0'];
         let result = transform_buffer(&input);
         let expected = "chet".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn remove_tone_exceed() {
+        let input: Vec<char> = vec!['v', 'i', 't', '5', '0', '0'];
+        let result = transform_buffer(&input);
+        let expected = "vit0".to_string();
         assert_eq!(result, expected);
     }
 }

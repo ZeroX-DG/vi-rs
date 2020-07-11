@@ -197,7 +197,6 @@ pub fn remove_tone(input: &String) -> String {
         .map(remove_tone_mark)
         .collect();
     if new_input == *input {
-        // TODO: if all things are clean, append 0 at end instead
         return new_input.chars().map(clean_char).collect();
     }
     return new_input
