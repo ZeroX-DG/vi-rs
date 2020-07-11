@@ -59,10 +59,12 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
                     content = new_content;
                 }
             }
+            Action::ModifyLetter(modification) => {
+                content = modify_letter(&content, modification);
+            }
             Action::RemoveTone => {
                 content = remove_tone(&content);
             }
-            _ => {}
         }
     }
 

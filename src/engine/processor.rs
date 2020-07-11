@@ -1,5 +1,8 @@
 use super::util::{remove_tone_mark, clean_char};
-use super::maps::{ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP};
+use super::maps::{
+    ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP,
+    CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP, BREVE_MAP
+};
 
 const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
 const MODIFIED_VOWELS: [char; 6] = ['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
@@ -173,21 +176,19 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
 }
 
 pub fn modify_letter(input: &String, modification: LetterModification) -> String {
-    match modification {
-        LetterModification::Horn => {
-
-        }
-        LetterModification::Breve => {
-
-        }
-        LetterModification::Circumflex => {
-
-        }
-        LetterModification::Dyet => {
-
+    let map = match modification {
+        LetterModification::Horn => &HORN_MAP,
+        LetterModification::Breve => &BREVE_MAP,
+        LetterModification::Circumflex => &CIRCUMFLEX_MAP,
+        LetterModification::Dyet => &DYET_MAP
+    };
+    let mut result = input.clone();
+    for (index, ch) in input.clone().chars().enumerate() {
+        if map.contains_key(&ch) {
+            result = replace_char_at(&result, index, map[&ch]);
         }
     }
-    input.clone()
+    result
 }
 
 pub fn remove_tone(input: &String) -> String {
@@ -196,9 +197,9 @@ pub fn remove_tone(input: &String) -> String {
         .map(remove_tone_mark)
         .collect();
     if new_input == *input {
+        // TODO: if all things are clean, append 0 at end instead
         return new_input.chars().map(clean_char).collect();
     }
-    println!("{}", input);
     return new_input
 }
 

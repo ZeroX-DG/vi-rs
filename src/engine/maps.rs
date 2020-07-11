@@ -140,3 +140,29 @@ pub static DOT_MAP: Map<char, char> = phf_map! {
     'Ư' => 'Ự',
     'Y' => 'Ỵ',
 };      
+
+pub static CIRCUMFLEX_MAP: Map<char, char> = phf_map! {
+    'a' => 'â',
+    'e' => 'ê',
+    'o' => 'ô',
+    'A' => 'Â',
+    'E' => 'Ê',
+    'O' => 'Ô',
+};
+
+pub static DYET_MAP: Map<char, char> = phf_map! {
+    'd' => 'đ',
+    'D' => 'Đ',
+};
+
+pub static HORN_MAP: Map<char, char> = phf_map! {
+    'u' => 'ư',
+    'o' => 'ơ',
+    'U' => 'Ư',
+    'O' => 'Ơ'
+};
+
+pub static BREVE_MAP: Map<char, char> = phf_map! {
+    'a' => 'ă',
+    'A' => 'Ă',
+};
