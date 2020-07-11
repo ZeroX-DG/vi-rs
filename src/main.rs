@@ -1,24 +1,8 @@
 mod engine;
 mod keyboard;
 
-use keyboard::get_keyboard;
-
-use engine::{Engine, Action};
+use engine::Engine;
 
 fn main() {
-    let mut keyboard = get_keyboard();
-    let mut engine = Engine::new();
-    loop {
-        let key = keyboard.wait_for_key();
-        let instructions = engine.handle_key(key);
-        if !instructions.is_empty() {
-            println!("{:?}", instructions);
-        }
-        for instruction in instructions {
-            match instruction {
-                Action::Insert(text) => keyboard.insert(text),
-                Action::Backspace(amount) => keyboard.backspace(amount),
-            }
-        }
-    }
+    let engine = Engine::new();
 }
