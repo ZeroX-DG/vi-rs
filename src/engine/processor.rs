@@ -1,3 +1,6 @@
+use super::util::remove_tone_mark;
+use super::maps::{ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP};
+
 const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
 const MODIFIED_VOWELS: [char; 6] = ['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
 
@@ -143,93 +146,23 @@ fn replace_char_at(input: &String, index: usize, ch: char) -> String {
 pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
     let tone_mark_pos_result = get_tone_mark_placement(input.clone());
     if let Some(tone_mark_pos) = tone_mark_pos_result {
-        let tone_mark_ch = input.chars().nth(tone_mark_pos).unwrap();
-        let replace_char = match tone_mark {
-            ToneMark::Acute => {
-                match tone_mark_ch {
-                    'a' => 'á',
-                    'â' => 'ấ',
-                    'ă' => 'ắ',
-                    'e' => 'é',
-                    'ê' => 'ế',
-                    'i' => 'í',
-                    'o' => 'ó',
-                    'ô' => 'ố',
-                    'ơ' => 'ớ',
-                    'u' => 'ú',
-                    'ư' => 'ứ',
-                    'y' => 'ý',
-                    _ => tone_mark_ch
-                }
-            }
-            ToneMark::Grave => {
-                match tone_mark_ch {
-                    'a' => 'à',
-                    'â' => 'ầ',
-                    'ă' => 'ằ',
-                    'e' => 'è',
-                    'ê' => 'ề',
-                    'i' => 'ì',
-                    'o' => 'ò',
-                    'ô' => 'ồ',
-                    'ơ' => 'ờ',
-                    'u' => 'ù',
-                    'ư' => 'ừ',
-                    'y' => 'ỳ',
-                    _ => tone_mark_ch
-                }
-            }
-            ToneMark::HookAbove => {
-                match tone_mark_ch {
-                    'a' => 'ả',
-                    'â' => 'ẩ',
-                    'ă' => 'ẳ',
-                    'e' => 'ẻ',
-                    'ê' => 'ể',
-                    'i' => 'ỉ',
-                    'o' => 'ỏ',
-                    'ô' => 'ổ',
-                    'ơ' => 'ở',
-                    'u' => 'ủ',
-                    'ư' => 'ử',
-                    'y' => 'ỷ',
-                    _ => tone_mark_ch
-                }
-            }
-            ToneMark::Tilde => {
-                match tone_mark_ch {
-                    'a' => 'ã',
-                    'â' => 'ẫ',
-                    'ă' => 'ẵ',
-                    'e' => 'ẽ',
-                    'ê' => 'ễ',
-                    'i' => 'ĩ',
-                    'o' => 'õ',
-                    'ô' => 'ỗ',
-                    'ơ' => 'ỡ',
-                    'u' => 'ũ',
-                    'ư' => 'ữ',
-                    'y' => 'ỹ',
-                    _ => tone_mark_ch
-                }
-            }
-            ToneMark::Underdot => {
-                match tone_mark_ch {
-                    'a' => 'ạ',
-                    'â' => 'ậ',
-                    'ă' => 'ặ',
-                    'e' => 'ẹ',
-                    'ê' => 'ệ',
-                    'i' => 'ị',
-                    'o' => 'ọ',
-                    'ô' => 'ộ',
-                    'ơ' => 'ợ',
-                    'u' => 'ụ',
-                    'ư' => 'ự',
-                    'y' => 'ỵ',
-                    _ => tone_mark_ch
-                }
-            }
+        let tone_mark_ch = remove_tone_mark(
+            input
+                .chars()
+                .nth(tone_mark_pos)
+                .unwrap()
+        );
+        let tone_mark_map = match tone_mark {
+            ToneMark::Acute => &ACCUTE_MAP,
+            ToneMark::Grave => &GRAVE_MAP,
+            ToneMark::HookAbove => &HOOK_ABOVE_MAP,
+            ToneMark::Tilde => &TILDE_MAP,
+            ToneMark::Underdot => &DOT_MAP
+        };
+        let replace_char: char = if tone_mark_map.contains_key(&tone_mark_ch) {
+            tone_mark_map[&tone_mark_ch]
+        } else {
+            tone_mark_ch
         };
         return replace_char_at(input, tone_mark_pos, replace_char);
     }
