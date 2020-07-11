@@ -48,16 +48,19 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
                 let new_content = add_tone(&content, &tone_mark);
                 if new_content == content {
                     let trigger_ch = match tone_mark {
-                        ToneMark::Acute => '1',
-                        ToneMark::Grave => '2',
+                        ToneMark::Acute     => '1',
+                        ToneMark::Grave     => '2',
                         ToneMark::HookAbove => '3',
-                        ToneMark::Tilde => '4',
-                        ToneMark::Underdot => '5'
+                        ToneMark::Tilde     => '4',
+                        ToneMark::Underdot  => '5'
                     };
                     content.push(trigger_ch);
                 } else {
                     content = new_content;
                 }
+            }
+            Action::RemoveTone => {
+                content = remove_tone(&content);
             }
             _ => {}
         }
@@ -91,6 +94,30 @@ mod tests {
         let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2'];
         let result = transform_buffer(&input);
         let expected = "hoàng".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn add_tone_double_edit() {
+        let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2', '3'];
+        let result = transform_buffer(&input);
+        let expected = "hoảng".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn remove_tone_single() {
+        let input: Vec<char> = vec!['l', 'u', 'a', 't', '6', '5', '0'];
+        let result = transform_buffer(&input);
+        let expected = "luât".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn remove_tone_double() {
+        let input: Vec<char> = vec!['c', 'h', 'e', 't', '6', '1', '0', '0'];
+        let result = transform_buffer(&input);
+        let expected = "chet".to_string();
         assert_eq!(result, expected);
     }
 }

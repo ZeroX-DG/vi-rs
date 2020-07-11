@@ -1,4 +1,4 @@
-use super::util::remove_tone_mark;
+use super::util::{remove_tone_mark, clean_char};
 use super::maps::{ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP};
 
 const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
@@ -86,8 +86,9 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
 /// on modifed letter
 /// 4. If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
 /// second vowel
-/// 5. Else, but tone mark on whatever vowel comes first
-fn get_tone_mark_placement(input: String) -> Option<usize> {
+/// 5. If a word end with 2 or 3 vowel, put it on the second last one
+/// 6. Else, but tone mark on whatever vowel comes first
+fn get_tone_mark_placement(input: &String) -> Option<usize> {
     if let Some((mid_index, word_mid)) = get_word_mid(input.clone()) {
         let is_end_with_mid = input.len() == mid_index + word_mid.len();
         if word_mid.len() == 1 { // single vowel
@@ -144,14 +145,16 @@ fn replace_char_at(input: &String, index: usize, ch: char) -> String {
 
 /// Add tone mark to input
 pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
-    let tone_mark_pos_result = get_tone_mark_placement(input.clone());
+    let clean_input = input.clone()
+        .chars()
+        .map(remove_tone_mark)
+        .collect::<String>();
+    let tone_mark_pos_result = get_tone_mark_placement(&clean_input);
     if let Some(tone_mark_pos) = tone_mark_pos_result {
-        let tone_mark_ch = remove_tone_mark(
-            input
-                .chars()
-                .nth(tone_mark_pos)
-                .unwrap()
-        );
+        let tone_mark_ch = clean_input
+            .chars()
+            .nth(tone_mark_pos)
+            .unwrap();
         let tone_mark_map = match tone_mark {
             ToneMark::Acute => &ACCUTE_MAP,
             ToneMark::Grave => &GRAVE_MAP,
@@ -164,17 +167,39 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
         } else {
             tone_mark_ch
         };
-        return replace_char_at(input, tone_mark_pos, replace_char);
+        return replace_char_at(&clean_input, tone_mark_pos, replace_char);
     }
     input.clone()
 }
 
-pub fn modify_letter(content: &mut String, modification: LetterModification) {
+pub fn modify_letter(input: &String, modification: LetterModification) -> String {
+    match modification {
+        LetterModification::Horn => {
 
+        }
+        LetterModification::Breve => {
+
+        }
+        LetterModification::Circumflex => {
+
+        }
+        LetterModification::Dyet => {
+
+        }
+    }
+    input.clone()
 }
 
-pub fn remove_tone(content: &mut String) {
-
+pub fn remove_tone(input: &String) -> String {
+    let new_input: String = input.clone()
+        .chars()
+        .map(remove_tone_mark)
+        .collect();
+    if new_input == *input {
+        return new_input.chars().map(clean_char).collect();
+    }
+    println!("{}", input);
+    return new_input
 }
 
 #[cfg(test)]
@@ -204,21 +229,21 @@ mod tests {
 
     #[test]
     fn get_tone_mark_placement_normal() {
-        let result = get_tone_mark_placement("choe".to_owned());
+        let result = get_tone_mark_placement(&"choe".to_owned());
         let expected: Option<usize> = Some(3);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_special() {
-        let result = get_tone_mark_placement("chieu".to_owned());
+        let result = get_tone_mark_placement(&"chieu".to_owned());
         let expected: Option<usize> = Some(3);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_mid_not_end() {
-        let result = get_tone_mark_placement("hoang".to_owned());
+        let result = get_tone_mark_placement(&"hoang".to_owned());
         let expected: Option<usize> = Some(2);
         assert_eq!(result, expected);
     }
