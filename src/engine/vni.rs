@@ -45,7 +45,19 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
     for action in actions {
         match action {
             Action::AddTone(tone_mark) => {
-                content = add_tone(&content, tone_mark)
+                let new_content = add_tone(&content, &tone_mark);
+                if new_content == content {
+                    let trigger_ch = match tone_mark {
+                        ToneMark::Acute => '1',
+                        ToneMark::Grave => '2',
+                        ToneMark::HookAbove => '3',
+                        ToneMark::Tilde => '4',
+                        ToneMark::Underdot => '5'
+                    };
+                    content.push(trigger_ch);
+                } else {
+                    content = new_content;
+                }
             }
             _ => {}
         }
@@ -63,6 +75,22 @@ mod tests {
         let input: Vec<char> = vec!['v', 'i', 't', '1'];
         let result = transform_buffer(&input);
         let expected = "vít".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn add_acute_tone_failed() {
+        let input: Vec<char> = vec!['v', 't', '1'];
+        let result = transform_buffer(&input);
+        let expected = "vt1".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn add_tone_normal() {
+        let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2'];
+        let result = transform_buffer(&input);
+        let expected = "hoàng".to_string();
         assert_eq!(result, expected);
     }
 }

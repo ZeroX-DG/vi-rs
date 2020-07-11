@@ -50,6 +50,13 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
     let mut start_index: usize = 0;
     for (index, ch) in word.chars().enumerate() {
         if is_vowel(ch) {
+            if ch == 'u' {
+                if let Some(prev_ch) = word.chars().nth(index - 1) {
+                    if prev_ch == 'q' {
+                        continue; // special case 'qu' is start sound
+                    }
+                }
+            }
             result.push(ch);
             if !found_word_mid {
                 found_word_mid = true;
@@ -79,6 +86,7 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
 /// 5. Else, but tone mark on whatever vowel comes first
 fn get_tone_mark_placement(input: String) -> Option<usize> {
     if let Some((mid_index, word_mid)) = get_word_mid(input.clone()) {
+        let is_end_with_mid = input.len() == mid_index + word_mid.len();
         if word_mid.len() == 1 { // single vowel
             return Some(mid_index);
         }
@@ -91,6 +99,11 @@ fn get_tone_mark_placement(input: String) -> Option<usize> {
         for pair in ["oa", "oe", "oo", "uy"].iter() {
             if let Some(pos) = has_pair(&word_mid, pair) {
                 return Some(mid_index + pos + 1);
+            }
+        }
+        if is_end_with_mid {
+            if word_mid.len() >= 2 {
+                return Some(mid_index + word_mid.len() - 2)
             }
         }
         if let Some(pos) = index_of(&word_mid, is_vowel) {
@@ -127,7 +140,7 @@ fn replace_char_at(input: &String, index: usize, ch: char) -> String {
 }
 
 /// Add tone mark to input
-pub fn add_tone(input: &String, tone_mark: ToneMark) -> String {
+pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
     let tone_mark_pos_result = get_tone_mark_placement(input.clone());
     if let Some(tone_mark_pos) = tone_mark_pos_result {
         let tone_mark_ch = input.chars().nth(tone_mark_pos).unwrap();
@@ -150,16 +163,72 @@ pub fn add_tone(input: &String, tone_mark: ToneMark) -> String {
                 }
             }
             ToneMark::Grave => {
-                'a'
+                match tone_mark_ch {
+                    'a' => 'à',
+                    'â' => 'ầ',
+                    'ă' => 'ằ',
+                    'e' => 'è',
+                    'ê' => 'ề',
+                    'i' => 'ì',
+                    'o' => 'ò',
+                    'ô' => 'ồ',
+                    'ơ' => 'ờ',
+                    'u' => 'ù',
+                    'ư' => 'ừ',
+                    'y' => 'ỳ',
+                    _ => tone_mark_ch
+                }
             }
             ToneMark::HookAbove => {
-                'b'
+                match tone_mark_ch {
+                    'a' => 'ả',
+                    'â' => 'ẩ',
+                    'ă' => 'ẳ',
+                    'e' => 'ẻ',
+                    'ê' => 'ể',
+                    'i' => 'ỉ',
+                    'o' => 'ỏ',
+                    'ô' => 'ổ',
+                    'ơ' => 'ở',
+                    'u' => 'ủ',
+                    'ư' => 'ử',
+                    'y' => 'ỷ',
+                    _ => tone_mark_ch
+                }
             }
             ToneMark::Tilde => {
-                'c'
+                match tone_mark_ch {
+                    'a' => 'ã',
+                    'â' => 'ẫ',
+                    'ă' => 'ẵ',
+                    'e' => 'ẽ',
+                    'ê' => 'ễ',
+                    'i' => 'ĩ',
+                    'o' => 'õ',
+                    'ô' => 'ỗ',
+                    'ơ' => 'ỡ',
+                    'u' => 'ũ',
+                    'ư' => 'ữ',
+                    'y' => 'ỹ',
+                    _ => tone_mark_ch
+                }
             }
             ToneMark::Underdot => {
-                'd'
+                match tone_mark_ch {
+                    'a' => 'ạ',
+                    'â' => 'ậ',
+                    'ă' => 'ặ',
+                    'e' => 'ẹ',
+                    'ê' => 'ệ',
+                    'i' => 'ị',
+                    'o' => 'ọ',
+                    'ô' => 'ộ',
+                    'ơ' => 'ợ',
+                    'u' => 'ụ',
+                    'ư' => 'ự',
+                    'y' => 'ỵ',
+                    _ => tone_mark_ch
+                }
             }
         };
         return replace_char_at(input, tone_mark_pos, replace_char);
@@ -194,6 +263,13 @@ mod tests {
     }
 
     #[test]
+    fn get_word_mid_double_start_tone() {
+        let result = get_word_mid("quai".to_owned());
+        let expected: Option<(usize, String)> = Some((2, "ai".to_owned()));
+        assert_eq!(result, expected); 
+    }
+
+    #[test]
     fn get_tone_mark_placement_normal() {
         let result = get_tone_mark_placement("choe".to_owned());
         let expected: Option<usize> = Some(3);
@@ -202,10 +278,15 @@ mod tests {
 
     #[test]
     fn get_tone_mark_placement_special() {
-        let result = get_tone_mark_placement("viet".to_owned());
-        // this is expected because without spell check, the tone is on
-        // the first vowel
-        let expected: Option<usize> = Some(1);
+        let result = get_tone_mark_placement("chieu".to_owned());
+        let expected: Option<usize> = Some(3);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_tone_mark_placement_mid_not_end() {
+        let result = get_tone_mark_placement("hoang".to_owned());
+        let expected: Option<usize> = Some(2);
         assert_eq!(result, expected);
     }
 }
