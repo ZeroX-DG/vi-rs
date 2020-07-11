@@ -60,7 +60,18 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
                 }
             }
             Action::ModifyLetter(modification) => {
-                content = modify_letter(&content, modification);
+                let new_content = modify_letter(&content, &modification);
+                if new_content == content {
+                    let trigger_ch = match modification {
+                        LetterModification::Dyet => '9',
+                        LetterModification::Breve => '8',
+                        LetterModification::Horn => '7',
+                        LetterModification::Circumflex => '6'
+                    };
+                    content.push(trigger_ch);
+                } else {
+                    content = new_content;
+                }
             }
             Action::RemoveTone => {
                 let new_content = remove_tone(&content);
@@ -133,6 +144,30 @@ mod tests {
         let input: Vec<char> = vec!['v', 'i', 't', '5', '0', '0'];
         let result = transform_buffer(&input);
         let expected = "vit0".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn modify_letter_normal() {
+        let input: Vec<char> = vec!['v', 'o', '7'];
+        let result = transform_buffer(&input);
+        let expected = "vơ".to_string();
+        assert_eq!(result, expected);
+    }
+    
+    #[test]
+    fn modify_letter_group() {
+        let input: Vec<char> = vec!['v', 'u', 'o', 'n', '7'];
+        let result = transform_buffer(&input);
+        let expected = "vươn".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn modify_letter_failed() {
+        let input: Vec<char> = vec!['c', 'h', 'e', '7'];
+        let result = transform_buffer(&input);
+        let expected = "che7".to_string();
         assert_eq!(result, expected);
     }
 }

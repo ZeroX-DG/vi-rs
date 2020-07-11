@@ -175,7 +175,7 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
     input.clone()
 }
 
-pub fn modify_letter(input: &String, modification: LetterModification) -> String {
+pub fn modify_letter(input: &String, modification: &LetterModification) -> String {
     let map = match modification {
         LetterModification::Horn => &HORN_MAP,
         LetterModification::Breve => &BREVE_MAP,
