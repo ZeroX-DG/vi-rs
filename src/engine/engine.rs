@@ -26,7 +26,7 @@ impl Engine {
 
     pub fn handle_key(&mut self, key: Key) -> Vec<Action> {
         if let KeyState::Down = key.get_state() {
-            if key.is_whitespace() {
+            if key.is_whitespace() || key.is_enter() || key.is_tab() || key.is_arrow() {
                 self.buffer.clear();
                 return Vec::new();
             }
@@ -38,8 +38,6 @@ impl Engine {
             if key.is_recognized_char() {
                 self.buffer.push(key.get_char());
             }
-
-            println!("Buffer: {}", self.buffer.iter().collect::<String>());
 
             let (has_action, transform_result) = match self.input_method {
                 InputMethod::Vni => vni::transform_buffer(&self.buffer)
