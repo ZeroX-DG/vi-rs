@@ -1,4 +1,3 @@
-#[macro_use]
 use phf::{phf_map, Map};
 
 pub static ACCUTE_MAP: Map<char, char> = phf_map! {

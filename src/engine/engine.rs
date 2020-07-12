@@ -1,5 +1,5 @@
 use super::vni;
-use super::key::Key;
+use super::super::key::{Key, KeyState};
 
 pub struct Engine {
     input_method: InputMethod,
@@ -19,7 +19,13 @@ impl Engine {
     }
 
     pub fn handle_key(&mut self, key: Key) -> String {
-        self.buffer.push(key.get_char());
+        match key.get_state() {
+            KeyState::Release => {
+                self.buffer.push(key.get_char());
+            }
+            _ => {}
+                
+        }
         match self.input_method {
             InputMethod::Vni => vni::transform_buffer(&self.buffer)
         }
