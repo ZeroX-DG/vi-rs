@@ -35,6 +35,16 @@ pub fn key_from_char(ch: char) -> Option<keyboard::Key> {
         'x' => Some(keyboard::Key::X),
         'y' => Some(keyboard::Key::Y),
         'z' => Some(keyboard::Key::Z),
+        '1' => Some(keyboard::Key::_1),
+        '2' => Some(keyboard::Key::_2),
+        '3' => Some(keyboard::Key::_3),
+        '4' => Some(keyboard::Key::_4),
+        '5' => Some(keyboard::Key::_5),
+        '6' => Some(keyboard::Key::_6),
+        '7' => Some(keyboard::Key::_7),
+        '8' => Some(keyboard::Key::_8),
+        '9' => Some(keyboard::Key::_9),
+        '0' => Some(keyboard::Key::_0),
         _ => None
     }
 }
@@ -51,25 +61,29 @@ impl LinuxKeyboard {
 impl Keyboard for LinuxKeyboard {
     fn insert(&mut self, text: String) {
         for ch in text.chars() {
-            // CTRL + SHIFT
-            self.output_device.press(&keyboard::Key::LeftControl).unwrap();
-            self.output_device.press(&keyboard::Key::LeftShift).unwrap();
+            if let Some(key) = key_from_char(ch) {
+                self.output_device.click(&key).unwrap();
+            } else { // need composition
+                //CTRL + SHIFT
+                self.output_device.press(&keyboard::Key::LeftControl).unwrap();
+                self.output_device.press(&keyboard::Key::LeftShift).unwrap();
 
-            // U
-            self.output_device.click(&keyboard::Key::U).unwrap();
+                // U
+                self.output_device.click(&keyboard::Key::U).unwrap();
 
-            // Character hex
-            let ascii_code = ch as u16;
-            let ascii_hex = format!("{:x}", ascii_code);
-            for hex in ascii_hex.chars() {
-                if let Some(hex_key) = key_from_char(hex) {
-                    self.output_device.click(&hex_key).unwrap();
+                // Character hex
+                let ascii_code = ch as u16;
+                let ascii_hex = format!("{:x}", ascii_code);
+                for hex in ascii_hex.chars() {
+                    if let Some(hex_key) = key_from_char(hex) {
+                        self.output_device.click(&hex_key).unwrap();
+                    }
                 }
-            }
 
-            // release CTRL + SHIFT
-            self.output_device.release(&keyboard::Key::LeftControl).unwrap();
-            self.output_device.release(&keyboard::Key::LeftShift).unwrap();
+                // release CTRL + SHIFT
+                self.output_device.release(&keyboard::Key::LeftShift).unwrap();
+                self.output_device.release(&keyboard::Key::LeftControl).unwrap();
+            }
             self.output_device.synchronize().unwrap();
         }
     }
@@ -136,7 +150,6 @@ impl Keyboard for LinuxKeyboard {
             input_event_codes::KEY_8 => '8',
             input_event_codes::KEY_9 => '9',
             input_event_codes::KEY_0 => '0',
-            input_event_codes::KEY_SPACE => ' ',
             _ => '\0'
         };
         return Key::new(key_ch, keycode.unwrap(), keystate.unwrap());

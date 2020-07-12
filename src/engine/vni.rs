@@ -17,7 +17,7 @@ fn is_number(ch: char) -> bool {
 /// transform_buffer(vec!['v', 'i', 'e', 't', '6', '5'])
 /// // output: 'việt'
 /// ```
-pub fn transform_buffer(buffer: &Vec<char>) -> String {
+pub fn transform_buffer(buffer: &Vec<char>) -> (bool, String) {
     let mut content = String::new();
     let mut actions: Vec<Action> = Vec::new();
     for ch in buffer {
@@ -41,6 +41,13 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
             content.push(*ch);
         }
     }
+
+    let action_count = actions.len();
+    let has_action = if content.len() > 0 {
+        action_count > 0
+    } else {
+        false
+    };
 
     for action in actions {
         match action {
@@ -84,7 +91,7 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
         }
     }
 
-    content
+    (has_action, content)
 }
 
 #[cfg(test)]
@@ -94,7 +101,7 @@ mod tests {
     #[test]
     fn add_acute_tone_normal() {
         let input: Vec<char> = vec!['v', 'i', 't', '1'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "vít".to_string();
         assert_eq!(result, expected);
     }
@@ -102,7 +109,7 @@ mod tests {
     #[test]
     fn add_acute_tone_failed() {
         let input: Vec<char> = vec!['v', 't', '1'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "vt1".to_string();
         assert_eq!(result, expected);
     }
@@ -110,7 +117,7 @@ mod tests {
     #[test]
     fn add_tone_normal() {
         let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "hoàng".to_string();
         assert_eq!(result, expected);
     }
@@ -118,15 +125,24 @@ mod tests {
     #[test]
     fn add_tone_double_edit() {
         let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2', '3'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "hoảng".to_string();
         assert_eq!(result, expected);
     }
 
     #[test]
+    fn add_tone_no_content() {
+        let input: Vec<char> = vec!['2', '3'];
+        let (has_action, result) = transform_buffer(&input);
+        let expected = "23".to_string();
+        assert_eq!(result, expected);
+        assert_eq!(has_action, false);
+    }
+
+    #[test]
     fn remove_tone_single() {
         let input: Vec<char> = vec!['l', 'u', 'a', 't', '6', '5', '0'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "luât".to_string();
         assert_eq!(result, expected);
     }
@@ -134,7 +150,7 @@ mod tests {
     #[test]
     fn remove_tone_double() {
         let input: Vec<char> = vec!['c', 'h', 'e', 't', '6', '1', '0', '0'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "chet".to_string();
         assert_eq!(result, expected);
     }
@@ -142,7 +158,7 @@ mod tests {
     #[test]
     fn remove_tone_exceed() {
         let input: Vec<char> = vec!['v', 'i', 't', '5', '0', '0'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "vit0".to_string();
         assert_eq!(result, expected);
     }
@@ -150,7 +166,7 @@ mod tests {
     #[test]
     fn modify_letter_normal() {
         let input: Vec<char> = vec!['v', 'o', '7'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "vơ".to_string();
         assert_eq!(result, expected);
     }
@@ -158,7 +174,7 @@ mod tests {
     #[test]
     fn modify_letter_group() {
         let input: Vec<char> = vec!['v', 'u', 'o', 'n', '7'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "vươn".to_string();
         assert_eq!(result, expected);
     }
@@ -166,7 +182,7 @@ mod tests {
     #[test]
     fn modify_letter_failed() {
         let input: Vec<char> = vec!['c', 'h', 'e', '7'];
-        let result = transform_buffer(&input);
+        let (_, result) = transform_buffer(&input);
         let expected = "che7".to_string();
         assert_eq!(result, expected);
     }

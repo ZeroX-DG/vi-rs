@@ -2,7 +2,7 @@ mod key;
 mod engine;
 mod keyboard;
 
-use engine::Engine;
+use engine::{Engine, Action};
 use keyboard::Keyboard;
 
 #[cfg(target_os = "linux")]
@@ -22,9 +22,16 @@ fn main() {
 
     loop {
         let key = keyboard.wait_for_key();
-        let result = engine.handle_key(key);
-        if !result.is_empty() {
-            println!("{:?}", result);
+        let instructions = engine.handle_key(key);
+        if !instructions.is_empty() {
+            println!("{:?}", instructions);
         }
+        for instruction in instructions {
+            match instruction {
+                Action::Insert(text) => keyboard.insert(text),
+                Action::Backspace(amount) => keyboard.backspace(amount),
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }

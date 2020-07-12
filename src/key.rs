@@ -23,4 +23,19 @@ impl Key {
     pub fn get_state(&self) -> &KeyState {
         &self.state
     }
+    pub fn is_whitespace(&self) -> bool {
+        if cfg!(target_os = "linux") {
+            return self.code == input_event_codes::KEY_SPACE
+        }
+        false
+    }
+    pub fn is_backspace(&self) -> bool {
+        if cfg!(target_os = "linux") {
+            return self.code == input_event_codes::KEY_BACKSPACE
+        }
+        false
+    }
+    pub fn is_recognized_char(&self) -> bool {
+        self.get_char() != '\0'
+    }
 }

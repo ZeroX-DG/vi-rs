@@ -22,6 +22,7 @@ fn is_modified_vowels(c: char) -> bool {
 /// - **HookAbove:** Dấu hỏi 
 /// - **Tilde:** Dấu ngã
 /// - **Underdot:** Dấu nặng 
+#[derive(Debug)]
 pub enum ToneMark {
     Acute,
     Grave,
@@ -36,6 +37,7 @@ pub enum ToneMark {
 /// - **Breve:** The part that shaped like a bottom half of a circle (˘)
 /// - **Horn:** The hook that attach to the character. For example, ư
 /// - **Dyet:** The line that go through the character d (đ).
+#[derive(Debug)]
 pub enum LetterModification {
     Circumflex,
     Breve,
@@ -50,6 +52,8 @@ pub enum Action {
     RemoveTone
 }
 
+/// Get the main sound of a word which is the part that start
+/// with a vowel and end with word end or a non-vowel char
 pub fn get_word_mid(word: String) -> Option<(usize, String)> {
     let mut result = String::new();
     let mut found_word_mid = false;
@@ -97,7 +101,7 @@ fn get_tone_mark_placement(input: &String) -> Option<usize> {
         if word_mid.len() == 1 { // single vowel
             return Some(mid_index);
         }
-        if let Some(pos) = index_of(&word_mid, |c| c == 'ư') {
+        if let Some(pos) = index_of(&word_mid, |c| c == 'ơ') {
             return Some(mid_index + pos);
         }
         if let Some(pos) = index_of(&word_mid, is_modified_vowels) {
@@ -184,8 +188,9 @@ pub fn modify_letter(input: &String, modification: &LetterModification) -> Strin
     };
     let mut result = input.clone();
     for (index, ch) in input.clone().chars().enumerate() {
-        if map.contains_key(&ch) {
-            result = replace_char_at(&result, index, map[&ch]);
+        let ch_clean = clean_char(ch);
+        if map.contains_key(&ch_clean) {
+            result = replace_char_at(&result, index, map[&ch_clean]);
         }
     }
     result
@@ -245,6 +250,13 @@ mod tests {
     fn get_tone_mark_placement_mid_not_end() {
         let result = get_tone_mark_placement(&"hoang".to_owned());
         let expected: Option<usize> = Some(2);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_tone_mark_placement_u_and_o() {
+        let result = get_tone_mark_placement(&"ngươi".to_owned());
+        let expected: Option<usize> = Some(3);
         assert_eq!(result, expected);
     }
 }

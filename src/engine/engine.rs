@@ -10,6 +10,12 @@ pub enum InputMethod {
     Vni
 }
 
+#[derive(Debug)]
+pub enum Action {
+    Insert(String),
+    Backspace(usize)
+}
+
 impl Engine {
     pub fn new() -> Self {
         Self {
@@ -18,16 +24,39 @@ impl Engine {
         }
     }
 
-    pub fn handle_key(&mut self, key: Key) -> String {
-        match key.get_state() {
-            KeyState::Release => {
+    pub fn handle_key(&mut self, key: Key) -> Vec<Action> {
+        if let KeyState::Down = key.get_state() {
+            if key.is_whitespace() {
+                self.buffer.clear();
+                return Vec::new();
+            }
+
+            if key.is_backspace() {
+                self.buffer.pop();
+                return Vec::new();
+            }
+            if key.is_recognized_char() {
                 self.buffer.push(key.get_char());
             }
-            _ => {}
-                
+
+            println!("Buffer: {}", self.buffer.iter().collect::<String>());
+
+            let (has_action, transform_result) = match self.input_method {
+                InputMethod::Vni => vni::transform_buffer(&self.buffer)
+            };
+
+            if !has_action {
+                return Vec::new()
+            }
+
+            self.buffer.clear();
+            self.buffer = transform_result.chars().collect();
+
+            return vec![
+                Action::Backspace(self.buffer.len() + 1),
+                Action::Insert(transform_result)
+            ];
         }
-        match self.input_method {
-            InputMethod::Vni => vni::transform_buffer(&self.buffer)
-        }
+        Vec::new()
     }
 }
