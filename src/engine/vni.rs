@@ -63,9 +63,9 @@ pub fn transform_buffer(buffer: &Vec<char>) -> String {
                 let new_content = modify_letter(&content, &modification);
                 if new_content == content {
                     let trigger_ch = match modification {
-                        LetterModification::Dyet => '9',
-                        LetterModification::Breve => '8',
-                        LetterModification::Horn => '7',
+                        LetterModification::Dyet       => '9',
+                        LetterModification::Breve      => '8',
+                        LetterModification::Horn       => '7',
                         LetterModification::Circumflex => '6'
                     };
                     content.push(trigger_ch);
