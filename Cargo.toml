@@ -7,11 +7,10 @@ description = "A back-end for vietnamese IME"
 
 homepage = "https://github.com/ZeroX-DG/vi-rs/"
 repository = "https://github.com/ZeroX-DG/vi-rs.git"
+license-file = "LICENSE"
 
 keywords = ["vietnamese", "ime", "vi"]
-
-[target."cfg(target_os = \"linux\")".dependencies]
-input-event-codes = { version = "0.2.1" }
+categories = ["text-processing"]
 
 [dependencies]
 regex = "1.3.1"
