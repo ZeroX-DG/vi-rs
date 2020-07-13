@@ -60,7 +60,7 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
     let mut start_index: usize = 0;
     for (index, ch) in word.chars().enumerate() {
         if is_vowel(ch) {
-            if ch == 'u' {
+            if ch == 'u' && index > 0 {
                 if let Some(prev_ch) = word.chars().nth(index - 1) {
                     if prev_ch == 'q' {
                         continue; // special case 'qu' is start sound

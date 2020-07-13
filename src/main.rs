@@ -7,20 +7,21 @@ use keyboard::Keyboard;
 
 #[cfg(target_os = "linux")]
 use keyboard::linux::EvdevUinputKeyboard;
+use keyboard::linux::EvdevX11Keyboard;
 
 fn main() {
     let mut engine = Engine::new();
     let mut keyboard: Option<Box<dyn Keyboard>> = None;
 
     if cfg!(target_os = "linux") {
-        let input_device = evdev::Device::open(&"/dev/input/event4".to_owned())
+        let input_device = evdev::Device::open(&"/dev/input/event19".to_owned())
             .unwrap();
         let output_device = uinput::default().unwrap()
             .name("test").unwrap()
             .event(uinput::event::Keyboard::All).unwrap()
             .create().unwrap();
 
-        keyboard = Some(Box::new(EvdevUinputKeyboard::new(input_device, output_device)));
+        keyboard = Some(Box::new(EvdevX11Keyboard::new(input_device)));
     }
 
     if let Some(mut keyboard) = keyboard {

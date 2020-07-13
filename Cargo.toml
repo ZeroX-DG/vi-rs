@@ -9,6 +9,7 @@ edition = "2018"
 [target."cfg(target_os = \"linux\")".dependencies]
 evdev = { version = "0.10.1" }
 uinput = { version = "0.1.3" }
+x11 = { version = "2.18.2", features = ["xlib", "xtest"] }
 input-event-codes = { version = "0.2.1" }
 
 [dependencies]
