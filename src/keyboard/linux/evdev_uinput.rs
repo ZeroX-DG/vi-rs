@@ -2,7 +2,7 @@ use super::Keyboard;
 use super::{Key, KeyState};
 use uinput::event::keyboard;
 
-pub struct LinuxKeyboard {
+pub struct EvdevUinputKeyboard {
     input_device: evdev::Device,
     output_device: uinput::Device
 }
@@ -49,7 +49,7 @@ pub fn key_from_char(ch: char) -> Option<keyboard::Key> {
     }
 }
 
-impl LinuxKeyboard {
+impl EvdevUinputKeyboard {
     pub fn new(input_device: evdev::Device, output_device: uinput::Device) -> Self {
         Self {
             input_device,
@@ -58,7 +58,7 @@ impl LinuxKeyboard {
     }
 }
 
-impl Keyboard for LinuxKeyboard {
+impl Keyboard for EvdevUinputKeyboard {
     fn insert(&mut self, text: String) {
         for ch in text.chars() {
             if let Some(key) = key_from_char(ch) {
