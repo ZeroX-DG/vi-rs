@@ -24,11 +24,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "input-event-codes"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -203,7 +198,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "vi"
 version = "0.1.0"
 dependencies = [
- "input-event-codes 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "phf 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -217,7 +211,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum aho-corasick 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)" = "043164d8ba5c4c3035fec9bbee8647c0261d788f3474306f93bb65901cae0e86"
 "checksum cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 "checksum getrandom 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)" = "7abc8dd8451921606d809ba32e95b6111925cd2906060d2dcc29c070220503eb"
-"checksum input-event-codes 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "acb51da0fc0301c7b9a39fd88a5ce0c2b2c3af08f60e610f0a505bb0abfa0712"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 "checksum libc 0.2.66 (registry+https://github.com/rust-lang/crates.io-index)" = "d515b1f41455adea1313a4a2ac8a8a477634fbae63cc6100e3aebb207ce61558"
 "checksum memchr 2.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"
