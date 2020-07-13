@@ -1,38 +1,37 @@
 # VI-RS
 
-> A Vietnamese input engine written completely in rust
+> A back-end for Vietnamese input engine written completely in Rust
 
-<p align="center">
-  <img src="assets/demo.png" />
-</p>
+## What is this?
 
-## Yet another input engine?
+Since typing Vietnamese on Linux is pretty painful at the momment, a better input engine is always needed. To accommodate the future engines that will be built in Rust, this back-end existed to transform key inputs into the Vietnamese string output.
 
-Yes, yet another input engine. I don't really like the preedit method that ibus is using so this input method used backspace method.
+## How to use?
+
+There're 2 ways to use this back-end. Either you take care of your own engine & buffer management or you can use the engine in this back-end. Refer to [simple example](examples/simple.rs) if you plan on building your own engine or refer to [engine example](examples/engine.rs) if you wish to utilize the engine provided by this back-end.
+
+The method that this engine use it backspace, which means that to modify a word, it send a bunch of backspaces before inserting the new content for the word. E.g.
+
+```
+viet5 -> viet -> vie -> việ -> việt
+```
 
 ## Support
 
-- **Linux**
-  - [x] X11
-  - [ ] Wayland
-- **Windows**
-  - No plan yet
-- **MacOS**
-  - No plan yet
+### OS
 
-Typing method
+- [x] **Linux**
+- [ ] **Windows**
+- [ ] **MacOS**
 
-- [x] VNI
-- [ ] Telex
+### Typing method
+
+- [x] **VNI**
+- [ ] **Telex**
 
 ## Project status
 
-Currently this is just a prototype and not ready to be used yet, there is a huge amount of bugs to fix but you can still try this for yourself by following this instruction:
-
-1. Clone this repo
-2. Run the code using `cargo run`
-3. Start typing in some window
-4. Profit:)
+Currently, this project is still at its early stage of development. There might be some minor bugs but overall, it should be 95% functional.
 
 ## Creator
 
@@ -40,4 +39,4 @@ Currently this is just a prototype and not ready to be used yet, there is a huge
 
 Want to support me? Consider buying me a coffee:)
 
-<a href="https://www.buymeacoffee.com/hQteV8A" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z81ODLC)

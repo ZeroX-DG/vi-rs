@@ -1,64 +1,77 @@
-#[derive(Debug)]
+/// A key that the engine need to process
 pub struct Key {
-    ch: char,
-    code: u16,
+    type_: KeyType,
     state: KeyState
 }
 
-#[derive(Debug)]
+/// The state of a key, down or release
 pub enum KeyState {
     Down,
     Release
 }
 
+/// A type of a key, down or release
+pub enum KeyType {
+    Char(char),
+    Space,
+    Tab,
+    Arrow,
+    Enter,
+    Backspace
+}
+
+/// Represent a key
 impl Key {
-    pub fn new(ch: char, code: u16, state: KeyState) -> Self {
+    pub fn new(type_: KeyType, state: KeyState) -> Self {
         Self {
-            ch,
-            code,
+            type_,
             state
         }
     }
-    pub fn get_char(&self) -> char {
-        self.ch
+    /// Returns the char of the key
+    pub fn get_char(&self) -> Option<char> {
+        if let KeyType::Char(ch) = self.type_ {
+            return Some(ch);
+        }
+        None
     }
+    /// Returns the state of the key
     pub fn get_state(&self) -> &KeyState {
         &self.state
     }
+    /// Returns true if the key is a whitespace and vice versa.
     pub fn is_whitespace(&self) -> bool {
-        if cfg!(target_os = "linux") {
-            return self.code == input_event_codes::KEY_SPACE
+        match &self.type_ {
+            KeyType::Space => true,
+            _ => false
         }
-        false
     }
+    /// Returns true if the key is an enter key and vice versa.
     pub fn is_enter(&self) -> bool {
-        if cfg!(target_os = "linux") {
-            return self.code == input_event_codes::KEY_ENTER
+        match &self.type_ {
+            KeyType::Enter => true,
+            _ => false
         }
-        false
     }
+    /// Returns true if the key is a tab key and vice versa.
     pub fn is_tab(&self) -> bool {
-        if cfg!(target_os = "linux") {
-            return self.code == input_event_codes::KEY_TAB
+        match &self.type_ {
+            KeyType::Tab => true,
+            _ => false
         }
-        false
     }
+    /// Returns true if the key is an arrow key and vice versa.
     pub fn is_arrow(&self) -> bool {
-        if cfg!(target_os = "linux") {
-            return self.code == input_event_codes::KEY_LEFT ||
-                self.code == input_event_codes::KEY_RIGHT ||
-                self.code == input_event_codes::KEY_DOWN ||
-                self.code == input_event_codes::KEY_UP
+        match &self.type_ {
+            KeyType::Arrow => true,
+            _ => false
         }
-        false
     }
+    /// Returns true if the key is a backspace and vice versa.
     pub fn is_backspace(&self) -> bool {
-        if cfg!(target_os = "linux") {
-            return self.code == input_event_codes::KEY_BACKSPACE
+        match &self.type_ {
+            KeyType::Backspace => true,
+            _ => false
         }
-        false
-    }
-    pub fn is_recognized_char(&self) -> bool {
-        self.get_char() != '\0'
     }
 }

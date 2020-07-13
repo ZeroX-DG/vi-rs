@@ -179,6 +179,7 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
     input.clone()
 }
 
+/// change a letter to vietnamese modified letter
 pub fn modify_letter(input: &String, modification: &LetterModification) -> String {
     let map = match modification {
         LetterModification::Horn => &HORN_MAP,
@@ -196,6 +197,7 @@ pub fn modify_letter(input: &String, modification: &LetterModification) -> Strin
     result
 }
 
+/// Remove the tone for the letter
 pub fn remove_tone(input: &String) -> String {
     let new_input: String = input.clone()
         .chars()

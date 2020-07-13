@@ -10,12 +10,17 @@ fn is_number(ch: char) -> bool {
     }
 }
 
-/// Transform input buffer to vietnamese output
+/// Transform input buffer to vietnamese string output along with
+/// a bool indicating if an ction has been triggered. For example,
+/// if the input is `['a', '1']`, then the action add tone mar is 
+/// triggered by the `1` character.
 ///
 /// # Example
 /// ```
-/// transform_buffer(vec!['v', 'i', 'e', 't', '6', '5'])
-/// // output: 'việt'
+/// use vi::vni::transform_buffer;
+///
+/// let result = transform_buffer(&vec!['v', 'i', 'e', 't', '6', '5']);
+/// assert_eq!(result, (true, "việt".to_owned()));
 /// ```
 pub fn transform_buffer(buffer: &Vec<char>) -> (bool, String) {
     let mut content = String::new();

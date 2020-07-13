@@ -1,5 +1,5 @@
 use super::vni;
-use super::super::key::{Key, KeyState};
+use super::key::{Key, KeyState};
 
 pub struct Engine {
     input_method: InputMethod,
@@ -24,10 +24,14 @@ impl Engine {
         }
     }
 
+    pub fn clear_buffer(&mut self) {
+        self.buffer.clear();
+    }
+
     pub fn handle_key(&mut self, key: Key) -> Vec<Action> {
         if let KeyState::Down = key.get_state() {
             if key.is_whitespace() || key.is_enter() || key.is_tab() || key.is_arrow() {
-                self.buffer.clear();
+                self.clear_buffer();
                 return Vec::new();
             }
 
@@ -35,8 +39,9 @@ impl Engine {
                 self.buffer.pop();
                 return Vec::new();
             }
-            if key.is_recognized_char() {
-                self.buffer.push(key.get_char());
+
+            if let Some(ch) = key.get_char() {
+                self.buffer.push(ch);
             }
 
             let (has_action, transform_result) = match self.input_method {
@@ -47,7 +52,7 @@ impl Engine {
                 return Vec::new()
             }
 
-            self.buffer.clear();
+            self.clear_buffer();
             self.buffer = transform_result.chars().collect();
 
             return vec![

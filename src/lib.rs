@@ -1,8 +1,9 @@
 mod engine;
 mod util;
 mod maps;
+pub mod key;
 
 pub use engine::*;
 
 mod processor;
-mod vni;
+pub mod vni;
