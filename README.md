@@ -1,4 +1,4 @@
-# VI-RS
+# VI
 
 > A back-end for Vietnamese input engine written completely in Rust
 
