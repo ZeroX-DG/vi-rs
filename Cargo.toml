@@ -3,7 +3,7 @@ name = "vi"
 version = "0.1.0"
 authors = ["Nguyễn Việt Hưng <viethungax@gmail.com>"]
 edition = "2018"
-description = "A back-end for vietnamese IME"
+description = "An input method library for vietnamese IME"
 
 homepage = "https://github.com/ZeroX-DG/vi-rs/"
 repository = "https://github.com/ZeroX-DG/vi-rs.git"

@@ -1,10 +1,10 @@
 # VI
 
-> A back-end for Vietnamese input engine written completely in Rust
+> A input method library for Vietnamese input engine written completely in Rust
 
 ## What is this?
 
-Since typing Vietnamese on Linux is pretty painful at the momment, a better input engine is always needed. To accommodate the future engines that will be built in Rust, this back-end existed to transform key inputs into the Vietnamese string output.
+Since typing Vietnamese on Linux is pretty painful at the momment, a better input engine is always needed. To accommodate the future engines that will be built in Rust, this library existed to transform key inputs into the Vietnamese string output.
 
 ## Installation
 
@@ -13,16 +13,6 @@ Add `vi` to your dependencies in `Cargo.toml`.
 ```
 [dependencies]
 vi = "0.1.0"
-```
-
-## How to use?
-
-There're 2 ways to use this back-end. Either you take care of your own engine & buffer management or you can use the engine in this back-end. Refer to [simple example](examples/simple.rs) if you plan on building your own engine or refer to [engine example](examples/engine.rs) if you wish to utilize the engine provided by this back-end.
-
-The method that this engine use it backspace, which means that to modify a word, it send a bunch of backspaces before inserting the new content for the word. E.g.
-
-```
-viet5 -> viet -> vie -> việ -> việt
 ```
 
 ## Support
