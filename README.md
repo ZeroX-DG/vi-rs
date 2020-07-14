@@ -30,7 +30,7 @@ vi = "0.1.1"
 
 With vi, you can start building your own Vietnamese IME without worrying about how Vietnamese tone mark placement works. All you have to do is to implement a keyboard listener & a key sending system.
 
-```rs
+```rust
 use vi::vni;
 
 fn main() {
