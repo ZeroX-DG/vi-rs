@@ -1,7 +1,7 @@
 # VI
 
 [![Cargo Crate](https://img.shields.io/crates/v/vi.svg)](https://crates.io/crates/vi)
-[![Docs](https://docs.rs/clap-nested/badge.svg)](https://docs.rs/vi)
+[![Docs](https://docs.rs/vi/badge.svg)](https://docs.rs/vi)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > A input method library for Vietnamese input engine written completely in Rust
