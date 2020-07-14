@@ -47,14 +47,6 @@ Please refer to the [simple example](examples/simple.rs) to learn more.
 
 ## Support
 
-### OS
-
-- [x] **Linux**
-- [ ] **Windows**
-- [ ] **MacOS**
-
-### Typing method
-
 - [x] **VNI**
 - [ ] **Telex**
 
