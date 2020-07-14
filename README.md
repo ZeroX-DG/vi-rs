@@ -1,6 +1,17 @@
 # VI
 
+[![Cargo Crate](https://img.shields.io/crates/v/vi.svg)](https://crates.io/crates/vi)
+[![Docs](https://docs.rs/clap-nested/badge.svg)](https://docs.rs/vi)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 > A input method library for Vietnamese input engine written completely in Rust
+
+- [What is vi?](#what-is-this)
+- [Installation](#installation)
+- [Examples](#examples)
+- [Support](#support)
+- [Project status](#project-status)
+- [Creator](#creator)
 
 ## What is this?
 
@@ -12,8 +23,27 @@ Add `vi` to your dependencies in `Cargo.toml`.
 
 ```
 [dependencies]
-vi = "0.1.0"
+vi = "0.1.1"
 ```
+
+## Examples
+
+With vi, you can start building your own Vietnamese IME without worrying about how Vietnamese tone mark placement works. All you have to do is to implement a keyboard listener & a key sending system.
+
+```rs
+use vi::vni;
+
+fn main() {
+  let keys = get_keys(); // this is the keys that you received from the user
+
+  let (_, output) = vni::transform_buffer(&keys);
+
+  let keys_to_send = analyze_output(output); // analyze output to decide which keys to send
+  send_keys(keys_to_send);  // sending keys to the active window
+}
+```
+
+Please refer to the [simple example](examples/simple.rs) to learn more.
 
 ## Support
 
