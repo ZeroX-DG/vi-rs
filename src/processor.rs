@@ -125,13 +125,11 @@ fn get_tone_mark_placement(input: &String) -> Option<usize> {
 }
 
 fn has_pair(input: &String, pair: &str) -> Option<usize> {
-    if let Some(ch) = pair.chars().nth(0) {
-        if let Some(ch_next) = pair.chars().nth(1) {
-            if let Some(pos) = index_of(&input, |c| c == ch) {
-                if let Some(target_ch) = input.chars().nth(pos + 1) {
-                    if target_ch == ch_next {
-                        return Some(pos);
-                    }
+    if let (Some(ch), Some(ch_next)) = (pair.chars().nth(0), pair.chars().nth(1)) {
+        if let Some(pos) = index_of(&input, |c| c == ch) {
+            if let Some(target_ch) = input.chars().nth(pos + 1) {
+                if target_ch == ch_next {
+                    return Some(pos);
                 }
             }
         }
@@ -163,11 +161,11 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
             .nth(tone_mark_pos)
             .unwrap();
         let tone_mark_map = match tone_mark {
-            ToneMark::Acute => &ACCUTE_MAP,
-            ToneMark::Grave => &GRAVE_MAP,
+            ToneMark::Acute     => &ACCUTE_MAP,
+            ToneMark::Grave     => &GRAVE_MAP,
             ToneMark::HookAbove => &HOOK_ABOVE_MAP,
-            ToneMark::Tilde => &TILDE_MAP,
-            ToneMark::Underdot => &DOT_MAP
+            ToneMark::Tilde     => &TILDE_MAP,
+            ToneMark::Underdot  => &DOT_MAP
         };
         let replace_char: char = if tone_mark_map.contains_key(&tone_mark_ch) {
             tone_mark_map[&tone_mark_ch]
@@ -182,10 +180,10 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
 /// change a letter to vietnamese modified letter
 pub fn modify_letter(input: &String, modification: &LetterModification) -> String {
     let map = match modification {
-        LetterModification::Horn => &HORN_MAP,
-        LetterModification::Breve => &BREVE_MAP,
+        LetterModification::Horn       => &HORN_MAP,
+        LetterModification::Breve      => &BREVE_MAP,
         LetterModification::Circumflex => &CIRCUMFLEX_MAP,
-        LetterModification::Dyet => &DYET_MAP
+        LetterModification::Dyet       => &DYET_MAP
     };
     let mut result = input.clone();
     for (index, ch) in input.clone().chars().enumerate() {
