@@ -61,10 +61,15 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
     for (index, ch) in word.chars().enumerate() {
         if is_vowel(ch) {
             if ch == 'u' && index > 0 {
-                if let Some(prev_ch) = word.chars().nth(index - 1) {
-                    if prev_ch == 'q' {
-                        continue; // special case 'qu' is start sound
-                    }
+                let prev_ch = word.chars().nth(index - 1).unwrap();
+                if prev_ch == 'q' {
+                    continue; // special case 'qu' is start sound
+                }
+            }
+            if ch == 'i' && index > 0 {
+                let prev_ch = word.chars().nth(index - 1).unwrap();
+                if prev_ch == 'g' {
+                    continue; // special case 'gi' is start sound
                 }
             }
             result.push(ch);
@@ -229,6 +234,13 @@ mod tests {
     fn get_word_mid_double_start_tone() {
         let result = get_word_mid("quai".to_owned());
         let expected: Option<(usize, String)> = Some((2, "ai".to_owned()));
+        assert_eq!(result, expected); 
+    }
+
+    #[test]
+    fn get_word_mid_double_start_tone_2() {
+        let result = get_word_mid("gia".to_owned());
+        let expected: Option<(usize, String)> = Some((2, "a".to_owned()));
         assert_eq!(result, expected); 
     }
 
