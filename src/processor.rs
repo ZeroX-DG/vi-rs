@@ -22,7 +22,7 @@ fn is_modified_vowels(c: char) -> bool {
 /// - **HookAbove:** Dấu hỏi 
 /// - **Tilde:** Dấu ngã
 /// - **Underdot:** Dấu nặng 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ToneMark {
     Acute,
     Grave,
@@ -37,7 +37,7 @@ pub enum ToneMark {
 /// - **Breve:** The part that shaped like a bottom half of a circle (˘)
 /// - **Horn:** The hook that attach to the character. For example, ư
 /// - **Dyet:** The line that go through the character d (đ).
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum LetterModification {
     Circumflex,
     Breve,
@@ -58,7 +58,8 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
     let mut result = String::new();
     let mut found_word_mid = false;
     let mut start_index: usize = 0;
-    for (index, ch) in word.chars().enumerate() {
+    let lower_word = word.to_lowercase();
+    for (index, ch) in lower_word.chars().enumerate() {
         if is_vowel(ch) {
             if ch == 'u' && index > 0 {
                 let prev_ch = word.chars().nth(index - 1).unwrap();
@@ -153,12 +154,59 @@ fn replace_char_at(input: &String, index: usize, ch: char) -> String {
     result
 }
 
+fn extract_tone(input: &String) -> Option<ToneMark> {
+    for ch in input.chars() {
+        if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Acute)
+        }
+        if GRAVE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Grave)
+        }
+        if HOOK_ABOVE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::HookAbove)
+        }
+        if TILDE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Tilde)
+        }
+        if DOT_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Underdot)
+        }
+    }
+    None
+}
+
+fn extract_letter_modification(input: &String) -> Option<LetterModification> {
+    for ch in input.chars() {
+        if HORN_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(LetterModification::Horn)
+        }
+        if BREVE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(LetterModification::Breve)
+        }
+        if CIRCUMFLEX_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(LetterModification::Circumflex)
+        }
+        if DYET_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(LetterModification::Dyet)
+        }
+    }
+    None
+}
+
 /// Add tone mark to input
-pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
+/// Return if the tone mark has been added or not and what's the output
+pub fn add_tone(input: &String, tone_mark: &ToneMark) -> (bool, String) {
     let clean_input = input.clone()
         .chars()
         .map(remove_tone_mark)
         .collect::<String>();
+
+    if let Some(existing_tone) = extract_tone(input) {
+        if existing_tone == *tone_mark {
+            return (false, clean_input);
+        }
+    }
+
     let tone_mark_pos_result = get_tone_mark_placement(&clean_input);
     if let Some(tone_mark_pos) = tone_mark_pos_result {
         let tone_mark_ch = clean_input
@@ -177,13 +225,14 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> String {
         } else {
             tone_mark_ch
         };
-        return replace_char_at(&clean_input, tone_mark_pos, replace_char);
+        return (true, replace_char_at(&clean_input, tone_mark_pos, replace_char));
     }
-    input.clone()
+    (false, input.clone())
 }
 
 /// change a letter to vietnamese modified letter
-pub fn modify_letter(input: &String, modification: &LetterModification) -> String {
+/// Return if the letter has been modified or not and what's the output
+pub fn modify_letter(input: &String, modification: &LetterModification) -> (bool, String) {
     let map = match modification {
         LetterModification::Horn       => &HORN_MAP,
         LetterModification::Breve      => &BREVE_MAP,
@@ -191,13 +240,24 @@ pub fn modify_letter(input: &String, modification: &LetterModification) -> Strin
         LetterModification::Dyet       => &DYET_MAP
     };
     let mut result = input.clone();
-    for (index, ch) in input.clone().chars().enumerate() {
-        let ch_clean = clean_char(ch);
-        if map.contains_key(&ch_clean) {
-            result = replace_char_at(&result, index, map[&ch_clean]);
+
+    let clean_input = input.clone()
+        .chars()
+        .map(clean_char)
+        .collect::<String>();
+
+    if let Some(existing_modification) = extract_letter_modification(input) {
+        if existing_modification == *modification {
+            return (false, clean_input);
         }
     }
-    result
+
+    for (index, ch) in clean_input.clone().chars().enumerate() {
+        if map.contains_key(&ch) {
+            result = replace_char_at(&result, index, map[&ch]);
+        }
+    }
+    (result != *input, result)
 }
 
 /// Remove the tone for the letter
@@ -269,6 +329,13 @@ mod tests {
     fn get_tone_mark_placement_u_and_o() {
         let result = get_tone_mark_placement(&"ngươi".to_owned());
         let expected: Option<usize> = Some(3);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_tone_mark_placement_uppercase() {
+        let result = get_tone_mark_placement(&"chÊt".to_owned());
+        let expected: Option<usize> = Some(2);
         assert_eq!(result, expected);
     }
 }

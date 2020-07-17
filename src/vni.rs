@@ -57,8 +57,11 @@ pub fn transform_buffer(buffer: &Vec<char>) -> (bool, String) {
     for action in actions {
         match action {
             Action::AddTone(tone_mark) => {
-                let new_content = add_tone(&content, &tone_mark);
-                if new_content == content {
+                let (add_success, new_content) = add_tone(&content, &tone_mark);
+
+                content = new_content;
+
+                if !add_success {
                     let trigger_ch = match tone_mark {
                         ToneMark::Acute     => '1',
                         ToneMark::Grave     => '2',
@@ -67,13 +70,14 @@ pub fn transform_buffer(buffer: &Vec<char>) -> (bool, String) {
                         ToneMark::Underdot  => '5'
                     };
                     content.push(trigger_ch);
-                } else {
-                    content = new_content;
                 }
             }
             Action::ModifyLetter(modification) => {
-                let new_content = modify_letter(&content, &modification);
-                if new_content == content {
+                let (modify_success, new_content) = modify_letter(&content, &modification);
+
+                content = new_content;
+
+                if !modify_success {
                     let trigger_ch = match modification {
                         LetterModification::Dyet       => '9',
                         LetterModification::Breve      => '8',
@@ -81,8 +85,6 @@ pub fn transform_buffer(buffer: &Vec<char>) -> (bool, String) {
                         LetterModification::Circumflex => '6'
                     };
                     content.push(trigger_ch);
-                } else {
-                    content = new_content;
                 }
             }
             Action::RemoveTone => {
@@ -145,6 +147,24 @@ mod tests {
     }
 
     #[test]
+    fn add_tone_overflow() {
+        let input: Vec<char> = vec!['a', '1', '1'];
+        let (has_action, result) = transform_buffer(&input);
+        let expected = "a1".to_string();
+        assert_eq!(result, expected);
+        assert_eq!(has_action, true);
+    }
+
+    #[test]
+    fn add_tone_all_uppercase() {
+        let input: Vec<char> = vec!['C', 'H', 'A', 'O', '2'];
+        let (has_action, result) = transform_buffer(&input);
+        let expected = "CHÀO".to_string();
+        assert_eq!(result, expected);
+        assert_eq!(has_action, true);
+    }
+
+    #[test]
     fn remove_tone_single() {
         let input: Vec<char> = vec!['l', 'u', 'a', 't', '6', '5', '0'];
         let (_, result) = transform_buffer(&input);
@@ -189,6 +209,14 @@ mod tests {
         let input: Vec<char> = vec!['c', 'h', 'e', '7'];
         let (_, result) = transform_buffer(&input);
         let expected = "che7".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn modify_letter_uppercase() {
+        let input: Vec<char> = vec!['c', 'h', 'E', '6'];
+        let (_, result) = transform_buffer(&input);
+        let expected = "chÊ".to_string();
         assert_eq!(result, expected);
     }
 }
