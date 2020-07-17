@@ -94,7 +94,7 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
 ///
 /// # Rules:
 /// 1. Tone mark always above vowel (a, ă, â, e, ê, i, o, ô, ơ, u, ư, y)
-/// 2. If a word contains ư, tone mark goes there
+/// 2. If a word contains ơ, tone mark goes there
 /// 3. If a modified letter goes with a non-modified vowel, tone mark should be 
 /// on modifed letter
 /// 4. If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
