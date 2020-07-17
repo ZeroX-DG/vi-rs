@@ -17,6 +17,8 @@
 
 Since typing Vietnamese on Linux is pretty painful at the momment, a better input engine is always needed. To accommodate the future engines that will be built in Rust, this library existed to transform key inputs into the Vietnamese string output.
 
+If you wish to find out how it works, I have written a short blog post (in Vietnamese) on how the library place a tone mark when it received the user input. Read it [here](https://zerox-dg.github.io/blog/2020/07/14/Bo-dau-trong-tieng-Viet/).
+
 ## Installation
 
 Add `vi` to your dependencies in `Cargo.toml`.
