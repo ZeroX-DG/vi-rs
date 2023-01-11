@@ -59,7 +59,7 @@ Please refer to the [`examples/`](examples) directory to learn more.
 ## Support
 
 - [x] **VNI**
-- [ ] **Telex**
+- [x] **Telex**
 
 ## Project status
 

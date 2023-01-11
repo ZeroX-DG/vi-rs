@@ -256,7 +256,11 @@ pub fn modify_letter(input: &str, modification: &LetterModification) -> (bool, S
     }
 
     for (index, ch) in input.chars().enumerate() {
-        if map.contains_key(&ch) {
+        let cleaned_ch = clean_char(ch);
+        if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
+            result = replace_char_at(&result, index, map[&cleaned_ch]);
+        }
+        else if map.contains_key(&ch) {
             result = replace_char_at(&result, index, map[&ch]);
         }
     }

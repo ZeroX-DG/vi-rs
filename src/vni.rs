@@ -11,8 +11,8 @@ fn is_number(ch: char) -> bool {
 }
 
 /// Transform input buffer to vietnamese string output along with
-/// a bool indicating if an ction has been triggered. For example,
-/// if the input is `['a', '1']`, then the action add tone mar is 
+/// a bool indicating if an action has been triggered. For example,
+/// if the input is `['a', '1']`, then the action add tone mark is 
 /// triggered by the `1` character.
 ///
 /// # Example
