@@ -6,6 +6,7 @@ use super::maps::{
 
 const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
 const MODIFIED_VOWELS: [char; 6] = ['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
+const MODIFIABLE_VOWELS: [char; 4] = ['a', 'e', 'o', 'u'];
 
 fn is_vowel(c: char) -> bool {
     VOWELS.contains(&c)
@@ -13,6 +14,10 @@ fn is_vowel(c: char) -> bool {
 
 fn is_modified_vowels(c: char) -> bool {
     MODIFIED_VOWELS.contains(&c)
+}
+
+fn is_modifiable_vowels(c: char) -> bool {
+    MODIFIABLE_VOWELS.contains(&c)
 }
 
 /// A tone mark in Vietnamese
@@ -123,6 +128,9 @@ fn get_tone_mark_placement(input: &str) -> Option<usize> {
                 return Some(mid_index + word_mid.len() - 2)
             }
         }
+        if let Some(pos) = index_of(&word_mid, is_modifiable_vowels) {
+            return Some(mid_index + pos);
+        }
         if let Some(pos) = index_of(&word_mid, is_vowel) {
             return Some(mid_index + pos);
         }
@@ -196,7 +204,7 @@ fn extract_letter_modification(input: &str) -> Option<LetterModification> {
 /// Add tone mark to input
 /// Return if the tone mark has been added or not and what's the output
 pub fn add_tone(input: &str, tone_mark: &ToneMark) -> (bool, String) {
-    let clean_input = input.clone()
+    let clean_input = input
         .chars()
         .map(remove_tone_mark)
         .collect::<String>();
@@ -241,18 +249,13 @@ pub fn modify_letter(input: &str, modification: &LetterModification) -> (bool, S
     };
     let mut result = input.clone().to_owned();
 
-    let clean_input = input
-        .chars()
-        .map(clean_char)
-        .collect::<String>();
-
     if let Some(existing_modification) = extract_letter_modification(input) {
         if existing_modification == *modification {
-            return (false, clean_input);
+            return (false, result);
         }
     }
 
-    for (index, ch) in clean_input.clone().chars().enumerate() {
+    for (index, ch) in input.chars().enumerate() {
         if map.contains_key(&ch) {
             result = replace_char_at(&result, index, map[&ch]);
         }
@@ -336,6 +339,27 @@ mod tests {
     fn get_tone_mark_placement_uppercase() {
         let result = get_tone_mark_placement("chÊt");
         let expected: Option<usize> = Some(2);
+        assert_eq!(result, expected);
+
+        let result = get_tone_mark_placement("chiÊt");
+        let expected: Option<usize> = Some(3);
+        assert_eq!(result, expected);
+
+        let result = get_tone_mark_placement("cAu");
+        let expected: Option<usize> = Some(1);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn modify_letter_existing_tone_mark() {
+        let (modified, result) = modify_letter("ẹ", &LetterModification::Circumflex);
+        let expected = "ệ";
+        assert!(modified);
+        assert_eq!(result, expected);
+
+        let (modified, result) = modify_letter("Ẹ", &LetterModification::Circumflex);
+        let expected = "Ệ";
+        assert!(modified);
         assert_eq!(result, expected);
     }
 }

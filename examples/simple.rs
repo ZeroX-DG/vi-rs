@@ -4,7 +4,7 @@ use vi::vni;
 
 fn main() {
     let inputs = vec![
-        vec!['v', 'i', 'e', 't', '6', '5'],
+        vec!['v', 'i', 'e', 't', '5', '6'],
         vec!['n', 'a', 'm']
     ];
 

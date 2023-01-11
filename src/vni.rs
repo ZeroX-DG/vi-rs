@@ -219,4 +219,12 @@ mod tests {
         let expected = "chÊ".to_string();
         assert_eq!(result, expected);
     }
+
+    #[test]
+    fn modify_letter_with_existing_tone() {
+        let input: Vec<char> = vec!['c', 'h', 'e', 'c', 'h', '5', '6'];
+        let (_, result) = transform_buffer(&input);
+        let expected = "chệch".to_string();
+        assert_eq!(result, expected);
+    }
 }
