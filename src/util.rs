@@ -4,7 +4,8 @@ pub fn clean_char(ch: char) -> char {
     let accents = vec![
         "aàảãáạăằẳẵắặâầẩẫấậ",
         "AÀẢÃÁẠĂẰẲẴẮẶÂẦẨẪẤẬ",
-        "dđ", "DĐ",
+        "dđ",
+        "DĐ",
         "eèẻẽéẹêềểễếệ",
         "EÈẺẼÉẸÊỀỂỄẾỆ",
         "iìỉĩíị",
@@ -14,7 +15,7 @@ pub fn clean_char(ch: char) -> char {
         "uùủũúụưừửữứự",
         "UÙỦŨÚỤƯỪỬỮỨỰ",
         "yỳỷỹýỵ",
-        "YỲỶỸÝỴ"
+        "YỲỶỸÝỴ",
     ];
     for accent in accents {
         let regex = Regex::new(&format!("[{}]", &accent[1..]));
@@ -53,13 +54,13 @@ pub fn remove_tone_mark(ch: char) -> char {
         "UÙỦŨÚỤ",
         "ƯỪỬỮỨỰ",
         "yỳỷỹýỵ",
-        "YỲỶỸÝỴ"
+        "YỲỶỸÝỴ",
     ];
     for tone_mark in tone_mark_map {
-        let regex = Regex::new(&format!("[{}]", &tone_mark
-                                        .chars()
-                                        .skip(1)
-                                        .collect::<String>()));
+        let regex = Regex::new(&format!(
+            "[{}]",
+            &tone_mark.chars().skip(1).collect::<String>()
+        ));
         let replace_char = tone_mark.chars().next().unwrap();
         if let Ok(re) = regex {
             if re.is_match(&ch.to_string()) {

@@ -1,18 +1,17 @@
 use super::processor::{
-    Action, ToneMark, LetterModification,
-    add_tone, remove_tone, modify_letter
+    add_tone, modify_letter, remove_tone, Action, LetterModification, ToneMark,
 };
 
 fn is_number(ch: char) -> bool {
     match ch {
         '0'..='9' => true,
-        _ => false
+        _ => false,
     }
 }
 
 /// Transform input buffer to vietnamese string output along with
 /// a bool indicating if an action has been triggered. For example,
-/// if the input is `['a', '1']`, then the action add tone mark is 
+/// if the input is `['a', '1']`, then the action add tone mark is
 /// triggered by the `1` character.
 ///
 /// # Example
@@ -63,11 +62,11 @@ pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
 
                 if !add_success {
                     let trigger_ch = match tone_mark {
-                        ToneMark::Acute     => '1',
-                        ToneMark::Grave     => '2',
+                        ToneMark::Acute => '1',
+                        ToneMark::Grave => '2',
                         ToneMark::HookAbove => '3',
-                        ToneMark::Tilde     => '4',
-                        ToneMark::Underdot  => '5'
+                        ToneMark::Tilde => '4',
+                        ToneMark::Underdot => '5',
                     };
                     content.push(trigger_ch);
                 }
@@ -79,10 +78,10 @@ pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
 
                 if !modify_success {
                     let trigger_ch = match modification {
-                        LetterModification::Dyet       => '9',
-                        LetterModification::Breve      => '8',
-                        LetterModification::Horn       => '7',
-                        LetterModification::Circumflex => '6'
+                        LetterModification::Dyet => '9',
+                        LetterModification::Breve => '8',
+                        LetterModification::Horn => '7',
+                        LetterModification::Circumflex => '6',
                     };
                     content.push(trigger_ch);
                 }
@@ -195,7 +194,7 @@ mod tests {
         let expected = "vơ".to_string();
         assert_eq!(result, expected);
     }
-    
+
     #[test]
     fn modify_letter_group() {
         let input: Vec<char> = vec!['v', 'u', 'o', 'n', '7'];

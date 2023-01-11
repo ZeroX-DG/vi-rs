@@ -13,6 +13,6 @@ fn main() {
         let (_, transform_result) = &vni::transform_buffer(&chars);
         result.push(transform_result.to_owned());
     }
-    
+
     println!("{}", result.join(" ")); // prints "xin chào tôi là Hưng, tôi đến từ Việt Nam"
 }

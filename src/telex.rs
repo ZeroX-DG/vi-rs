@@ -1,7 +1,4 @@
-use super::processor::{
-    Action, ToneMark, LetterModification,
-    add_tone, modify_letter
-};
+use super::processor::{add_tone, modify_letter, Action, LetterModification, ToneMark};
 
 use super::util::clean_char;
 
@@ -10,31 +7,37 @@ fn modifiable_char(ch: &char, previous_ch: &char, modification: &LetterModificat
 
     match modification {
         LetterModification::Circumflex => match clean_previous_ch {
-            'a' | 'e' | 'o' | 'A' | 'E' | 'O' => clean_previous_ch.to_ascii_lowercase() == ch.to_ascii_lowercase(),
-            _ => false
-        }
+            'a' | 'e' | 'o' | 'A' | 'E' | 'O' => {
+                clean_previous_ch.to_ascii_lowercase() == ch.to_ascii_lowercase()
+            }
+            _ => false,
+        },
         LetterModification::Horn => match clean_previous_ch {
             'u' | 'o' | 'U' | 'O' => true,
-            _ => false
-        }
+            _ => false,
+        },
         LetterModification::Breve => match clean_previous_ch {
-            'a'| 'A' => true,
-            _ => false
-        }
+            'a' | 'A' => true,
+            _ => false,
+        },
         LetterModification::Dyet => match clean_previous_ch {
             'd' | 'D' => true,
-            _ => false
-        }
+            _ => false,
+        },
     }
 }
 
 fn modify_char(ch: &char, modification: &LetterModification) -> char {
-    modify_letter(&ch.to_string(), modification).1.chars().last().unwrap()
+    modify_letter(&ch.to_string(), modification)
+        .1
+        .chars()
+        .last()
+        .unwrap()
 }
 
 /// Transform input buffer to vietnamese string output along with
 /// a bool indicating if an action has been triggered. For example,
-/// if the input is `['a', 'a']`, then the action add tone mark is 
+/// if the input is `['a', 'a']`, then the action add tone mark is
 /// triggered by the `a` character.
 ///
 /// # Example
@@ -57,7 +60,9 @@ pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
             'x' => actions.push(Action::AddTone(ToneMark::Tilde)),
             'j' => actions.push(Action::AddTone(ToneMark::Underdot)),
 
-            'a' | 'e' | 'o' if modifiable_char(ch, &previous_ch, &LetterModification::Circumflex) => {
+            'a' | 'e' | 'o'
+                if modifiable_char(ch, &previous_ch, &LetterModification::Circumflex) =>
+            {
                 actions.push(Action::ModifyLetter(LetterModification::Circumflex));
                 previous_ch = modify_char(&previous_ch, &LetterModification::Circumflex);
             }
@@ -76,7 +81,7 @@ pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
             _ => {
                 content.push(*ch);
                 previous_ch = *ch;
-            },
+            }
         }
     }
 
@@ -96,11 +101,11 @@ pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
 
                 if !add_success {
                     let trigger_ch = match tone_mark {
-                        ToneMark::Acute     => 's',
-                        ToneMark::Grave     => 'f',
+                        ToneMark::Acute => 's',
+                        ToneMark::Grave => 'f',
                         ToneMark::HookAbove => 'r',
-                        ToneMark::Tilde     => 'x',
-                        ToneMark::Underdot  => 'j'
+                        ToneMark::Tilde => 'x',
+                        ToneMark::Underdot => 'j',
                     };
                     content.push(trigger_ch);
                 }
@@ -193,7 +198,7 @@ mod tests {
         let expected = "vơ".to_string();
         assert_eq!(result, expected);
     }
-    
+
     #[test]
     fn modify_letter_group() {
         let input: Vec<char> = vec!['v', 'u', 'o', 'w', 'n'];

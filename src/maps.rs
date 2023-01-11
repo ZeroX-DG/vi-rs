@@ -109,7 +109,7 @@ pub static TILDE_MAP: Map<char, char> = phf_map! {
     'I' => 'Ĩ',
     'U' => 'Ũ',
     'Ư' => 'Ữ',
-    'Y' => 'Ỹ', 
+    'Y' => 'Ỹ',
 };
 
 pub static DOT_MAP: Map<char, char> = phf_map! {
@@ -138,7 +138,7 @@ pub static DOT_MAP: Map<char, char> = phf_map! {
     'U' => 'Ụ',
     'Ư' => 'Ự',
     'Y' => 'Ỵ',
-};      
+};
 
 pub static CIRCUMFLEX_MAP: Map<char, char> = phf_map! {
     'a' => 'â',
