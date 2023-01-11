@@ -54,7 +54,7 @@ pub enum Action {
 
 /// Get the main sound of a word which is the part that start
 /// with a vowel and end with word end or a non-vowel char
-pub fn get_word_mid(word: String) -> Option<(usize, String)> {
+pub fn get_word_mid(word: &str) -> Option<(usize, String)> {
     let mut result = String::new();
     let mut found_word_mid = false;
     let mut start_index: usize = 0;
@@ -101,8 +101,8 @@ pub fn get_word_mid(word: String) -> Option<(usize, String)> {
 /// second vowel
 /// 5. If a word end with 2 or 3 vowel, put it on the second last one
 /// 6. Else, but tone mark on whatever vowel comes first
-fn get_tone_mark_placement(input: &String) -> Option<usize> {
-    if let Some((mid_index, word_mid)) = get_word_mid(input.clone()) {
+fn get_tone_mark_placement(input: &str) -> Option<usize> {
+    if let Some((mid_index, word_mid)) = get_word_mid(input) {
         let is_end_with_mid = input.len() == mid_index + word_mid.len();
         if word_mid.len() == 1 { // single vowel
             return Some(mid_index);
@@ -130,7 +130,7 @@ fn get_tone_mark_placement(input: &String) -> Option<usize> {
     None
 }
 
-fn has_pair(input: &String, pair: &str) -> Option<usize> {
+fn has_pair(input: &str, pair: &str) -> Option<usize> {
     if let (Some(ch), Some(ch_next)) = (pair.chars().nth(0), pair.chars().nth(1)) {
         if let Some(pos) = index_of(&input, |c| c == ch) {
             if let Some(target_ch) = input.chars().nth(pos + 1) {
@@ -143,18 +143,18 @@ fn has_pair(input: &String, pair: &str) -> Option<usize> {
     None
 }
 
-fn index_of<F: Fn(char) -> bool>(input: &String, test: F) -> Option<usize> {
+fn index_of<F: Fn(char) -> bool>(input: &str, test: F) -> Option<usize> {
     return input.chars().position(test)
 }
 
-fn replace_char_at(input: &String, index: usize, ch: char) -> String {
+fn replace_char_at(input: &str, index: usize, ch: char) -> String {
     let mut result: String = input.chars().take(index).collect();
     result.push(ch);
     result.push_str(&input.chars().skip(index + 1).collect::<String>());
     result
 }
 
-fn extract_tone(input: &String) -> Option<ToneMark> {
+fn extract_tone(input: &str) -> Option<ToneMark> {
     for ch in input.chars() {
         if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
             return Some(ToneMark::Acute)
@@ -175,7 +175,7 @@ fn extract_tone(input: &String) -> Option<ToneMark> {
     None
 }
 
-fn extract_letter_modification(input: &String) -> Option<LetterModification> {
+fn extract_letter_modification(input: &str) -> Option<LetterModification> {
     for ch in input.chars() {
         if HORN_MAP.values().find(|c| **c == ch).is_some() {
             return Some(LetterModification::Horn)
@@ -195,7 +195,7 @@ fn extract_letter_modification(input: &String) -> Option<LetterModification> {
 
 /// Add tone mark to input
 /// Return if the tone mark has been added or not and what's the output
-pub fn add_tone(input: &String, tone_mark: &ToneMark) -> (bool, String) {
+pub fn add_tone(input: &str, tone_mark: &ToneMark) -> (bool, String) {
     let clean_input = input.clone()
         .chars()
         .map(remove_tone_mark)
@@ -227,21 +227,21 @@ pub fn add_tone(input: &String, tone_mark: &ToneMark) -> (bool, String) {
         };
         return (true, replace_char_at(&clean_input, tone_mark_pos, replace_char));
     }
-    (false, input.clone())
+    (false, input.clone().to_owned())
 }
 
 /// change a letter to vietnamese modified letter
 /// Return if the letter has been modified or not and what's the output
-pub fn modify_letter(input: &String, modification: &LetterModification) -> (bool, String) {
+pub fn modify_letter(input: &str, modification: &LetterModification) -> (bool, String) {
     let map = match modification {
         LetterModification::Horn       => &HORN_MAP,
         LetterModification::Breve      => &BREVE_MAP,
         LetterModification::Circumflex => &CIRCUMFLEX_MAP,
         LetterModification::Dyet       => &DYET_MAP
     };
-    let mut result = input.clone();
+    let mut result = input.clone().to_owned();
 
-    let clean_input = input.clone()
+    let clean_input = input
         .chars()
         .map(clean_char)
         .collect::<String>();
@@ -261,11 +261,11 @@ pub fn modify_letter(input: &String, modification: &LetterModification) -> (bool
 }
 
 /// Remove the tone for the letter
-pub fn remove_tone(input: &String) -> String {
-    let new_input: String = input.clone()
+pub fn remove_tone(input: &str) -> String {
+    let new_input = input
         .chars()
         .map(remove_tone_mark)
-        .collect();
+        .collect::<String>();
     if new_input == *input {
         return new_input.chars().map(clean_char).collect();
     }
@@ -278,63 +278,63 @@ mod tests {
 
     #[test]
     fn get_word_mid_normal() {
-        let result = get_word_mid("viet".to_owned());
+        let result = get_word_mid("viet");
         let expected: Option<(usize, String)> = Some((1, "ie".to_owned()));
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_word_mid_empty() {
-        let result = get_word_mid("vt".to_owned());
+        let result = get_word_mid("vt");
         let expected: Option<(usize, String)> = None;
         assert_eq!(result, expected); 
     }
 
     #[test]
     fn get_word_mid_double_start_tone() {
-        let result = get_word_mid("quai".to_owned());
+        let result = get_word_mid("quai");
         let expected: Option<(usize, String)> = Some((2, "ai".to_owned()));
         assert_eq!(result, expected); 
     }
 
     #[test]
     fn get_word_mid_double_start_tone_2() {
-        let result = get_word_mid("gia".to_owned());
+        let result = get_word_mid("gia");
         let expected: Option<(usize, String)> = Some((2, "a".to_owned()));
         assert_eq!(result, expected); 
     }
 
     #[test]
     fn get_tone_mark_placement_normal() {
-        let result = get_tone_mark_placement(&"choe".to_owned());
+        let result = get_tone_mark_placement("choe");
         let expected: Option<usize> = Some(3);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_special() {
-        let result = get_tone_mark_placement(&"chieu".to_owned());
+        let result = get_tone_mark_placement("chieu");
         let expected: Option<usize> = Some(3);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_mid_not_end() {
-        let result = get_tone_mark_placement(&"hoang".to_owned());
+        let result = get_tone_mark_placement("hoang");
         let expected: Option<usize> = Some(2);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_u_and_o() {
-        let result = get_tone_mark_placement(&"ngươi".to_owned());
+        let result = get_tone_mark_placement("ngươi");
         let expected: Option<usize> = Some(3);
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_uppercase() {
-        let result = get_tone_mark_placement(&"chÊt".to_owned());
+        let result = get_tone_mark_placement("chÊt");
         let expected: Option<usize> = Some(2);
         assert_eq!(result, expected);
     }

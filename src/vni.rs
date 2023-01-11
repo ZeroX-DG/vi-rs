@@ -22,7 +22,7 @@ fn is_number(ch: char) -> bool {
 /// let result = transform_buffer(&vec!['v', 'i', 'e', 't', '6', '5']);
 /// assert_eq!(result, (true, "việt".to_owned()));
 /// ```
-pub fn transform_buffer(buffer: &Vec<char>) -> (bool, String) {
+pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
     let mut content = String::new();
     let mut actions: Vec<Action> = Vec::new();
     for ch in buffer {
