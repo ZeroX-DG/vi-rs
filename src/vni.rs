@@ -1,8 +1,6 @@
 use crate::util::{add_tone_or_append, modify_letter_or_append, remove_tone_or_append};
 
-use super::processor::{
-    LetterModification, ToneMark,
-};
+use super::processor::{LetterModification, ToneMark};
 
 /// Transform input buffer to vietnamese string output using vni mode.
 ///
@@ -14,7 +12,8 @@ use super::processor::{
 /// assert_eq!(result, "việt".to_owned());
 /// ```
 pub fn transform_buffer<'a, I>(buffer: I) -> String
-    where I: IntoIterator<Item = &'a char>
+where
+    I: IntoIterator<Item = &'a char>,
 {
     let mut content = String::new();
     for ch in buffer {
@@ -170,7 +169,9 @@ mod tests {
 
     #[test]
     fn do_nothing_if_invalid() {
-        let input: Vec<char> = vec!['1', '1', '1', '2', '2', '3', '3', '3', '4', '4', '5', '5', '5'];
+        let input: Vec<char> = vec![
+            '1', '1', '1', '2', '2', '3', '3', '3', '4', '4', '5', '5', '5',
+        ];
         let result = transform_buffer(&input);
         let expected = "1112233344555".to_string();
         assert_eq!(result, expected);

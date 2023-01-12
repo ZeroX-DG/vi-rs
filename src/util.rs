@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::processor::{ToneMark, add_tone, modify_letter, LetterModification, remove_tone};
+use crate::processor::{add_tone, modify_letter, remove_tone, LetterModification, ToneMark};
 
 pub fn clean_char(ch: char) -> char {
     let accents = vec![
@@ -84,7 +84,11 @@ pub fn add_tone_or_append(input: &mut String, tone_mark: &ToneMark, append_char:
     *input = result
 }
 
-pub fn modify_letter_or_append(input: &mut String, modification: &LetterModification, append_char: &char) {
+pub fn modify_letter_or_append(
+    input: &mut String,
+    modification: &LetterModification,
+    append_char: &char,
+) {
     let (letter_modified, mut result) = modify_letter(input, modification);
 
     if !letter_modified {

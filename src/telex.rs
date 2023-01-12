@@ -39,7 +39,8 @@ fn modifiable_char(ch: &char, previous_ch: &char, modification: &LetterModificat
 /// assert_eq!(result, (true, "việt".to_owned()));
 /// ```
 pub fn transform_buffer<'a, I>(buffer: I) -> String
-    where I: IntoIterator<Item = &'a char>
+where
+    I: IntoIterator<Item = &'a char>,
 {
     let mut content = String::new();
 
@@ -52,7 +53,9 @@ pub fn transform_buffer<'a, I>(buffer: I) -> String
             'x' => add_tone_or_append(&mut content, &ToneMark::Tilde, ch),
             'j' => add_tone_or_append(&mut content, &ToneMark::Underdot, ch),
 
-            'a' | 'e' | 'o' if modifiable_char(ch, &previous_ch, &LetterModification::Circumflex) => {
+            'a' | 'e' | 'o'
+                if modifiable_char(ch, &previous_ch, &LetterModification::Circumflex) =>
+            {
                 modify_letter_or_append(&mut content, &LetterModification::Circumflex, ch);
             }
             'w' if modifiable_char(ch, &previous_ch, &LetterModification::Horn) => {
@@ -195,7 +198,9 @@ mod tests {
 
     #[test]
     fn do_nothing_if_invalid() {
-        let input: Vec<char> = vec!['z', 'z', 'z', 'j', 'j', 'j', 'j', 'h', 'h', 'h', 'k', 'k', 'k'];
+        let input: Vec<char> = vec![
+            'z', 'z', 'z', 'j', 'j', 'j', 'j', 'h', 'h', 'h', 'k', 'k', 'k',
+        ];
         let result = transform_buffer(&input);
         let expected = "zzzjjjjhhhkkk".to_string();
         assert_eq!(result, expected);
