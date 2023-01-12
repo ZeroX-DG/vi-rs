@@ -1,5 +1,7 @@
 use regex::Regex;
 
+use crate::processor::{ToneMark, add_tone, modify_letter, LetterModification, remove_tone};
+
 pub fn clean_char(ch: char) -> char {
     let accents = vec![
         "aàảãáạăằẳẵắặâầẩẫấậ",
@@ -69,4 +71,35 @@ pub fn remove_tone_mark(ch: char) -> char {
         }
     }
     ch
+}
+
+pub fn add_tone_or_append(input: &mut String, tone_mark: &ToneMark, append_char: &char) {
+    let (tone_added, mut result) = add_tone(input, tone_mark);
+
+    if !tone_added {
+        // Append the trigger char if tone mark is not added
+        result.push(*append_char);
+    }
+
+    *input = result
+}
+
+pub fn modify_letter_or_append(input: &mut String, modification: &LetterModification, append_char: &char) {
+    let (letter_modified, mut result) = modify_letter(input, modification);
+
+    if !letter_modified {
+        // Append the trigger char if tone mark is not added
+        result.push(*append_char);
+    }
+
+    *input = result
+}
+
+pub fn remove_tone_or_append(input: &mut String) {
+    let mut result = remove_tone(input);
+
+    if result == *input {
+        result.push('0');
+    }
+    *input = result
 }
