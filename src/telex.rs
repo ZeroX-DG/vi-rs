@@ -47,7 +47,9 @@ fn modify_char(ch: &char, modification: &LetterModification) -> char {
 /// let result = transform_buffer(&vec!['v', 'i', 'e', 'e', 't', 'j']);
 /// assert_eq!(result, (true, "việt".to_owned()));
 /// ```
-pub fn transform_buffer(buffer: &[char]) -> (bool, String) {
+pub fn transform_buffer<'a, I>(buffer: I) -> (bool, String)
+    where I: IntoIterator<Item = &'a char>
+{
     let mut content = String::new();
 
     let mut actions: Vec<Action> = Vec::new();
