@@ -4,9 +4,7 @@ use super::processor::{
     LetterModification, ToneMark,
 };
 
-/// Transform input buffer to vietnamese string output. For example,
-/// if the input is `['a', '1']`, then the action add tone mark is
-/// triggered by the `1` character and the returned result would be 'á'.
+/// Transform input buffer to vietnamese string output using vni mode.
 ///
 /// # Example
 /// ```
@@ -91,6 +89,14 @@ mod tests {
     }
 
     #[test]
+    fn add_tone_action_before_text() {
+        let input: Vec<char> = vec!['1', 'a'];
+        let result = transform_buffer(&input);
+        let expected = "1a".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn add_tone_all_uppercase() {
         let input: Vec<char> = vec!['C', 'H', 'A', 'O', '2'];
         let result = transform_buffer(&input);
@@ -159,6 +165,14 @@ mod tests {
         let input: Vec<char> = vec!['c', 'h', 'e', 'c', 'h', '5', '6'];
         let result = transform_buffer(&input);
         let expected = "chệch".to_string();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn do_nothing_if_invalid() {
+        let input: Vec<char> = vec!['1', '1', '1', '2', '2', '3', '3', '3', '4', '4', '5', '5', '5'];
+        let result = transform_buffer(&input);
+        let expected = "1112233344555".to_string();
         assert_eq!(result, expected);
     }
 }

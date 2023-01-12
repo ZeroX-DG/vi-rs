@@ -10,7 +10,7 @@ fn main() {
     let mut result: Vec<String> = vec![];
     for word in words {
         let chars = word.chars().collect::<Vec<char>>();
-        let (_, transform_result) = &vni::transform_buffer(&chars);
+        let transform_result = &vni::transform_buffer(&chars);
         result.push(transform_result.to_owned());
     }
 
