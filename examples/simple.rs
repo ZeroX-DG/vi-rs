@@ -7,7 +7,7 @@ fn main() {
 
     let mut result = String::new();
     for input in inputs {
-        let transform_result = &vni::transform_buffer(&input);
+        let transform_result = &vni::transform_buffer(input.iter().cloned());
         result.push_str(transform_result);
         result.push(' ');
     }

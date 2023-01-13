@@ -8,15 +8,16 @@ use super::processor::{LetterModification, ToneMark};
 /// ```
 /// use vi::vni::transform_buffer;
 ///
-/// let result = transform_buffer(&vec!['v', 'i', 'e', 't', '6', '5']);
+/// let result = transform_buffer(vec!['v', 'i', 'e', 't', '6', '5'].iter().cloned());
 /// assert_eq!(result, "việt".to_owned());
 /// ```
-pub fn transform_buffer<'a, I>(buffer: I) -> String
+pub fn transform_buffer<I>(buffer: I) -> String
 where
-    I: IntoIterator<Item = &'a char>,
+    I: IntoIterator<Item = char>,
 {
     let mut content = String::new();
     for ch in buffer {
+        let ch = &ch;
         match ch {
             '1' => add_tone_or_append(&mut content, &ToneMark::Acute, ch),
             '2' => add_tone_or_append(&mut content, &ToneMark::Grave, ch),
@@ -33,147 +34,4 @@ where
     }
 
     content
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn add_acute_tone_normal() {
-        let input: Vec<char> = vec!['v', 'i', 't', '1'];
-        let result = transform_buffer(&input);
-        let expected = "vít".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_acute_tone_failed() {
-        let input: Vec<char> = vec!['v', 't', '1'];
-        let result = transform_buffer(&input);
-        let expected = "vt1".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_tone_normal() {
-        let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2'];
-        let result = transform_buffer(&input);
-        let expected = "hoàng".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_tone_double_edit() {
-        let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', '2', '3'];
-        let result = transform_buffer(&input);
-        let expected = "hoảng".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_tone_no_content() {
-        let input: Vec<char> = vec!['2', '3'];
-        let result = transform_buffer(&input);
-        let expected = "23".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_tone_overflow() {
-        let input: Vec<char> = vec!['a', '1', '1'];
-        let result = transform_buffer(&input);
-        let expected = "a1".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_tone_action_before_text() {
-        let input: Vec<char> = vec!['1', 'a'];
-        let result = transform_buffer(&input);
-        let expected = "1a".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn add_tone_all_uppercase() {
-        let input: Vec<char> = vec!['C', 'H', 'A', 'O', '2'];
-        let result = transform_buffer(&input);
-        let expected = "CHÀO".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn remove_tone_single() {
-        let input: Vec<char> = vec!['l', 'u', 'a', 't', '6', '5', '0'];
-        let result = transform_buffer(&input);
-        let expected = "luât".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn remove_tone_double() {
-        let input: Vec<char> = vec!['c', 'h', 'e', 't', '6', '1', '0', '0'];
-        let result = transform_buffer(&input);
-        let expected = "chet".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn remove_tone_exceed() {
-        let input: Vec<char> = vec!['v', 'i', 't', '5', '0', '0'];
-        let result = transform_buffer(&input);
-        let expected = "vit0".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn modify_letter_normal() {
-        let input: Vec<char> = vec!['v', 'o', '7'];
-        let result = transform_buffer(&input);
-        let expected = "vơ".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn modify_letter_group() {
-        let input: Vec<char> = vec!['v', 'u', 'o', 'n', '7'];
-        let result = transform_buffer(&input);
-        let expected = "vươn".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn modify_letter_failed() {
-        let input: Vec<char> = vec!['c', 'h', 'e', '7'];
-        let result = transform_buffer(&input);
-        let expected = "che7".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn modify_letter_uppercase() {
-        let input: Vec<char> = vec!['c', 'h', 'E', '6'];
-        let result = transform_buffer(&input);
-        let expected = "chÊ".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn modify_letter_with_existing_tone() {
-        let input: Vec<char> = vec!['c', 'h', 'e', 'c', 'h', '5', '6'];
-        let result = transform_buffer(&input);
-        let expected = "chệch".to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn do_nothing_if_invalid() {
-        let input: Vec<char> = vec![
-            '1', '1', '1', '2', '2', '3', '3', '3', '4', '4', '5', '5', '5',
-        ];
-        let result = transform_buffer(&input);
-        let expected = "1112233344555".to_string();
-        assert_eq!(result, expected);
-    }
 }

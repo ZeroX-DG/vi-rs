@@ -1,0 +1,23 @@
+---
+source: tests/vni.rs
+expression: snapshot_transform(contents)
+info:
+  input_file: "../testdata/input/simple_vni.txt"
+---
+tôi là ai
+đây là đâu
+thêm một cái nữa
+ví tiền
+chào
+vơ
+ru
+vươn
+chÊ
+ă
+zzzjjjjhhhkkk
+chệch
+che8
+vươn
+a1
+hoảng
+
