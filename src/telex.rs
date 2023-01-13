@@ -38,7 +38,7 @@ fn modifiable_char(ch: &char, previous_ch: &char, modification: &LetterModificat
 /// let result = transform_buffer(vec!['v', 'i', 'e', 'e', 't', 'j'].iter().cloned());
 /// assert_eq!(result, "việt".to_owned());
 /// ```
-pub fn transform_buffer<'a, I>(buffer: I) -> String
+pub fn transform_buffer<I>(buffer: I) -> String
 where
     I: IntoIterator<Item = char>,
 {
