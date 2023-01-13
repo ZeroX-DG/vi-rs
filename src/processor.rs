@@ -50,13 +50,6 @@ pub enum LetterModification {
     Dyet,
 }
 
-/// An action contained in an input string
-pub enum Action {
-    AddTone(ToneMark),
-    ModifyLetter(LetterModification),
-    RemoveTone,
-}
-
 /// Get the main sound of a word which is the part that start
 /// with a vowel and end with word end or a non-vowel char
 pub fn get_word_mid(word: &str) -> Option<(usize, String)> {

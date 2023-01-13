@@ -1,7 +1,11 @@
 mod shared;
 
 fn snapshot_transform(lines: &str) -> String {
-    shared::transform_lines(lines, |word| vi::vni::transform_buffer(word.chars()))
+    shared::transform_lines(lines, |word| {
+        let mut trasformed_word = String::new();
+        vi::vni::transform_buffer(word.chars(), &mut trasformed_word);
+        trasformed_word
+    })
 }
 
 macro_rules! gen_test_vi {

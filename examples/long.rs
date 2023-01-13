@@ -7,11 +7,14 @@ fn main() {
 
     let words = inputs.split(' ');
 
-    let mut result: Vec<String> = vec![];
+    let mut result = String::new();
+    let mut transformed_word = String::new();
     for word in words {
-        let transform_result = &vni::transform_buffer(word.chars());
-        result.push(transform_result.to_owned());
+        vni::transform_buffer(word.chars(), &mut transformed_word);
+        result.push_str(&transformed_word);
+        result.push(' ');
+        transformed_word.clear();
     }
 
-    println!("{}", result.join(" ")); // prints "xin chào tôi là Hưng, tôi đến từ Việt Nam"
+    println!("{}", result); // prints "xin chào tôi là Hưng, tôi đến từ Việt Nam"
 }
