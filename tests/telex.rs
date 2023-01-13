@@ -1,7 +1,5 @@
 use std::fmt::Write;
 
-use serde::Serialize;
-
 fn snapshot_transform(input: &str) -> String {
     let mut result = String::new();
     for line in input.lines() {
@@ -17,23 +15,11 @@ fn snapshot_transform(input: &str) -> String {
     result
 }
 
-#[derive(Serialize)]
-struct Metadata<'a> {
-    input_file: &'a str
-}
+mod shared;
 
-macro_rules! gen_test {
+macro_rules! gen_test_telex {
     ($name:tt, $path: tt) => {
-        #[test]
-        fn $name() {
-            let contents = include_str!($path);
-            let mut settings = insta::Settings::clone_current();
-            settings.set_snapshot_path("../testdata/output/");
-            settings.set_info(&Metadata { input_file: $path });
-            settings.bind(|| {
-                insta::assert_snapshot!(snapshot_transform(contents));
-            });
-        }
+        gen_test!(snapshot_transform, $name, $path);
     }
 }
-gen_test!(simple_telex, "../testdata/input/simple_telex.txt");
+gen_test_telex!(simple_telex, "../testdata/input/simple_telex.txt");
