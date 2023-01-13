@@ -1,0 +1,7 @@
+---
+source: tests/telex.rs
+expression: snapshot_transform(contents)
+---
+tôi là ai
+đây là đâu
+
