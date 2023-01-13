@@ -35,17 +35,18 @@ fn modifiable_char(ch: &char, previous_ch: &char, modification: &LetterModificat
 /// ```
 /// use vi::telex::transform_buffer;
 ///
-/// let result = transform_buffer(&vec!['v', 'i', 'e', 'e', 't', 'j']);
-/// assert_eq!(result, (true, "việt".to_owned()));
+/// let result = transform_buffer(vec!['v', 'i', 'e', 'e', 't', 'j'].iter().cloned());
+/// assert_eq!(result, "việt".to_owned());
 /// ```
-pub fn transform_buffer<'a, I>(buffer: I) -> String
+pub fn transform_buffer<I>(buffer: I) -> String
 where
-    I: IntoIterator<Item = &'a char>,
+    I: IntoIterator<Item = char>,
 {
     let mut content = String::new();
 
     let mut previous_ch = '\0';
     for ch in buffer {
+        let ch = &ch;
         match ch {
             's' => add_tone_or_append(&mut content, &ToneMark::Acute, ch),
             'f' => add_tone_or_append(&mut content, &ToneMark::Grave, ch),
@@ -82,7 +83,7 @@ mod tests {
     #[test]
     fn add_acute_tone_normal() {
         let input: Vec<char> = vec!['v', 'i', 't', 's'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "vít".to_string();
         assert_eq!(result, expected);
     }
@@ -90,7 +91,7 @@ mod tests {
     #[test]
     fn add_acute_tone_failed() {
         let input: Vec<char> = vec!['v', 't', 's'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "vts".to_string();
         assert_eq!(result, expected);
     }
@@ -98,7 +99,7 @@ mod tests {
     #[test]
     fn add_tone_normal() {
         let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', 'f'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "hoàng".to_string();
         assert_eq!(result, expected);
     }
@@ -106,7 +107,7 @@ mod tests {
     #[test]
     fn add_tone_double_edit() {
         let input: Vec<char> = vec!['h', 'o', 'a', 'n', 'g', 'f', 'r'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "hoảng".to_string();
         assert_eq!(result, expected);
     }
@@ -114,7 +115,7 @@ mod tests {
     #[test]
     fn add_tone_no_content() {
         let input: Vec<char> = vec!['2', '3'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "23".to_string();
         assert_eq!(result, expected);
     }
@@ -122,7 +123,7 @@ mod tests {
     #[test]
     fn add_tone_overflow() {
         let input: Vec<char> = vec!['a', 's', 's'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "as".to_string();
         assert_eq!(result, expected);
     }
@@ -130,7 +131,7 @@ mod tests {
     #[test]
     fn add_tone_action_before_text() {
         let input: Vec<char> = vec!['r', 'u'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "ru".to_string();
         assert_eq!(result, expected);
     }
@@ -138,7 +139,7 @@ mod tests {
     #[test]
     fn add_tone_all_uppercase() {
         let input: Vec<char> = vec!['C', 'H', 'A', 'O', 'f'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "CHÀO".to_string();
         assert_eq!(result, expected);
     }
@@ -146,7 +147,7 @@ mod tests {
     #[test]
     fn modify_letter_normal() {
         let input: Vec<char> = vec!['v', 'o', 'w'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "vơ".to_string();
         assert_eq!(result, expected);
     }
@@ -154,7 +155,7 @@ mod tests {
     #[test]
     fn modify_letter_group() {
         let input: Vec<char> = vec!['v', 'u', 'o', 'w', 'n'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "vươn".to_string();
         assert_eq!(result, expected);
     }
@@ -162,12 +163,12 @@ mod tests {
     #[test]
     fn modify_letter_failed() {
         let input: Vec<char> = vec!['c', 'h', 'e', 'w'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "chew".to_string();
         assert_eq!(result, expected);
 
         let input: Vec<char> = vec!['v', 'u', 'o', 'n', 'w'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "vuonw".to_string();
         assert_eq!(result, expected);
     }
@@ -175,7 +176,7 @@ mod tests {
     #[test]
     fn modify_letter_uppercase() {
         let input: Vec<char> = vec!['c', 'h', 'E', 'e'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "chÊ".to_string();
         assert_eq!(result, expected);
     }
@@ -183,7 +184,7 @@ mod tests {
     #[test]
     fn modify_letter_with_existing_tone() {
         let input: Vec<char> = vec!['c', 'h', 'e', 'j', 'e', 'c', 'h'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "chệch".to_string();
         assert_eq!(result, expected);
     }
@@ -191,7 +192,7 @@ mod tests {
     #[test]
     fn modify_letter_override() {
         let input: Vec<char> = vec!['a', 'a', 'w'];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "ă".to_string();
         assert_eq!(result, expected);
     }
@@ -201,7 +202,7 @@ mod tests {
         let input: Vec<char> = vec![
             'z', 'z', 'z', 'j', 'j', 'j', 'j', 'h', 'h', 'h', 'k', 'k', 'k',
         ];
-        let result = transform_buffer(&input);
+        let result = transform_buffer(input.iter().cloned());
         let expected = "zzzjjjjhhhkkk".to_string();
         assert_eq!(result, expected);
     }

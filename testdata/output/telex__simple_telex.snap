@@ -1,0 +1,10 @@
+---
+source: tests/telex.rs
+expression: snapshot_transform(contents)
+info:
+  input_file: "../testdata/input/simple_telex.txt"
+---
+tôi là ai
+đây là đâu
+thêm một cái nữa
+

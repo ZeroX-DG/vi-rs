@@ -1,0 +1,12 @@
+mod shared;
+
+fn snapshot_transform(lines: &str) -> String {
+    shared::transform_lines(lines, |word| vi::telex::transform_buffer(word.chars()))
+}
+
+macro_rules! gen_test_telex {
+    ($name:tt, $path: tt) => {
+        gen_test!(snapshot_transform, $name, $path);
+    }
+}
+gen_test_telex!(simple_telex, "../testdata/input/simple_telex.txt");
