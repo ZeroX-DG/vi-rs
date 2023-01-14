@@ -25,7 +25,7 @@ Add `vi` to your dependencies in `Cargo.toml`.
 
 ```
 [dependencies]
-vi = "0.1.1"
+vi = "0.3.0"
 ```
 
 ## Examples
@@ -43,11 +43,17 @@ fn main() {
         vec!['n', 'a', 'm']
     ];
 
+    let inputs = vec![vec!['v', 'i', 'e', 't', '5', '6'], vec!['n', 'a', 'm']];
+
     let mut result = String::new();
+    let mut transformed_word = String::new();
     for input in inputs {
-        let (_, transform_result) = &vni::transform_buffer(&input);
-        result.push_str(transform_result);
+        vni::transform_buffer(input.iter().cloned(), &mut transformed_word);
+
+        result.push_str(&transformed_word);
         result.push(' ');
+
+        transformed_word.clear();
     }
     
     println!("{}", result); // prints "việt nam "
