@@ -74,14 +74,12 @@ pub fn remove_tone_mark(ch: char) -> char {
 }
 
 pub fn add_tone_or_append(input: &mut String, tone_mark: &ToneMark, append_char: &char) {
-    let (tone_added, mut result) = add_tone(input, tone_mark);
+    let tone_added = add_tone(input, tone_mark);
 
     if !tone_added {
         // Append the trigger char if tone mark is not added
-        result.push(*append_char);
+        input.push(*append_char);
     }
-
-    *input = result
 }
 
 pub fn modify_letter_or_append(
@@ -89,21 +87,19 @@ pub fn modify_letter_or_append(
     modification: &LetterModification,
     append_char: &char,
 ) {
-    let (letter_modified, mut result) = modify_letter(input, modification);
+    let letter_modified = modify_letter(input, modification);
 
     if !letter_modified {
         // Append the trigger char if tone mark is not added
-        result.push(*append_char);
+        input.push(*append_char);
     }
-
-    *input = result
 }
 
-pub fn remove_tone_or_append(input: &mut String) {
-    let mut result = remove_tone(input);
+pub fn remove_tone_or_append(input: &mut String, append_char: &char) {
+    let tone_removed = remove_tone(input);
 
-    if result == *input {
-        result.push('0');
+    if !tone_removed {
+        // Append the trigger char if there's no tone to remove for input
+        input.push(*append_char);
     }
-    *input = result
 }

@@ -11,6 +11,7 @@ fn main() {
         vni::transform_buffer(input.iter().cloned(), &mut transformed_word);
         result.push_str(&transformed_word);
         result.push(' ');
+        transformed_word.clear();
     }
 
     println!("{}", result); // prints "việt nam "

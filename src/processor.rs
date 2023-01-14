@@ -149,11 +149,15 @@ fn index_of<F: Fn(char) -> bool>(input: &str, test: F) -> Option<usize> {
     return input.chars().position(test);
 }
 
-fn replace_char_at(input: &str, index: usize, ch: char) -> String {
-    let mut result: String = input.chars().take(index).collect();
-    result.push(ch);
-    result.push_str(&input.chars().skip(index + 1).collect::<String>());
-    result
+fn replace_char_at(input: &mut String, index: usize, ch: char) {
+    input.replace_range(
+        input
+            .char_indices()
+            .nth(index)
+            .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
+            .unwrap(),
+        &ch.to_string(),
+    );
 }
 
 fn extract_tone(input: &str) -> Option<ToneMark> {
@@ -196,13 +200,14 @@ fn extract_letter_modification(input: &str) -> Option<LetterModification> {
 }
 
 /// Add tone mark to input
-/// Return if the tone mark has been added or not and what's the output
-pub fn add_tone(input: &str, tone_mark: &ToneMark) -> (bool, String) {
-    let clean_input = input.chars().map(remove_tone_mark).collect::<String>();
+/// Return if the tone mark has been added or not
+pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
+    let mut clean_input = buffer.chars().map(remove_tone_mark).collect::<String>();
 
-    if let Some(existing_tone) = extract_tone(input) {
+    if let Some(existing_tone) = extract_tone(&buffer) {
         if existing_tone == *tone_mark {
-            return (false, clean_input);
+            *buffer = clean_input;
+            return false;
         }
     }
 
@@ -221,49 +226,58 @@ pub fn add_tone(input: &str, tone_mark: &ToneMark) -> (bool, String) {
         } else {
             tone_mark_ch
         };
-        return (
-            true,
-            replace_char_at(&clean_input, tone_mark_pos, replace_char),
-        );
+
+        replace_char_at(&mut clean_input, tone_mark_pos, replace_char);
+        *buffer = clean_input;
+        return true;
     }
-    (false, input.clone().to_owned())
+
+    return false;
 }
 
 /// change a letter to vietnamese modified letter
 /// Return if the letter has been modified or not and what's the output
-pub fn modify_letter(input: &str, modification: &LetterModification) -> (bool, String) {
+pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> bool {
     let map = match modification {
         LetterModification::Horn => &HORN_MAP,
         LetterModification::Breve => &BREVE_MAP,
         LetterModification::Circumflex => &CIRCUMFLEX_MAP,
         LetterModification::Dyet => &DYET_MAP,
     };
-    let mut result = input.clone().to_owned();
-
-    if let Some(existing_modification) = extract_letter_modification(input) {
+    if let Some(existing_modification) = extract_letter_modification(buffer) {
         if existing_modification == *modification {
-            return (false, result);
+            return false;
         }
     }
 
-    for (index, ch) in input.chars().enumerate() {
+    let mut modifications = Vec::new();
+
+    for (index, ch) in buffer.chars().enumerate() {
         let cleaned_ch = clean_char(ch);
         if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
-            result = replace_char_at(&result, index, map[&cleaned_ch]);
+            modifications.push((index, map[&cleaned_ch]));
         } else if map.contains_key(&ch) {
-            result = replace_char_at(&result, index, map[&ch]);
+            modifications.push((index, map[&ch]));
         }
     }
-    (result != *input, result)
+
+    for (index, ch) in &modifications {
+        replace_char_at(buffer, *index, *ch);
+    }
+
+    !modifications.is_empty()
 }
 
 /// Remove the tone for the letter
-pub fn remove_tone(input: &str) -> String {
-    let new_input = input.chars().map(remove_tone_mark).collect::<String>();
-    if new_input == *input {
-        return new_input.chars().map(clean_char).collect();
+pub fn remove_tone(input: &mut String) -> bool {
+    let mut result = input.chars().map(remove_tone_mark).collect::<String>();
+    if result == *input {
+        result = result.chars().map(clean_char).collect();
     }
-    return new_input;
+    let tone_removed = result != *input;
+    *input = result;
+
+    tone_removed
 }
 
 #[cfg(test)]
@@ -343,14 +357,16 @@ mod tests {
 
     #[test]
     fn modify_letter_existing_tone_mark() {
-        let (modified, result) = modify_letter("ẹ", &LetterModification::Circumflex);
+        let mut buffer = "ẹ".to_string();
+        let modified = modify_letter(&mut buffer, &LetterModification::Circumflex);
         let expected = "ệ";
         assert!(modified);
-        assert_eq!(result, expected);
+        assert_eq!(buffer, expected);
 
-        let (modified, result) = modify_letter("Ẹ", &LetterModification::Circumflex);
+        let mut buffer = "Ẹ".to_string();
+        let modified = modify_letter(&mut buffer, &LetterModification::Circumflex);
         let expected = "Ệ";
         assert!(modified);
-        assert_eq!(result, expected);
+        assert_eq!(buffer, expected);
     }
 }

@@ -28,7 +28,7 @@ where
             '7' => modify_letter_or_append(output, &LetterModification::Horn, ch),
             '8' => modify_letter_or_append(output, &LetterModification::Breve, ch),
             '9' => modify_letter_or_append(output, &LetterModification::Dyet, ch),
-            '0' => remove_tone_or_append(output),
+            '0' => remove_tone_or_append(output, ch),
             _ => output.push(*ch),
         }
     }

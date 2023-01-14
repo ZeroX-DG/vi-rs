@@ -11,6 +11,6 @@ fn snapshot_transform(lines: &str) -> String {
 macro_rules! gen_test_vi {
     ($name:tt, $path: tt) => {
         gen_test!(snapshot_transform, $name, $path);
-    }
+    };
 }
 gen_test_vi!(simple_vni, "../testdata/input/simple_vni.txt");

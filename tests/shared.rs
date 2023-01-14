@@ -3,7 +3,7 @@ use std::fmt::Write;
 
 #[derive(Serialize)]
 pub(crate) struct Metadata<'a> {
-    pub(crate) input_file: &'a str
+    pub(crate) input_file: &'a str,
 }
 
 #[macro_export]
@@ -19,7 +19,7 @@ macro_rules! gen_test {
                 insta::assert_snapshot!($test_method(contents));
             });
         }
-    }
+    };
 }
 
 pub fn transform_lines<F>(input: &str, transformer: F) -> String
