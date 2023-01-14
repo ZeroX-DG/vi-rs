@@ -65,7 +65,7 @@ pub fn get_word_mid(word: &str) -> Option<(usize, String)> {
                     continue; // special case 'qu' is start sound
                 }
             }
-            if ch == 'i' && index > 0 {
+            if ch == 'i' && index > 0 && word.len() > 2 {
                 let prev_ch = word.chars().nth(index - 1).unwrap();
                 if prev_ch == 'g' {
                     continue; // special case 'gi' is start sound
