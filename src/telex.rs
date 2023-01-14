@@ -43,32 +43,34 @@ pub fn transform_buffer<I>(buffer: I, output: &mut String)
 where
     I: IntoIterator<Item = char>,
 {
+    let mut result = String::new();
     let mut previous_ch = '\0';
     for ch in buffer {
         let ch = &ch;
         match ch {
-            's' => add_tone_or_append(output, &ToneMark::Acute, ch),
-            'f' => add_tone_or_append(output, &ToneMark::Grave, ch),
-            'r' => add_tone_or_append(output, &ToneMark::HookAbove, ch),
-            'x' => add_tone_or_append(output, &ToneMark::Tilde, ch),
-            'j' => add_tone_or_append(output, &ToneMark::Underdot, ch),
+            's' => add_tone_or_append(&mut result, &ToneMark::Acute, ch),
+            'f' => add_tone_or_append(&mut result, &ToneMark::Grave, ch),
+            'r' => add_tone_or_append(&mut result, &ToneMark::HookAbove, ch),
+            'x' => add_tone_or_append(&mut result, &ToneMark::Tilde, ch),
+            'j' => add_tone_or_append(&mut result, &ToneMark::Underdot, ch),
 
             'a' | 'e' | 'o'
                 if modifiable_char(ch, &previous_ch, &LetterModification::Circumflex) =>
             {
-                modify_letter_or_append(output, &LetterModification::Circumflex, ch);
+                modify_letter_or_append(&mut result, &LetterModification::Circumflex, ch);
             }
             'w' if modifiable_char(ch, &previous_ch, &LetterModification::Horn) => {
-                modify_letter_or_append(output, &LetterModification::Horn, ch);
+                modify_letter_or_append(&mut result, &LetterModification::Horn, ch);
             }
             'w' if modifiable_char(ch, &previous_ch, &LetterModification::Breve) => {
-                modify_letter_or_append(output, &LetterModification::Breve, ch);
+                modify_letter_or_append(&mut result, &LetterModification::Breve, ch);
             }
             'd' if modifiable_char(ch, &previous_ch, &LetterModification::Dyet) => {
-                modify_letter_or_append(output, &LetterModification::Dyet, ch);
+                modify_letter_or_append(&mut result, &LetterModification::Dyet, ch);
             }
-            _ => output.push(*ch),
+            _ => result.push(*ch),
         }
-        previous_ch = output.chars().last().unwrap_or('\0');
+        previous_ch = result.chars().last().unwrap_or('\0');
     }
+    output.push_str(&result);
 }

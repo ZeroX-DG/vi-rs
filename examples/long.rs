@@ -8,12 +8,9 @@ fn main() {
     let words = inputs.split(' ');
 
     let mut result = String::new();
-    let mut transformed_word = String::new();
     for word in words {
-        vni::transform_buffer(word.chars(), &mut transformed_word);
-        result.push_str(&transformed_word);
+        vni::transform_buffer(word.chars(), &mut result);
         result.push(' ');
-        transformed_word.clear();
     }
 
     println!("{}", result); // prints "xin chào tôi là Hưng, tôi đến từ Việt Nam"
