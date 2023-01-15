@@ -82,6 +82,18 @@ pub fn add_tone_or_append(input: &mut String, tone_mark: &ToneMark, append_char:
     }
 }
 
+pub fn modify_letter_or_else<F: FnMut(&mut String)>(
+    input: &mut String,
+    modification: &LetterModification,
+    mut callback: F,
+) {
+    let letter_modified = modify_letter(input, modification);
+
+    if !letter_modified {
+        callback(input)
+    }
+}
+
 pub fn modify_letter_or_append(
     input: &mut String,
     modification: &LetterModification,
