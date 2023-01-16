@@ -1,24 +1,9 @@
+use crate::util::{is_vowel, is_modified_vowels, is_modifiable_vowels, extract_tone, extract_letter_modification};
 use super::maps::{
     ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
     TILDE_MAP,
 };
 use super::util::{clean_char, remove_tone_mark};
-
-const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
-const MODIFIED_VOWELS: [char; 6] = ['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
-const MODIFIABLE_VOWELS: [char; 4] = ['a', 'e', 'o', 'u'];
-
-fn is_vowel(c: char) -> bool {
-    VOWELS.contains(&c)
-}
-
-fn is_modified_vowels(c: char) -> bool {
-    MODIFIED_VOWELS.contains(&c)
-}
-
-fn is_modifiable_vowels(c: char) -> bool {
-    MODIFIABLE_VOWELS.contains(&c)
-}
 
 /// A tone mark in Vietnamese
 ///
@@ -158,45 +143,6 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
             .unwrap(),
         &ch.to_string(),
     );
-}
-
-fn extract_tone(input: &str) -> Option<ToneMark> {
-    for ch in input.chars() {
-        if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Acute);
-        }
-        if GRAVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Grave);
-        }
-        if HOOK_ABOVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::HookAbove);
-        }
-        if TILDE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Tilde);
-        }
-        if DOT_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Underdot);
-        }
-    }
-    None
-}
-
-fn extract_letter_modification(input: &str) -> Option<LetterModification> {
-    for ch in input.chars() {
-        if HORN_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(LetterModification::Horn);
-        }
-        if BREVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(LetterModification::Breve);
-        }
-        if CIRCUMFLEX_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(LetterModification::Circumflex);
-        }
-        if DYET_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(LetterModification::Dyet);
-        }
-    }
-    None
 }
 
 /// Add tone mark to input
