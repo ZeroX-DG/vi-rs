@@ -29,7 +29,7 @@ where
     let mut result = String::new();
     for ch in buffer {
         let ch = &ch;
-        match ch {
+        match ch.to_ascii_lowercase() {
             's' => add_tone_or_append(&mut result, &ToneMark::Acute, ch),
             'f' => add_tone_or_append(&mut result, &ToneMark::Grave, ch),
             'r' => add_tone_or_append(&mut result, &ToneMark::HookAbove, ch),
