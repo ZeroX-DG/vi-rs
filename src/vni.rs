@@ -1,4 +1,4 @@
-use crate::util::{add_tone_or_append, modify_letter_or_append, remove_tone_or_append};
+use crate::{util::{add_tone_or_append, modify_letter_or_append, remove_tone_or_append}, validation::is_valid_vietnamese_word};
 
 use super::processor::{LetterModification, ToneMark};
 
@@ -19,6 +19,12 @@ where
     let mut result = String::new();
     for ch in buffer {
         let ch = &ch;
+
+        if !is_valid_vietnamese_word(&result) {
+            result.push(*ch);
+            continue;
+        }
+
         match ch {
             '1' => add_tone_or_append(&mut result, &ToneMark::Acute, ch),
             '2' => add_tone_or_append(&mut result, &ToneMark::Grave, ch),

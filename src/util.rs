@@ -121,15 +121,15 @@ const MODIFIED_VOWELS: [char; 6] = ['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
 const MODIFIABLE_VOWELS: [char; 4] = ['a', 'e', 'o', 'u'];
 
 pub fn is_vowel(c: char) -> bool {
-    VOWELS.contains(&c)
+    VOWELS.contains(&c) || VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
 pub fn is_modified_vowels(c: char) -> bool {
-    MODIFIED_VOWELS.contains(&c)
+    MODIFIED_VOWELS.contains(&c) || MODIFIED_VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
 pub fn is_modifiable_vowels(c: char) -> bool {
-    MODIFIABLE_VOWELS.contains(&c)
+    MODIFIABLE_VOWELS.contains(&c) || MODIFIABLE_VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
 pub fn extract_tone(input: &str) -> Option<ToneMark> {
@@ -169,4 +169,30 @@ pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
         }
     }
     None
+}
+
+/// Extract initial & final consonant from a given input (word)
+pub fn extract_consonants(input: &str) -> (Option<String>, Option<String>) {
+    let initial_consonant: String = input.chars()
+        .take_while(|c| !is_vowel(clean_char(*c)))
+        .collect();
+
+    let final_consonant: String = input.chars()
+        .skip_while(|c| !is_vowel(clean_char(*c)))
+        .skip_while(|c| is_vowel(clean_char(*c)))
+        .collect();
+
+    let initial_consonant = if !initial_consonant.is_empty() {
+        Some(initial_consonant)
+    } else {
+        None
+    };
+
+    let final_consonant = if !final_consonant.is_empty() {
+        Some(final_consonant)
+    } else {
+        None
+    };
+
+    (initial_consonant, final_consonant)
 }
