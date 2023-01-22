@@ -1,9 +1,11 @@
-use crate::util::{is_vowel, is_modified_vowels, is_modifiable_vowels, extract_tone, extract_letter_modification};
 use super::maps::{
     ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
     TILDE_MAP,
 };
 use super::util::{clean_char, remove_tone_mark};
+use crate::util::{
+    extract_letter_modification, extract_tone, is_modifiable_vowels, is_modified_vowels, is_vowel,
+};
 
 /// A tone mark in Vietnamese
 ///

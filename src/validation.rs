@@ -1,30 +1,27 @@
 //! Validation functions for verifying if a word is a valid vietnamese word.
-//! 
+//!
 //! # The structure of a vietnamese word
-//! 
+//!
 //! 1 optional consonant / consonant cluster + 1 compulsory vowel / vowel cluster + 1 optional consonant / consonant cluster
-//! 
+//!
 //! The starting consonant are called initial consonant, while the consonant at the end is called the final consonant.
 //! A cluster of consonant can contains 1 -> 3 characters.
-//! See: https://en.wikibooks.org/wiki/Vietnamese/Consonants 
+//! See: https://en.wikibooks.org/wiki/Vietnamese/Consonants
 
-use crate::util::{WordComponents, clean_char};
+use crate::util::{clean_char, WordComponents};
 
 const SINGLE_INITIAL_CONSONANTS: [char; 17] = [
-    'b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x'
+    'b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',
 ];
 
-const DIGRAPHS_INITIAL_CONSONANTS: [&str; 10] = [
-    "ch", "gh", "gi", "kh", "nh", "ng", "ph", "th", "tr", "qu"
-];
+const DIGRAPHS_INITIAL_CONSONANTS: [&str; 10] =
+    ["ch", "gh", "gi", "kh", "nh", "ng", "ph", "th", "tr", "qu"];
 
-const FINAL_CONSONANTS: [&str; 8] = [
-    "c", "ch", "m", "n", "nh", "ng", "p", "t"
-];
+const FINAL_CONSONANTS: [&str; 8] = ["c", "ch", "m", "n", "nh", "ng", "p", "t"];
 
 const VOWELS: [&str; 19] = [
-    "ia", "ai", "ieu", "oi", "ua", "ao", "au", "oi", "a", "i", "o", "e", "u", "oai",
-    "uou", "uo", "ie", "ay", "oa"
+    "ia", "ai", "ieu", "oi", "ua", "ao", "au", "oi", "a", "i", "o", "e", "u", "oai", "uou", "uo",
+    "ie", "ay", "oa",
 ];
 
 /// Verify if a word is a valid vietnamese word.
@@ -39,7 +36,11 @@ pub fn is_valid_word(input: &str) -> bool {
         return false;
     }
 
-    let cleaned_vowel: String = components.vowel().chars().map(|c| clean_char(c).to_ascii_lowercase()).collect();
+    let cleaned_vowel: String = components
+        .vowel()
+        .chars()
+        .map(|c| clean_char(c).to_ascii_lowercase())
+        .collect();
     if !VOWELS.contains(&cleaned_vowel.as_str()) {
         return false;
     }

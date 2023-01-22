@@ -1,4 +1,7 @@
-use crate::{validation::is_valid_word, processor::{add_tone, modify_letter, remove_tone}};
+use crate::{
+    processor::{add_tone, modify_letter, remove_tone},
+    validation::is_valid_word,
+};
 
 use super::processor::{LetterModification, ToneMark};
 

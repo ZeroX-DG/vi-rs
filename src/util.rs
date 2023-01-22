@@ -1,6 +1,12 @@
 use regex::Regex;
 
-use crate::{processor::{modify_letter, LetterModification, ToneMark}, maps::{ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP, HORN_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP}};
+use crate::{
+    maps::{
+        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
+        HORN_MAP, TILDE_MAP,
+    },
+    processor::{modify_letter, LetterModification, ToneMark},
+};
 
 pub fn clean_char(ch: char) -> char {
     let accents = vec![
@@ -81,7 +87,7 @@ pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     let letter_modified = modify_letter(input, modification);
 
     if !letter_modified {
-        return callback(input)
+        return callback(input);
     }
 
     true
@@ -148,7 +154,7 @@ pub struct WordComponents<'a> {
     final_consonant_index_start: usize,
     found_vowel: bool,
     found_initial_consonant: bool,
-    found_final_consonant: bool
+    found_final_consonant: bool,
 }
 
 impl<'a> WordComponents<'a> {
@@ -159,7 +165,10 @@ impl<'a> WordComponents<'a> {
         let mut found_initial_consonant = false;
         let mut found_final_consonant = false;
 
-        for (index, ch) in input.char_indices().map(|(i, c)| (i, clean_char(c).to_ascii_lowercase())) {
+        for (index, ch) in input
+            .char_indices()
+            .map(|(i, c)| (i, clean_char(c).to_ascii_lowercase()))
+        {
             if !found_vowel && !is_vowel(ch) {
                 found_initial_consonant = true;
             }
@@ -182,27 +191,27 @@ impl<'a> WordComponents<'a> {
             final_consonant_index_start,
             found_vowel,
             found_initial_consonant,
-            found_final_consonant
+            found_final_consonant,
         }
     }
 
     pub fn initial_consonant(&self) -> &str {
         if !self.found_initial_consonant {
-            return &self.word[..0]
+            return &self.word[..0];
         }
         &self.word[..self.vowel_index_start]
     }
 
     pub fn final_consonant(&self) -> &str {
         if !self.found_final_consonant {
-            return &self.word[..0]
+            return &self.word[..0];
         }
         &self.word[self.final_consonant_index_start..]
     }
 
     pub fn vowel(&self) -> &str {
         if !self.found_vowel {
-            return &self.word[..0]
+            return &self.word[..0];
         }
         let end_index = if self.found_final_consonant {
             self.final_consonant_index_start
