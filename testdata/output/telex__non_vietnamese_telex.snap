@@ -1,0 +1,12 @@
+---
+source: tests/telex.rs
+expression: snapshot_transform(contents)
+info:
+  input_file: "../testdata/input/non_vietnamese_telex.txt"
+---
+samuwrite
+cáe
+case
+cat
+doggo
+

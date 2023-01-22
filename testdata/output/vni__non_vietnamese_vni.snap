@@ -1,0 +1,9 @@
+---
+source: tests/vni.rs
+expression: snapshot_transform(contents)
+info:
+  input_file: "../testdata/input/non_vietnamese_vni.txt"
+---
+samu1
+case2
+

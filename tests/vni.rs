@@ -14,3 +14,4 @@ macro_rules! gen_test_vi {
     };
 }
 gen_test_vi!(simple_vni, "../testdata/input/simple_vni.txt");
+gen_test_vi!(non_vietnamese_vni, "../testdata/input/non_vietnamese_vni.txt");
