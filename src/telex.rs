@@ -1,4 +1,6 @@
-use crate::util::{add_tone_or_append, modify_letter_or_append, modify_letter_or_else};
+use crate::processor::{add_tone, modify_letter};
+use crate::util::modify_letter_or_else;
+use crate::validation::is_valid_word;
 
 use super::processor::{LetterModification, ToneMark};
 
@@ -29,21 +31,28 @@ where
     let mut result = String::new();
     for ch in buffer {
         let ch = &ch;
-        match ch {
-            's' => add_tone_or_append(&mut result, &ToneMark::Acute, ch),
-            'f' => add_tone_or_append(&mut result, &ToneMark::Grave, ch),
-            'r' => add_tone_or_append(&mut result, &ToneMark::HookAbove, ch),
-            'x' => add_tone_or_append(&mut result, &ToneMark::Tilde, ch),
-            'j' => add_tone_or_append(&mut result, &ToneMark::Underdot, ch),
+        let fallback = format!("{}{}", result, ch);
+        let action_performed = match ch {
+            's' => add_tone(&mut result, &ToneMark::Acute),
+            'f' => add_tone(&mut result, &ToneMark::Grave),
+            'r' => add_tone(&mut result, &ToneMark::HookAbove),
+            'x' => add_tone(&mut result, &ToneMark::Tilde),
+            'j' => add_tone(&mut result, &ToneMark::Underdot),
 
             'a' | 'e' | 'o' if contains_clean_char(&result, *ch) => {
-                modify_letter_or_append(&mut result, &LetterModification::Circumflex, ch)
+                modify_letter(&mut result, &LetterModification::Circumflex)
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
-                modify_letter_or_append(result, &LetterModification::Breve, ch);
+                modify_letter(result, &LetterModification::Breve)
             }),
-            'd' => modify_letter_or_append(&mut result, &LetterModification::Dyet, ch),
-            _ => result.push(*ch),
+            'd' => modify_letter(&mut result, &LetterModification::Dyet),
+            _ => false,
+        };
+
+        if !action_performed {
+            result.push(*ch);
+        } else if !is_valid_word(&result) {
+            result = fallback;
         }
     }
     output.push_str(&result);

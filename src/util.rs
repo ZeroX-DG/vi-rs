@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::{processor::{add_tone, modify_letter, remove_tone, LetterModification, ToneMark}, maps::{ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP, HORN_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP}};
+use crate::{processor::{modify_letter, LetterModification, ToneMark}, maps::{ACCUTE_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, TILDE_MAP, DOT_MAP, HORN_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP}};
 
 pub fn clean_char(ch: char) -> char {
     let accents = vec![
@@ -73,47 +73,18 @@ pub fn remove_tone_mark(ch: char) -> char {
     ch
 }
 
-pub fn add_tone_or_append(input: &mut String, tone_mark: &ToneMark, append_char: &char) {
-    let tone_added = add_tone(input, tone_mark);
-
-    if !tone_added {
-        // Append the trigger char if tone mark is not added
-        input.push(*append_char);
-    }
-}
-
-pub fn modify_letter_or_else<F: FnMut(&mut String)>(
+pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     input: &mut String,
     modification: &LetterModification,
     mut callback: F,
-) {
+) -> bool {
     let letter_modified = modify_letter(input, modification);
 
     if !letter_modified {
-        callback(input)
+        return callback(input)
     }
-}
 
-pub fn modify_letter_or_append(
-    input: &mut String,
-    modification: &LetterModification,
-    append_char: &char,
-) {
-    let letter_modified = modify_letter(input, modification);
-
-    if !letter_modified {
-        // Append the trigger char if tone mark is not added
-        input.push(*append_char);
-    }
-}
-
-pub fn remove_tone_or_append(input: &mut String, append_char: &char) {
-    let tone_removed = remove_tone(input);
-
-    if !tone_removed {
-        // Append the trigger char if there's no tone to remove for input
-        input.push(*append_char);
-    }
+    true
 }
 
 const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
@@ -171,28 +142,73 @@ pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
     None
 }
 
-/// Extract initial & final consonant from a given input (word)
-pub fn extract_consonants(input: &str) -> (Option<String>, Option<String>) {
-    let initial_consonant: String = input.chars()
-        .take_while(|c| !is_vowel(clean_char(*c)))
-        .collect();
+pub struct WordComponents<'a> {
+    word: &'a str,
+    vowel_index_start: usize,
+    final_consonant_index_start: usize,
+    found_vowel: bool,
+    found_initial_consonant: bool,
+    found_final_consonant: bool
+}
 
-    let final_consonant: String = input.chars()
-        .skip_while(|c| !is_vowel(clean_char(*c)))
-        .skip_while(|c| is_vowel(clean_char(*c)))
-        .collect();
+impl<'a> WordComponents<'a> {
+    pub fn extract(input: &'a str) -> Self {
+        let mut vowel_index_start = 0;
+        let mut final_consonant_index_start = 0;
+        let mut found_vowel = false;
+        let mut found_initial_consonant = false;
+        let mut found_final_consonant = false;
 
-    let initial_consonant = if !initial_consonant.is_empty() {
-        Some(initial_consonant)
-    } else {
-        None
-    };
+        for (index, ch) in input.char_indices().map(|(i, c)| (i, clean_char(c).to_ascii_lowercase())) {
+            if !found_vowel && !is_vowel(ch) {
+                found_initial_consonant = true;
+            }
 
-    let final_consonant = if !final_consonant.is_empty() {
-        Some(final_consonant)
-    } else {
-        None
-    };
+            if !found_vowel && is_vowel(ch) {
+                vowel_index_start = index;
+                found_vowel = true;
+            }
 
-    (initial_consonant, final_consonant)
+            if found_vowel && !found_final_consonant && !is_vowel(ch) {
+                final_consonant_index_start = index;
+                found_final_consonant = true;
+                break;
+            }
+        }
+
+        Self {
+            word: input,
+            vowel_index_start,
+            final_consonant_index_start,
+            found_vowel,
+            found_initial_consonant,
+            found_final_consonant
+        }
+    }
+
+    pub fn initial_consonant(&self) -> &str {
+        if !self.found_initial_consonant {
+            return &self.word[..0]
+        }
+        &self.word[..self.vowel_index_start]
+    }
+
+    pub fn final_consonant(&self) -> &str {
+        if !self.found_final_consonant {
+            return &self.word[..0]
+        }
+        &self.word[self.final_consonant_index_start..]
+    }
+
+    pub fn vowel(&self) -> &str {
+        if !self.found_vowel {
+            return &self.word[..0]
+        }
+        let end_index = if self.found_final_consonant {
+            self.final_consonant_index_start
+        } else {
+            self.word.len()
+        };
+        &self.word[self.vowel_index_start..end_index]
+    }
 }
