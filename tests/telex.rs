@@ -14,3 +14,7 @@ macro_rules! gen_test_telex {
     };
 }
 gen_test_telex!(simple_telex, "../testdata/input/simple_telex.txt");
+gen_test_telex!(
+    non_vietnamese_telex,
+    "../testdata/input/non_vietnamese_telex.txt"
+);
