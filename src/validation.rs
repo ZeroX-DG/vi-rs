@@ -8,21 +8,22 @@
 //! A cluster of consonant can contains 1 -> 3 characters.
 //! See: https://en.wikibooks.org/wiki/Vietnamese/Consonants
 
+use phf::{phf_set, Set};
+
 use crate::util::{clean_char, WordComponents};
 
-const SINGLE_INITIAL_CONSONANTS: [char; 17] = [
-    'b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',
-];
+const SINGLE_INITIAL_CONSONANTS: Set<char> =
+    phf_set!['b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',];
 
-const DIGRAPHS_INITIAL_CONSONANTS: [&str; 10] =
-    ["ch", "gh", "gi", "kh", "nh", "ng", "ph", "th", "tr", "qu"];
+const DIGRAPHS_INITIAL_CONSONANTS: Set<&'static str> =
+    phf_set!["ch", "gh", "gi", "kh", "nh", "ng", "ph", "th", "tr", "qu"];
 
-const FINAL_CONSONANTS: [&str; 8] = ["c", "ch", "m", "n", "nh", "ng", "p", "t"];
+const FINAL_CONSONANTS: Set<&'static str> = phf_set!["c", "ch", "m", "n", "nh", "ng", "p", "t"];
 
-const VOWELS: [&str; 36] = [
+const VOWELS: Set<&'static str> = phf_set![
     "ia", "ai", "ieu", "io", "ua", "ao", "au", "oi", "a", "i", "o", "e", "u", "oai", "uou", "uo",
     "ie", "ay", "oa", "eo", "oeo", "iu", "oao", "oay", "oe", "oo", "ui", "uy", "uya", "uyu", "uye",
-    "uoi", "ye", "yeu", "ua", "y"
+    "uoi", "ye", "yeu", "y"
 ];
 
 /// Verify if a word is a valid vietnamese word.

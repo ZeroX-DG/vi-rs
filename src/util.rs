@@ -1,3 +1,4 @@
+use phf::{phf_set, Set};
 use regex::Regex;
 
 use crate::{
@@ -93,9 +94,9 @@ pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     true
 }
 
-const VOWELS: [char; 12] = ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
-const MODIFIED_VOWELS: [char; 6] = ['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
-const MODIFIABLE_VOWELS: [char; 4] = ['a', 'e', 'o', 'u'];
+const VOWELS: Set<char> = phf_set!['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
+const MODIFIED_VOWELS: Set<char> = phf_set!['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
+const MODIFIABLE_VOWELS: Set<char> = phf_set!['a', 'e', 'o', 'u'];
 
 pub fn is_vowel(c: char) -> bool {
     VOWELS.contains(&c) || VOWELS.contains(&c.to_lowercase().next().unwrap())
