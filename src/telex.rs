@@ -32,7 +32,7 @@ where
     for ch in buffer {
         let ch = &ch;
         let fallback = format!("{}{}", result, ch);
-        let action_performed = match ch {
+        let action_performed = match ch.to_ascii_lowercase() {
             's' => add_tone(&mut result, &ToneMark::Acute),
             'f' => add_tone(&mut result, &ToneMark::Grave),
             'r' => add_tone(&mut result, &ToneMark::HookAbove),

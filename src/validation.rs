@@ -19,10 +19,10 @@ const DIGRAPHS_INITIAL_CONSONANTS: [&str; 10] =
 
 const FINAL_CONSONANTS: [&str; 8] = ["c", "ch", "m", "n", "nh", "ng", "p", "t"];
 
-const VOWELS: [&str; 35] = [
-    "ia", "ai", "ieu", "oi", "ua", "ao", "au", "oi", "a", "i", "o", "e", "u", "oai", "uou", "uo",
+const VOWELS: [&str; 36] = [
+    "ia", "ai", "ieu", "io", "ua", "ao", "au", "oi", "a", "i", "o", "e", "u", "oai", "uou", "uo",
     "ie", "ay", "oa", "eo", "oeo", "iu", "oao", "oay", "oe", "oo", "ui", "uy", "uya", "uyu", "uye",
-    "uoi", "ye", "yeu", "ua"
+    "uoi", "ye", "yeu", "ua", "y"
 ];
 
 /// Verify if a word is a valid vietnamese word.
