@@ -4,8 +4,8 @@ use super::maps::{
 };
 use super::util::{clean_char, remove_tone_mark};
 use crate::util::{
-    extract_letter_modification, extract_tone, get_next_char_index, is_modifiable_vowels,
-    is_modified_vowels, is_vowel,
+    extract_letter_modification, extract_tone, get_char_at, get_next_char_index,
+    is_modifiable_vowels, is_modified_vowels, is_vowel,
 };
 
 /// A tone mark in Vietnamese
@@ -91,30 +91,30 @@ fn get_tone_mark_placement(input: &str) -> Option<usize> {
         }
 
         // If vowel contains "ơ" then tone mark goes there.
-        if let Some(pos) = index_of(input, 'ơ') {
+        if let Some(pos) = input.find('ơ') {
             return pos;
         }
 
         // If there's a modified vowels then tone mark goes there.
-        if let Some(pos) = index_find(input, is_modified_vowels) {
+        if let Some(pos) = input.find(is_modified_vowels) {
             return pos;
         }
 
         // If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the second vowel
         for pair in ["oa", "oe", "oo", "uy"].iter() {
-            if let Some(pos) = get_pair(input, pair) {
-                return pos + 1;
+            if let Some(pos) = input.find(pair) {
+                return get_next_char_index(input, pos);
             }
         }
 
         // If a word end with 2 or 3 vowel, put it on the second last one
         let is_end_with_vowel = input.len() == index + vowel_len;
         if is_end_with_vowel && vowel_len >= 2 {
-            return index + vowel_len - 2;
+            return index + vowel.char_indices().nth(vowel_len - 2).unwrap().0;
         }
 
         // If there's a modifiable vowels then tone mark goes there.
-        if let Some(pos) = index_find(input, is_modifiable_vowels) {
+        if let Some(pos) = input.find(is_modifiable_vowels) {
             return pos;
         }
 
@@ -123,54 +123,13 @@ fn get_tone_mark_placement(input: &str) -> Option<usize> {
     })
 }
 
-fn get_pair(input: &str, pair: &str) -> Option<usize> {
-    if input.len() < 2 {
-        return None;
-    }
-
-    let mut pair_chars = pair.chars();
-    let first_ch = pair_chars.next().unwrap();
-    let second_ch = pair_chars.next().unwrap();
-
-    let mut input_chars = input.chars().enumerate();
-
-    while let Some((index, ch)) = input_chars.next() {
-        if ch == first_ch {
-            if let Some((_, next_ch)) = input_chars.next() {
-                if next_ch == second_ch {
-                    return Some(index);
-                }
-            }
-        }
-    }
-    None
-}
-
-fn index_of(input: &str, target: char) -> Option<usize> {
-    input
-        .chars()
-        .enumerate()
-        .find(|(_, ch)| *ch == target)
-        .map(|(index, _)| index)
-}
-
-fn index_find<F: Fn(char) -> bool>(input: &str, index_fn: F) -> Option<usize> {
-    input
-        .chars()
-        .enumerate()
-        .find(|(_, ch)| index_fn(*ch))
-        .map(|(index, _)| index)
-}
-
 fn replace_char_at(input: &mut String, index: usize, ch: char) {
-    input.replace_range(
-        input
-            .char_indices()
-            .nth(index)
-            .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-            .unwrap(),
-        &ch.to_string(),
-    );
+    let range = input
+        .char_indices()
+        .find(|(pos, _)| *pos == index)
+        .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
+        .unwrap();
+    input.replace_range(range, &ch.to_string());
 }
 
 /// Add tone mark to input
@@ -187,7 +146,7 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
 
     let tone_mark_pos_result = get_tone_mark_placement(&clean_input);
     if let Some(tone_mark_pos) = tone_mark_pos_result {
-        let tone_mark_ch = clean_input.chars().nth(tone_mark_pos).unwrap();
+        let tone_mark_ch = get_char_at(&clean_input, tone_mark_pos).unwrap();
         let tone_mark_map = match tone_mark {
             ToneMark::Acute => &ACCUTE_MAP,
             ToneMark::Grave => &GRAVE_MAP,
@@ -224,22 +183,28 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         }
     }
 
-    let mut modifications = Vec::new();
+    let mut modified = false;
+    let mut last_index = 0;
 
-    for (index, ch) in buffer.chars().enumerate() {
+    while let Some((index, ch)) = buffer
+        .char_indices()
+        .skip_while(|(index, _)| *index < last_index)
+        .next()
+    {
+        last_index = index + 1;
+
         let cleaned_ch = clean_char(ch);
+
         if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
-            modifications.push((index, map[&cleaned_ch]));
+            modified = true;
+            replace_char_at(buffer, index, map[&cleaned_ch]);
         } else if map.contains_key(&ch) {
-            modifications.push((index, map[&ch]));
+            modified = true;
+            replace_char_at(buffer, index, map[&ch]);
         }
     }
 
-    for (index, ch) in &modifications {
-        replace_char_at(buffer, *index, *ch);
-    }
-
-    !modifications.is_empty()
+    modified
 }
 
 /// Remove the tone for the letter
@@ -310,7 +275,7 @@ mod tests {
     #[test]
     fn get_tone_mark_placement_u_and_o() {
         let result = get_tone_mark_placement("ngươi");
-        let expected: Option<usize> = Some(3);
+        let expected: Option<usize> = Some(4);
         assert_eq!(result, expected);
     }
 

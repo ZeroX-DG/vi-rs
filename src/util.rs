@@ -157,6 +157,12 @@ pub fn get_next_char_index(input: &str, current_index: usize) -> usize {
     index
 }
 
+pub fn get_char_at(input: &str, index: usize) -> Option<char> {
+    input
+        .get(index..get_next_char_index(input, index))
+        .map(|res| res.chars().next().unwrap())
+}
+
 pub struct WordComponents<'a> {
     word: &'a str,
     vowel_index_start: usize,
