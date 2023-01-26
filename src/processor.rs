@@ -39,40 +39,43 @@ pub enum LetterModification {
 
 /// Get the main sound of a word which is the part that start
 /// with a vowel and end with word end or a non-vowel char
-pub fn get_word_mid(word: &str) -> Option<(usize, String)> {
-    let mut result = String::new();
-    let mut found_word_mid = false;
-    let mut start_index: usize = 0;
-    let lower_word = word.to_lowercase();
-    for (index, ch) in lower_word.chars().enumerate() {
-        if is_vowel(ch) {
-            if ch == 'u' && index > 0 {
-                let prev_ch = word.chars().nth(index - 1).unwrap();
-                if prev_ch == 'q' {
-                    continue; // special case 'qu' is start sound
-                }
-            }
-            if ch == 'i' && index > 0 && word.len() > 2 {
-                let prev_ch = word.chars().nth(index - 1).unwrap();
-                if prev_ch == 'g' {
-                    continue; // special case 'gi' is start sound
-                }
-            }
-            result.push(ch);
-            if !found_word_mid {
-                found_word_mid = true;
-                start_index = index;
-            }
-        } else {
-            if found_word_mid {
-                break;
-            }
+fn get_vowel(word: &str) -> Option<(usize, &str)> {
+    let word_lowercase = word.to_lowercase();
+
+    let mut vowels = word_lowercase
+        .char_indices()
+        // Skip initial non-vowels
+        .skip_while(|(_, ch)| !is_vowel(*ch))
+        // Collect all the vowels
+        .take_while(|(_, ch)| is_vowel(*ch));
+
+    let first_ch = match word_lowercase.char_indices().next() {
+        Some((_, ch)) => ch,
+        None => return None,
+    };
+
+    let vowel_start_index = match vowels.next() {
+        // Special case where qu & gi are starting sound and not vowel
+        Some((index, 'u')) if first_ch == 'q' => index + 1,
+        Some((index, 'i')) if first_ch == 'g' && word.len() > 2 => index + 1,
+        Some((index, _)) => index,
+        _ => return None,
+    };
+
+    let get_next_index = |current_index| {
+        let mut index = current_index + 1;
+        while !word.is_char_boundary(index) {
+            index += 1;
         }
-    }
-    if !found_word_mid {
-        return None;
-    }
-    Some((start_index, result))
+        index
+    };
+
+    let vowel_end_index = match vowels.last() {
+        Some((index, _)) => get_next_index(index),
+        None => get_next_index(vowel_start_index),
+    };
+
+    Some((vowel_start_index, &word[vowel_start_index..vowel_end_index]))
 }
 
 /// Get position to place tone mark
@@ -87,7 +90,7 @@ pub fn get_word_mid(word: &str) -> Option<(usize, String)> {
 /// 5. If a word end with 2 or 3 vowel, put it on the second last one
 /// 6. Else, but tone mark on whatever vowel comes first
 fn get_tone_mark_placement(input: &str) -> Option<usize> {
-    if let Some((mid_index, word_mid)) = get_word_mid(input) {
+    if let Some((mid_index, word_mid)) = get_vowel(input) {
         let is_end_with_mid = input.len() == mid_index + word_mid.len();
         if word_mid.len() == 1 {
             // single vowel
@@ -233,30 +236,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_word_mid_normal() {
-        let result = get_word_mid("viet");
-        let expected: Option<(usize, String)> = Some((1, "ie".to_owned()));
+    fn get_vowel_normal() {
+        let result = get_vowel("viet");
+        let expected: Option<(usize, &str)> = Some((1, "ie"));
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn get_word_mid_empty() {
-        let result = get_word_mid("vt");
-        let expected: Option<(usize, String)> = None;
+    fn get_vowel_empty() {
+        let result = get_vowel("vt");
+        let expected: Option<(usize, &str)> = None;
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn get_word_mid_double_start_tone() {
-        let result = get_word_mid("quai");
-        let expected: Option<(usize, String)> = Some((2, "ai".to_owned()));
+    fn get_vowel_double_start_tone() {
+        let result = get_vowel("quai");
+        let expected: Option<(usize, &str)> = Some((2, "ai"));
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn get_word_mid_double_start_tone_2() {
-        let result = get_word_mid("gia");
-        let expected: Option<(usize, String)> = Some((2, "a".to_owned()));
+    fn get_vowel_double_start_tone_2() {
+        let result = get_vowel("gia");
+        let expected: Option<(usize, &str)> = Some((2, "a"));
         assert_eq!(result, expected);
     }
 
