@@ -149,6 +149,14 @@ pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
     None
 }
 
+pub fn get_next_char_index(input: &str, current_index: usize) -> usize {
+    let mut index = current_index + 1;
+    while !input.is_char_boundary(index) {
+        index += 1;
+    }
+    index
+}
+
 pub struct WordComponents<'a> {
     word: &'a str,
     vowel_index_start: usize,

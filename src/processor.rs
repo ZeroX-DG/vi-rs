@@ -4,7 +4,8 @@ use super::maps::{
 };
 use super::util::{clean_char, remove_tone_mark};
 use crate::util::{
-    extract_letter_modification, extract_tone, is_modifiable_vowels, is_modified_vowels, is_vowel,
+    extract_letter_modification, extract_tone, get_next_char_index, is_modifiable_vowels,
+    is_modified_vowels, is_vowel,
 };
 
 /// A tone mark in Vietnamese
@@ -62,17 +63,9 @@ fn get_vowel(word: &str) -> Option<(usize, &str)> {
         _ => return None,
     };
 
-    let get_next_index = |current_index| {
-        let mut index = current_index + 1;
-        while !word.is_char_boundary(index) {
-            index += 1;
-        }
-        index
-    };
-
     let vowel_end_index = match vowels.last() {
-        Some((index, _)) => get_next_index(index),
-        None => get_next_index(vowel_start_index),
+        Some((index, _)) => get_next_char_index(word, index),
+        None => get_next_char_index(word, vowel_start_index),
     };
 
     Some((vowel_start_index, &word[vowel_start_index..vowel_end_index]))
@@ -90,44 +83,62 @@ fn get_vowel(word: &str) -> Option<(usize, &str)> {
 /// 5. If a word end with 2 or 3 vowel, put it on the second last one
 /// 6. Else, but tone mark on whatever vowel comes first
 fn get_tone_mark_placement(input: &str) -> Option<usize> {
-    if let Some((mid_index, word_mid)) = get_vowel(input) {
-        let is_end_with_mid = input.len() == mid_index + word_mid.len();
-        if word_mid.len() == 1 {
-            // single vowel
-            return Some(mid_index);
+    get_vowel(input).map(|(index, vowel)| {
+        let vowel_len = vowel.chars().count();
+        // If there's only one vowel, then it's guaranteed that the tone mark will go there
+        if vowel_len == 1 {
+            return index;
         }
-        if let Some(pos) = index_of(&word_mid, |c| c == 'ơ') {
-            return Some(mid_index + pos);
+
+        // If vowel contains "ơ" then tone mark goes there.
+        if let Some(pos) = index_of(input, 'ơ') {
+            return pos;
         }
-        if let Some(pos) = index_of(&word_mid, is_modified_vowels) {
-            return Some(mid_index + pos);
+
+        // If there's a modified vowels then tone mark goes there.
+        if let Some(pos) = index_find(input, is_modified_vowels) {
+            return pos;
         }
+
+        // If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the second vowel
         for pair in ["oa", "oe", "oo", "uy"].iter() {
-            if let Some(pos) = has_pair(&word_mid, pair) {
-                return Some(mid_index + pos + 1);
+            if let Some(pos) = get_pair(input, pair) {
+                return pos + 1;
             }
         }
-        if is_end_with_mid {
-            if word_mid.len() >= 2 {
-                return Some(mid_index + word_mid.len() - 2);
-            }
+
+        // If a word end with 2 or 3 vowel, put it on the second last one
+        let is_end_with_vowel = input.len() == index + vowel_len;
+        if is_end_with_vowel && vowel_len >= 2 {
+            return index + vowel_len - 2;
         }
-        if let Some(pos) = index_of(&word_mid, is_modifiable_vowels) {
-            return Some(mid_index + pos);
+
+        // If there's a modifiable vowels then tone mark goes there.
+        if let Some(pos) = index_find(input, is_modifiable_vowels) {
+            return pos;
         }
-        if let Some(pos) = index_of(&word_mid, is_vowel) {
-            return Some(mid_index + pos);
-        }
-    }
-    None
+
+        // Else, but tone mark on whatever vowel comes first
+        index
+    })
 }
 
-fn has_pair(input: &str, pair: &str) -> Option<usize> {
-    if let (Some(ch), Some(ch_next)) = (pair.chars().nth(0), pair.chars().nth(1)) {
-        if let Some(pos) = index_of(&input, |c| c == ch) {
-            if let Some(target_ch) = input.chars().nth(pos + 1) {
-                if target_ch == ch_next {
-                    return Some(pos);
+fn get_pair(input: &str, pair: &str) -> Option<usize> {
+    if input.len() < 2 {
+        return None;
+    }
+
+    let mut pair_chars = pair.chars();
+    let first_ch = pair_chars.next().unwrap();
+    let second_ch = pair_chars.next().unwrap();
+
+    let mut input_chars = input.chars().enumerate();
+
+    while let Some((index, ch)) = input_chars.next() {
+        if ch == first_ch {
+            if let Some((_, next_ch)) = input_chars.next() {
+                if next_ch == second_ch {
+                    return Some(index);
                 }
             }
         }
@@ -135,8 +146,20 @@ fn has_pair(input: &str, pair: &str) -> Option<usize> {
     None
 }
 
-fn index_of<F: Fn(char) -> bool>(input: &str, test: F) -> Option<usize> {
-    return input.chars().position(test);
+fn index_of(input: &str, target: char) -> Option<usize> {
+    input
+        .chars()
+        .enumerate()
+        .find(|(_, ch)| *ch == target)
+        .map(|(index, _)| index)
+}
+
+fn index_find<F: Fn(char) -> bool>(input: &str, index_fn: F) -> Option<usize> {
+    input
+        .chars()
+        .enumerate()
+        .find(|(_, ch)| index_fn(*ch))
+        .map(|(index, _)| index)
 }
 
 fn replace_char_at(input: &mut String, index: usize, ch: char) {
