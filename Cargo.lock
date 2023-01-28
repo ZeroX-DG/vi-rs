@@ -600,7 +600,6 @@ dependencies = [
  "cargo-insta",
  "insta",
  "phf",
- "regex",
  "serde",
 ]
 

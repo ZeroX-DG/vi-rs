@@ -1,5 +1,4 @@
 use phf::{phf_set, Set};
-use regex::Regex;
 
 use crate::{
     maps::{
@@ -10,74 +9,60 @@ use crate::{
 };
 
 pub fn clean_char(ch: char) -> char {
+    let is_uppercase = ch.is_uppercase();
     let accents = vec![
         "aàảãáạăằẳẵắặâầẩẫấậ",
-        "AÀẢÃÁẠĂẰẲẴẮẶÂẦẨẪẤẬ",
         "dđ",
-        "DĐ",
         "eèẻẽéẹêềểễếệ",
-        "EÈẺẼÉẸÊỀỂỄẾỆ",
         "iìỉĩíị",
-        "IÌỈĨÍỊ",
         "oòỏõóọôồổỗốộơờởỡớợ",
-        "OÒỎÕÓỌÔỒỔỖỐỘƠỜỞỠỚỢ",
         "uùủũúụưừửữứự",
-        "UÙỦŨÚỤƯỪỬỮỨỰ",
         "yỳỷỹýỵ",
-        "YỲỶỸÝỴ",
     ];
+    let ch_lowercase = ch.to_lowercase().to_string();
+    let mut result = ch;
     for accent in accents {
-        let regex = Regex::new(&format!("[{}]", &accent[1..]));
-        let replace_char = accent.chars().next().unwrap();
-        if let Ok(re) = regex {
-            if re.is_match(&ch.to_string()) {
-                return replace_char;
-            }
+        if accent.contains(&ch_lowercase) {
+            result = accent.chars().next().unwrap();
         }
     }
-    ch
+
+    if is_uppercase {
+        result = result.to_ascii_uppercase();
+    }
+
+    result
 }
 
 pub fn remove_tone_mark(ch: char) -> char {
-    let tone_mark_map = vec![
-        "aàảãáạ",
-        "ăằẳẵắặ",
-        "âầẩẫấậ",
-        "AÀẢÃÁẠ",
-        "ĂẰẲẴẮẶ",
-        "ÂẦẨẪẤẬ",
-        "eèẻẽéẹ",
-        "êềểễếệ",
-        "EÈẺẼÉẸ",
-        "ÊỀỂỄẾỆ",
-        "iìỉĩíị",
-        "IÌỈĨÍỊ",
-        "oòỏõóọ",
-        "ôồổỗốộ",
-        "ơờởỡớợ",
-        "OÒỎÕÓỌ",
-        "ÔỒỔỖỐỘ",
-        "ƠỜỞỠỚỢ",
-        "uùủũúụ",
-        "ưừửữứự",
-        "UÙỦŨÚỤ",
-        "ƯỪỬỮỨỰ",
-        "yỳỷỹýỵ",
-        "YỲỶỸÝỴ",
-    ];
-    for tone_mark in tone_mark_map {
-        let regex = Regex::new(&format!(
-            "[{}]",
-            &tone_mark.chars().skip(1).collect::<String>()
-        ));
-        let replace_char = tone_mark.chars().next().unwrap();
-        if let Ok(re) = regex {
-            if re.is_match(&ch.to_string()) {
-                return replace_char;
-            }
-        }
+    let is_uppercase = ch.is_uppercase();
+    let ch_lowercase = ch.to_lowercase().next().unwrap();
+    let tone_mark_map = 
+        "aàảãáạ\
+        ăằẳẵắặ\
+        âầẩẫấậ\
+        eèẻẽéẹ\
+        êềểễếệ\
+        iìỉĩíị\
+        oòỏõóọ\
+        ôồổỗốộ\
+        ơờởỡớợ\
+        uùủũúụ\
+        ưừửữứự\
+        yỳỷỹýỵ";
+    
+    let ch_index = match tone_mark_map.chars().enumerate().find(|(_, c)| *c == ch_lowercase) {
+        Some((index, _)) => index,
+        _ => return ch
+    };
+    let reset_index = ch_index - ch_index % 6;
+    let mut result = tone_mark_map.chars().nth(reset_index).expect("Invalid reset character index");
+
+    if is_uppercase {
+        result = result.to_uppercase().next().unwrap();
     }
-    ch
+
+    result
 }
 
 pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(

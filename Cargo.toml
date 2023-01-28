@@ -13,7 +13,6 @@ keywords = ["vietnamese", "ime", "vi"]
 categories = ["text-processing"]
 
 [dependencies]
-regex = "1.3.1"
 phf = { version = "0.11", features = ["macros"] }
 
 [dev-dependencies]
