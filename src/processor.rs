@@ -135,18 +135,14 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
 /// Add tone mark to input
 /// Return if the tone mark has been added or not
 pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
-    let mut clean_input = buffer.chars().map(remove_tone_mark).collect::<String>();
+    let tone_stripped = strip_tone_if_needed(buffer, tone_mark);
 
-    if let Some(existing_tone) = extract_tone(&buffer) {
-        if existing_tone == *tone_mark {
-            *buffer = clean_input;
-            return false;
-        }
+    if tone_stripped {
+        return false;
     }
 
-    let tone_mark_pos_result = get_tone_mark_placement(&clean_input);
-    if let Some(tone_mark_pos) = tone_mark_pos_result {
-        let tone_mark_ch = get_char_at(&clean_input, tone_mark_pos).unwrap();
+    if let Some(tone_mark_pos) = get_tone_mark_placement(buffer) {
+        let tone_mark_ch = get_char_at(buffer, tone_mark_pos).unwrap();
         let tone_mark_map = match tone_mark {
             ToneMark::Acute => &ACCUTE_MAP,
             ToneMark::Grave => &GRAVE_MAP,
@@ -154,18 +150,24 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
             ToneMark::Tilde => &TILDE_MAP,
             ToneMark::Underdot => &DOT_MAP,
         };
-        let replace_char: char = if tone_mark_map.contains_key(&tone_mark_ch) {
-            tone_mark_map[&tone_mark_ch]
-        } else {
-            tone_mark_ch
-        };
-
-        replace_char_at(&mut clean_input, tone_mark_pos, replace_char);
-        *buffer = clean_input;
+        let replace_char = tone_mark_map.get(&tone_mark_ch).unwrap_or(&tone_mark_ch);
+        replace_char_at(buffer, tone_mark_pos, *replace_char);
         return true;
     }
 
     return false;
+}
+
+fn strip_tone_if_needed(input: &mut String, tone_mark: &ToneMark) -> bool {
+    let should_strip_tone = extract_tone(input)
+        .map(|existing_tone| existing_tone == *tone_mark)
+        .unwrap_or(false);
+
+    if should_strip_tone {
+        *input = input.chars().map(remove_tone_mark).collect();
+    }
+    
+    should_strip_tone
 }
 
 /// change a letter to vietnamese modified letter
