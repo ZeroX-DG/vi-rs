@@ -166,7 +166,7 @@ fn strip_tone_if_needed(input: &mut String, tone_mark: &ToneMark) -> bool {
     if should_strip_tone {
         *input = input.chars().map(remove_tone_mark).collect();
     }
-    
+
     should_strip_tone
 }
 

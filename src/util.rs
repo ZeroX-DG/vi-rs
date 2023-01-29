@@ -37,8 +37,7 @@ pub fn clean_char(ch: char) -> char {
 pub fn remove_tone_mark(ch: char) -> char {
     let is_uppercase = ch.is_uppercase();
     let ch_lowercase = ch.to_lowercase().next().unwrap();
-    let tone_mark_map = 
-        "aàảãáạ\
+    let tone_mark_map = "aàảãáạ\
         ăằẳẵắặ\
         âầẩẫấậ\
         eèẻẽéẹ\
@@ -50,13 +49,20 @@ pub fn remove_tone_mark(ch: char) -> char {
         uùủũúụ\
         ưừửữứự\
         yỳỷỹýỵ";
-    
-    let ch_index = match tone_mark_map.chars().enumerate().find(|(_, c)| *c == ch_lowercase) {
+
+    let ch_index = match tone_mark_map
+        .chars()
+        .enumerate()
+        .find(|(_, c)| *c == ch_lowercase)
+    {
         Some((index, _)) => index,
-        _ => return ch
+        _ => return ch,
     };
     let reset_index = ch_index - ch_index % 6;
-    let mut result = tone_mark_map.chars().nth(reset_index).expect("Invalid reset character index");
+    let mut result = tone_mark_map
+        .chars()
+        .nth(reset_index)
+        .expect("Invalid reset character index");
 
     if is_uppercase {
         result = result.to_uppercase().next().unwrap();
