@@ -57,3 +57,47 @@ where
     }
     output.push_str(&result);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn measure<F>(f: F)
+    where
+        F: FnOnce(),
+    {
+        use std::time::Instant;
+        let clock = Instant::now();
+        f();
+        println!("Time {:.2?}", clock.elapsed());
+    }
+
+    #[test]
+    fn test_dummy() {
+        measure(|| {
+            let mut output = String::new();
+            transform_buffer("jj".chars(), &mut output);
+            println!("{:?}", output);
+        });
+        measure(|| {
+            let mut output = String::new();
+            transform_buffer("jjj".chars(), &mut output);
+            println!("{:?}", output);
+        });
+        measure(|| {
+            let mut output = String::new();
+            transform_buffer("jjjjjjj".chars(), &mut output);
+            println!("{:?}", output);
+        });
+        measure(|| {
+            let mut output = String::new();
+            transform_buffer("jjjjjjjjjjjjj".chars(), &mut output);
+            println!("{:?}", output);
+        });
+
+        measure(|| {
+            let mut output = String::new();
+            transform_buffer("ddaay".chars(), &mut output);
+            println!("{:?}", output);
+        });
+    }
+}

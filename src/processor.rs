@@ -4,9 +4,12 @@ use super::maps::{
 };
 use super::util::{clean_char, remove_tone_mark};
 use crate::util::{
-    extract_letter_modification, extract_tone, get_char_at, get_next_char_index,
-    is_modifiable_vowels, is_modified_vowels, is_vowel,
+    extract_letter_modification, get_char_at, get_next_char_index, is_modifiable_vowels,
+    is_modified_vowels, is_vowel, is_vowel_with_accent,
 };
+
+/// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
+const MAX_WORD_LENGTH: usize = 7;
 
 /// A tone mark in Vietnamese
 ///
@@ -50,9 +53,8 @@ fn get_vowel(word: &str) -> Option<(usize, &str)> {
         // Collect all the vowels
         .take_while(|(_, ch)| is_vowel(*ch));
 
-    let first_ch = match word_lowercase.char_indices().next() {
-        Some((_, ch)) => ch,
-        None => return None,
+    let Some((_, first_ch)) = word_lowercase.char_indices().next() else {
+        return None;
     };
 
     let vowel_start_index = match vowels.next() {
@@ -88,6 +90,15 @@ fn get_tone_mark_placement(input: &str) -> Option<usize> {
         // If there's only one vowel, then it's guaranteed that the tone mark will go there
         if vowel_len == 1 {
             return index;
+        }
+
+        // If vowel already contains a letter with tone mark. Use that letter's position
+        if let Some((offset, _)) = vowel
+            .chars()
+            .enumerate()
+            .find(|(_, ch)| is_vowel_with_accent(*ch))
+        {
+            return index + offset;
         }
 
         // If vowel contains "ơ" then tone mark goes there.
@@ -135,42 +146,46 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
 /// Add tone mark to input
 /// Return if the tone mark has been added or not
 pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
-    let mut clean_input = buffer.chars().map(remove_tone_mark).collect::<String>();
-
-    if let Some(existing_tone) = extract_tone(&buffer) {
-        if existing_tone == *tone_mark {
-            *buffer = clean_input;
-            return false;
-        }
+    if buffer.chars().count() > MAX_WORD_LENGTH {
+        return false;
     }
 
-    let tone_mark_pos_result = get_tone_mark_placement(&clean_input);
-    if let Some(tone_mark_pos) = tone_mark_pos_result {
-        let tone_mark_ch = get_char_at(&clean_input, tone_mark_pos).unwrap();
-        let tone_mark_map = match tone_mark {
-            ToneMark::Acute => &ACCUTE_MAP,
-            ToneMark::Grave => &GRAVE_MAP,
-            ToneMark::HookAbove => &HOOK_ABOVE_MAP,
-            ToneMark::Tilde => &TILDE_MAP,
-            ToneMark::Underdot => &DOT_MAP,
-        };
-        let replace_char: char = if tone_mark_map.contains_key(&tone_mark_ch) {
-            tone_mark_map[&tone_mark_ch]
-        } else {
-            tone_mark_ch
-        };
+    let Some(tone_mark_position) = get_tone_mark_placement(buffer) else {
+        return false;
+    };
+    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
 
-        replace_char_at(&mut clean_input, tone_mark_pos, replace_char);
-        *buffer = clean_input;
-        return true;
+    let tone_mark_map = match tone_mark {
+        ToneMark::Acute => &ACCUTE_MAP,
+        ToneMark::Grave => &GRAVE_MAP,
+        ToneMark::HookAbove => &HOOK_ABOVE_MAP,
+        ToneMark::Tilde => &TILDE_MAP,
+        ToneMark::Underdot => &DOT_MAP,
+    };
+
+    *buffer = buffer.chars().map(remove_tone_mark).collect();
+
+    // Tone mark already existed. Only remove tone mark & do nothing else.
+    if tone_mark_map
+        .values()
+        .find(|ch| **ch == tone_mark_ch)
+        .is_some()
+    {
+        return false;
     }
 
-    return false;
+    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
+    let replace_char = tone_mark_map.get(&tone_mark_ch).unwrap_or(&tone_mark_ch);
+    replace_char_at(buffer, tone_mark_position, *replace_char);
+    true
 }
 
 /// change a letter to vietnamese modified letter
 /// Return if the letter has been modified or not and what's the output
 pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> bool {
+    if buffer.chars().count() > MAX_WORD_LENGTH {
+        return false;
+    }
     let map = match modification {
         LetterModification::Horn => &HORN_MAP,
         LetterModification::Breve => &BREVE_MAP,
@@ -209,6 +224,9 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
 /// Remove the tone for the letter
 pub fn remove_tone(input: &mut String) -> bool {
+    if input.chars().count() > MAX_WORD_LENGTH {
+        return false;
+    }
     let mut result = input.chars().map(remove_tone_mark).collect::<String>();
     if result == *input {
         result = result.chars().map(clean_char).collect();

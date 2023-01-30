@@ -1,83 +1,51 @@
 use phf::{phf_set, Set};
-use regex::Regex;
 
 use crate::{
-    maps::{
-        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
-        HORN_MAP, TILDE_MAP,
-    },
-    processor::{modify_letter, LetterModification, ToneMark},
+    maps::{ACCENT_VOWELS, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP, VOWELS},
+    processor::{modify_letter, LetterModification},
 };
 
 pub fn clean_char(ch: char) -> char {
+    let is_uppercase = ch.is_uppercase();
     let accents = vec![
         "aàảãáạăằẳẵắặâầẩẫấậ",
-        "AÀẢÃÁẠĂẰẲẴẮẶÂẦẨẪẤẬ",
         "dđ",
-        "DĐ",
         "eèẻẽéẹêềểễếệ",
-        "EÈẺẼÉẸÊỀỂỄẾỆ",
         "iìỉĩíị",
-        "IÌỈĨÍỊ",
         "oòỏõóọôồổỗốộơờởỡớợ",
-        "OÒỎÕÓỌÔỒỔỖỐỘƠỜỞỠỚỢ",
         "uùủũúụưừửữứự",
-        "UÙỦŨÚỤƯỪỬỮỨỰ",
         "yỳỷỹýỵ",
-        "YỲỶỸÝỴ",
     ];
+    let ch_lowercase = ch.to_lowercase().to_string();
+    let mut result = ch;
     for accent in accents {
-        let regex = Regex::new(&format!("[{}]", &accent[1..]));
-        let replace_char = accent.chars().next().unwrap();
-        if let Ok(re) = regex {
-            if re.is_match(&ch.to_string()) {
-                return replace_char;
-            }
+        if accent.contains(&ch_lowercase) {
+            result = accent.chars().next().unwrap();
         }
     }
-    ch
+
+    if is_uppercase {
+        result = result.to_ascii_uppercase();
+    }
+
+    result
 }
 
 pub fn remove_tone_mark(ch: char) -> char {
-    let tone_mark_map = vec![
-        "aàảãáạ",
-        "ăằẳẵắặ",
-        "âầẩẫấậ",
-        "AÀẢÃÁẠ",
-        "ĂẰẲẴẮẶ",
-        "ÂẦẨẪẤẬ",
-        "eèẻẽéẹ",
-        "êềểễếệ",
-        "EÈẺẼÉẸ",
-        "ÊỀỂỄẾỆ",
-        "iìỉĩíị",
-        "IÌỈĨÍỊ",
-        "oòỏõóọ",
-        "ôồổỗốộ",
-        "ơờởỡớợ",
-        "OÒỎÕÓỌ",
-        "ÔỒỔỖỐỘ",
-        "ƠỜỞỠỚỢ",
-        "uùủũúụ",
-        "ưừửữứự",
-        "UÙỦŨÚỤ",
-        "ƯỪỬỮỨỰ",
-        "yỳỷỹýỵ",
-        "YỲỶỸÝỴ",
-    ];
-    for tone_mark in tone_mark_map {
-        let regex = Regex::new(&format!(
-            "[{}]",
-            &tone_mark.chars().skip(1).collect::<String>()
-        ));
-        let replace_char = tone_mark.chars().next().unwrap();
-        if let Ok(re) = regex {
-            if re.is_match(&ch.to_string()) {
-                return replace_char;
-            }
-        }
+    let is_uppercase = ch.is_uppercase();
+    let ch_lowercase = ch.to_lowercase().next().unwrap();
+
+    let Some(ch_index) = VOWELS.get_index(&ch_lowercase) else {
+        return ch;
+    };
+    let reset_index = ch_index - ch_index % 6;
+    let mut result = *VOWELS.index(reset_index).unwrap();
+
+    if is_uppercase {
+        result = result.to_uppercase().next().unwrap();
     }
-    ch
+
+    result
 }
 
 pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
@@ -94,12 +62,15 @@ pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     true
 }
 
-const VOWELS: Set<char> = phf_set!['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
 const MODIFIED_VOWELS: Set<char> = phf_set!['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
 const MODIFIABLE_VOWELS: Set<char> = phf_set!['a', 'e', 'o', 'u'];
 
 pub fn is_vowel(c: char) -> bool {
     VOWELS.contains(&c) || VOWELS.contains(&c.to_lowercase().next().unwrap())
+}
+
+pub fn is_vowel_with_accent(c: char) -> bool {
+    ACCENT_VOWELS.contains(&c) || ACCENT_VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
 pub fn is_modified_vowels(c: char) -> bool {
@@ -108,27 +79,6 @@ pub fn is_modified_vowels(c: char) -> bool {
 
 pub fn is_modifiable_vowels(c: char) -> bool {
     MODIFIABLE_VOWELS.contains(&c) || MODIFIABLE_VOWELS.contains(&c.to_lowercase().next().unwrap())
-}
-
-pub fn extract_tone(input: &str) -> Option<ToneMark> {
-    for ch in input.chars() {
-        if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Acute);
-        }
-        if GRAVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Grave);
-        }
-        if HOOK_ABOVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::HookAbove);
-        }
-        if TILDE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Tilde);
-        }
-        if DOT_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Underdot);
-        }
-    }
-    None
 }
 
 pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
@@ -180,10 +130,7 @@ impl<'a> WordComponents<'a> {
         let mut found_initial_consonant = false;
         let mut found_final_consonant = false;
 
-        for (index, ch) in input
-            .char_indices()
-            .map(|(i, c)| (i, clean_char(c).to_ascii_lowercase()))
-        {
+        for (index, ch) in input.char_indices() {
             if !found_vowel && !is_vowel(ch) {
                 found_initial_consonant = true;
             }
