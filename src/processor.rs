@@ -50,9 +50,8 @@ fn get_vowel(word: &str) -> Option<(usize, &str)> {
         // Collect all the vowels
         .take_while(|(_, ch)| is_vowel(*ch));
 
-    let first_ch = match word_lowercase.char_indices().next() {
-        Some((_, ch)) => ch,
-        None => return None,
+    let Some((_, first_ch)) = word_lowercase.char_indices().next() else {
+        return None;
     };
 
     let vowel_start_index = match vowels.next() {
@@ -135,27 +134,26 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
 /// Add tone mark to input
 /// Return if the tone mark has been added or not
 pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
-    let tone_stripped = strip_tone_if_needed(buffer, tone_mark);
+    let Some(tone_mark_position) = get_tone_mark_placement(buffer) else {
+        return false;
+    };
 
+    let tone_stripped = strip_tone_if_needed(buffer, tone_mark);
     if tone_stripped {
         return false;
     }
 
-    if let Some(tone_mark_pos) = get_tone_mark_placement(buffer) {
-        let tone_mark_ch = get_char_at(buffer, tone_mark_pos).unwrap();
-        let tone_mark_map = match tone_mark {
-            ToneMark::Acute => &ACCUTE_MAP,
-            ToneMark::Grave => &GRAVE_MAP,
-            ToneMark::HookAbove => &HOOK_ABOVE_MAP,
-            ToneMark::Tilde => &TILDE_MAP,
-            ToneMark::Underdot => &DOT_MAP,
-        };
-        let replace_char = tone_mark_map.get(&tone_mark_ch).unwrap_or(&tone_mark_ch);
-        replace_char_at(buffer, tone_mark_pos, *replace_char);
-        return true;
-    }
-
-    return false;
+    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
+    let tone_mark_map = match tone_mark {
+        ToneMark::Acute => &ACCUTE_MAP,
+        ToneMark::Grave => &GRAVE_MAP,
+        ToneMark::HookAbove => &HOOK_ABOVE_MAP,
+        ToneMark::Tilde => &TILDE_MAP,
+        ToneMark::Underdot => &DOT_MAP,
+    };
+    let replace_char = tone_mark_map.get(&tone_mark_ch).unwrap_or(&tone_mark_ch);
+    replace_char_at(buffer, tone_mark_position, *replace_char);
+    true
 }
 
 fn strip_tone_if_needed(input: &mut String, tone_mark: &ToneMark) -> bool {
