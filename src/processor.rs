@@ -8,6 +8,9 @@ use crate::util::{
     is_modifiable_vowels, is_modified_vowels, is_vowel,
 };
 
+/// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
+const MAX_WORD_LENGTH: usize = 7;
+
 /// A tone mark in Vietnamese
 ///
 /// - **Acute:** Dấu sắc
@@ -134,6 +137,10 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
 /// Add tone mark to input
 /// Return if the tone mark has been added or not
 pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
+    if buffer.chars().count() > MAX_WORD_LENGTH {
+        return false;
+    }
+
     let Some(tone_mark_position) = get_tone_mark_placement(buffer) else {
         return false;
     };
@@ -171,6 +178,9 @@ fn strip_tone_if_needed(input: &mut String, tone_mark: &ToneMark) -> bool {
 /// change a letter to vietnamese modified letter
 /// Return if the letter has been modified or not and what's the output
 pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> bool {
+    if buffer.chars().count() > MAX_WORD_LENGTH {
+        return false;
+    }
     let map = match modification {
         LetterModification::Horn => &HORN_MAP,
         LetterModification::Breve => &BREVE_MAP,
@@ -209,6 +219,9 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
 /// Remove the tone for the letter
 pub fn remove_tone(input: &mut String) -> bool {
+    if input.chars().count() > MAX_WORD_LENGTH {
+        return false;
+    }
     let mut result = input.chars().map(remove_tone_mark).collect::<String>();
     if result == *input {
         result = result.chars().map(clean_char).collect();
