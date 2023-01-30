@@ -1,11 +1,8 @@
 use phf::{phf_set, Set};
 
 use crate::{
-    maps::{
-        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
-        HORN_MAP, TILDE_MAP, VOWELS,
-    },
-    processor::{modify_letter, LetterModification, ToneMark},
+    maps::{ACCENT_VOWELS, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP, VOWELS},
+    processor::{modify_letter, LetterModification},
 };
 
 pub fn clean_char(ch: char) -> char {
@@ -72,33 +69,16 @@ pub fn is_vowel(c: char) -> bool {
     VOWELS.contains(&c) || VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
+pub fn is_vowel_with_accent(c: char) -> bool {
+    ACCENT_VOWELS.contains(&c) || ACCENT_VOWELS.contains(&c.to_lowercase().next().unwrap())
+}
+
 pub fn is_modified_vowels(c: char) -> bool {
     MODIFIED_VOWELS.contains(&c) || MODIFIED_VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
 pub fn is_modifiable_vowels(c: char) -> bool {
     MODIFIABLE_VOWELS.contains(&c) || MODIFIABLE_VOWELS.contains(&c.to_lowercase().next().unwrap())
-}
-
-pub fn extract_tone(input: &str) -> Option<ToneMark> {
-    for ch in input.chars() {
-        if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Acute);
-        }
-        if GRAVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Grave);
-        }
-        if HOOK_ABOVE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::HookAbove);
-        }
-        if TILDE_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Tilde);
-        }
-        if DOT_MAP.values().find(|c| **c == ch).is_some() {
-            return Some(ToneMark::Underdot);
-        }
-    }
-    None
 }
 
 pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
