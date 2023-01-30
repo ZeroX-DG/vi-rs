@@ -3,7 +3,7 @@ use phf::{phf_set, Set};
 use crate::{
     maps::{
         ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
-        HORN_MAP, TILDE_MAP,
+        HORN_MAP, TILDE_MAP, VOWELS,
     },
     processor::{modify_letter, LetterModification, ToneMark},
 };
@@ -37,32 +37,12 @@ pub fn clean_char(ch: char) -> char {
 pub fn remove_tone_mark(ch: char) -> char {
     let is_uppercase = ch.is_uppercase();
     let ch_lowercase = ch.to_lowercase().next().unwrap();
-    let tone_mark_map = "aàảãáạ\
-        ăằẳẵắặ\
-        âầẩẫấậ\
-        eèẻẽéẹ\
-        êềểễếệ\
-        iìỉĩíị\
-        oòỏõóọ\
-        ôồổỗốộ\
-        ơờởỡớợ\
-        uùủũúụ\
-        ưừửữứự\
-        yỳỷỹýỵ";
 
-    let ch_index = match tone_mark_map
-        .chars()
-        .enumerate()
-        .find(|(_, c)| *c == ch_lowercase)
-    {
-        Some((index, _)) => index,
-        _ => return ch,
+    let Some(ch_index) = VOWELS.get_index(&ch_lowercase) else {
+        return ch;
     };
     let reset_index = ch_index - ch_index % 6;
-    let mut result = tone_mark_map
-        .chars()
-        .nth(reset_index)
-        .expect("Invalid reset character index");
+    let mut result = *VOWELS.index(reset_index).unwrap();
 
     if is_uppercase {
         result = result.to_uppercase().next().unwrap();
@@ -85,7 +65,6 @@ pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     true
 }
 
-const VOWELS: Set<char> = phf_set!['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'];
 const MODIFIED_VOWELS: Set<char> = phf_set!['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
 const MODIFIABLE_VOWELS: Set<char> = phf_set!['a', 'e', 'o', 'u'];
 
@@ -171,10 +150,7 @@ impl<'a> WordComponents<'a> {
         let mut found_initial_consonant = false;
         let mut found_final_consonant = false;
 
-        for (index, ch) in input
-            .char_indices()
-            .map(|(i, c)| (i, clean_char(c).to_ascii_lowercase()))
-        {
+        for (index, ch) in input.char_indices() {
             if !found_vowel && !is_vowel(ch) {
                 found_initial_consonant = true;
             }
