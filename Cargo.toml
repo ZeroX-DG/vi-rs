@@ -19,3 +19,8 @@ phf = { version = "0.11", features = ["macros"] }
 insta = "1.26"
 cargo-insta = "1.26.0"
 serde = "1.0"
+criterion = "0.3"
+
+[[bench]]
+name = "transform_benchmark"
+harness = false
