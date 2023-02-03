@@ -33,7 +33,7 @@ pub fn is_valid_word(input: &str) -> bool {
     };
 
     if components.vowel.is_empty() {
-        return false;
+        return true;
     }
 
     if !are_valid_consonants(components.initial_consonant, components.final_consonant) {

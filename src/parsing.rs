@@ -1,5 +1,4 @@
 use nom::{bytes::complete::{take_till, take_while, tag_no_case}, IResult, sequence::tuple, branch::alt};
-
 use crate::util::is_vowel;
 
 pub struct WordComponents<'a> {
@@ -8,7 +7,10 @@ pub struct WordComponents<'a> {
     pub final_consonant: &'a str
 }
 
-fn consonant(input: &str) -> IResult<&str, &str> {
+fn initial_consonant(input: &str) -> IResult<&str, &str> {
+    if input == "gi" {
+        return Ok(("i", "g"))
+    }
     alt((tag_no_case("gi"), tag_no_case("qu"), take_till(is_vowel)))(input)
 }
 
@@ -17,13 +19,13 @@ fn vowel(input: &str) -> IResult<&str, &str> {
 }
 
 pub fn parse_vowel(input: &str) -> IResult<&str, &str> {
-    let (rest, (_, vowel)) = tuple((consonant, vowel))(input)?;
+    let (rest, (_, vowel)) = tuple((initial_consonant, vowel))(input)?;
     Ok((rest, vowel))
 }
 
 pub fn parse_word(input: &str) -> IResult<&str, WordComponents<'_>> {
-    let (rest, (initial_consonant, vowel, final_consonant)) = tuple((consonant, vowel, consonant))(input)?;
-    Ok((rest, WordComponents { initial_consonant, vowel, final_consonant }))
+    let (rest, (initial_consonant, vowel)) = tuple((initial_consonant, vowel))(input)?;
+    Ok((rest, WordComponents { initial_consonant, vowel, final_consonant: rest }))
 }
 
 #[cfg(test)]
