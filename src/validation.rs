@@ -10,7 +10,7 @@
 
 use phf::{phf_set, Set};
 
-use crate::{util::{clean_char}, parsing::parse_word};
+use crate::{parsing::parse_word, util::clean_char};
 
 const SINGLE_INITIAL_CONSONANTS: Set<char> =
     phf_set!['b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',];
