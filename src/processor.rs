@@ -3,9 +3,10 @@ use super::maps::{
     TILDE_MAP,
 };
 use super::util::{clean_char, remove_tone_mark};
+use crate::parsing::parse_vowel;
 use crate::util::{
     extract_letter_modification, get_char_at, get_next_char_index, is_modifiable_vowels,
-    is_modified_vowels, is_vowel, is_vowel_with_accent,
+    is_modified_vowels, is_vowel_with_accent,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -41,38 +42,6 @@ pub enum LetterModification {
     Dyet,
 }
 
-/// Get the main sound of a word which is the part that start
-/// with a vowel and end with word end or a non-vowel char
-fn get_vowel(word: &str) -> Option<(usize, &str)> {
-    let word_lowercase = word.to_lowercase();
-
-    let mut vowels = word_lowercase
-        .char_indices()
-        // Skip initial non-vowels
-        .skip_while(|(_, ch)| !is_vowel(*ch))
-        // Collect all the vowels
-        .take_while(|(_, ch)| is_vowel(*ch));
-
-    let Some((_, first_ch)) = word_lowercase.char_indices().next() else {
-        return None;
-    };
-
-    let vowel_start_index = match vowels.next() {
-        // Special case where qu & gi are starting sound and not vowel
-        Some((index, 'u')) if first_ch == 'q' => index + 1,
-        Some((index, 'i')) if first_ch == 'g' && word.len() > 2 => index + 1,
-        Some((index, _)) => index,
-        _ => return None,
-    };
-
-    let vowel_end_index = match vowels.last() {
-        Some((index, _)) => get_next_char_index(word, index),
-        None => get_next_char_index(word, vowel_start_index),
-    };
-
-    Some((vowel_start_index, &word[vowel_start_index..vowel_end_index]))
-}
-
 /// Get position to place tone mark
 ///
 /// # Rules:
@@ -85,7 +54,15 @@ fn get_vowel(word: &str) -> Option<(usize, &str)> {
 /// 5. If a word end with 2 or 3 vowel, put it on the second last one
 /// 6. Else, but tone mark on whatever vowel comes first
 fn get_tone_mark_placement(input: &str) -> Option<usize> {
-    get_vowel(input).map(|(index, vowel)| {
+    let Ok((_, vowel)) = parse_vowel(input) else {
+        return None;
+    };
+
+    if vowel.is_empty() {
+        return None;
+    }
+
+    input.find(vowel).map(|index| {
         let vowel_len = vowel.chars().count();
         // If there's only one vowel, then it's guaranteed that the tone mark will go there
         if vowel_len == 1 {
@@ -240,34 +217,6 @@ pub fn remove_tone(input: &mut String) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn get_vowel_normal() {
-        let result = get_vowel("viet");
-        let expected: Option<(usize, &str)> = Some((1, "ie"));
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_vowel_empty() {
-        let result = get_vowel("vt");
-        let expected: Option<(usize, &str)> = None;
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_vowel_double_start_tone() {
-        let result = get_vowel("quai");
-        let expected: Option<(usize, &str)> = Some((2, "ai"));
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_vowel_double_start_tone_2() {
-        let result = get_vowel("gia");
-        let expected: Option<(usize, &str)> = Some((2, "a"));
-        assert_eq!(result, expected);
-    }
 
     #[test]
     fn get_tone_mark_placement_normal() {
