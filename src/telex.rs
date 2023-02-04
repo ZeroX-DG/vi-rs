@@ -33,7 +33,6 @@ where
         let ch = &ch;
         let fallback = format!("{}{}", result, ch);
         let ch_lowercase = ch.to_ascii_lowercase();
-
         let action_performed = match ch_lowercase {
             's' => add_tone(&mut result, &ToneMark::Acute),
             'f' => add_tone(&mut result, &ToneMark::Grave),
