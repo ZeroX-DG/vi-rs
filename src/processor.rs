@@ -191,11 +191,9 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             modified = false;
             replace_char_at(buffer, index, cleaned_ch);
         } else if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
-            dbg!(2);
             modified = true;
             replace_char_at(buffer, index, map[&cleaned_ch]);
         } else if map.contains_key(&ch) {
-            dbg!(3);
             modified = true;
             replace_char_at(buffer, index, map[&ch]);
         }
