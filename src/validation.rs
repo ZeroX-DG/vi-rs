@@ -10,7 +10,7 @@
 
 use phf::{phf_set, Set};
 
-use crate::util::{clean_char, WordComponents};
+use crate::{parsing::parse_word, util::clean_char};
 
 const SINGLE_INITIAL_CONSONANTS: Set<char> =
     phf_set!['b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',];
@@ -28,18 +28,20 @@ const VOWELS: Set<&'static str> = phf_set![
 
 /// Verify if a word is a valid vietnamese word.
 pub fn is_valid_word(input: &str) -> bool {
-    let components = WordComponents::extract(input);
+    let Ok((_, components)) = parse_word(input) else {
+        return false;
+    };
 
-    if components.vowel().is_empty() {
+    if components.vowel.is_empty() {
         return true;
     }
 
-    if !are_valid_consonants(components.initial_consonant(), components.final_consonant()) {
+    if !are_valid_consonants(components.initial_consonant, components.final_consonant) {
         return false;
     }
 
     let cleaned_vowel: String = components
-        .vowel()
+        .vowel
         .chars()
         .map(|c| clean_char(c).to_ascii_lowercase())
         .collect();
