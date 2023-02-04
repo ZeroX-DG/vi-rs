@@ -11,7 +11,7 @@ fn contains_clean_char(input: &str, ch: char) -> bool {
         .chars()
         .map(clean_char)
         .map(|c| c.to_ascii_lowercase())
-        .any(|clean_ch| clean_ch == ch.to_ascii_lowercase())
+        .any(|clean_ch| clean_ch == ch)
 }
 
 /// Transform input buffer containing a single word to vietnamese string output using telex mode.
@@ -32,7 +32,9 @@ where
     for ch in buffer {
         let ch = &ch;
         let fallback = format!("{}{}", result, ch);
-        let action_performed = match ch.to_ascii_lowercase() {
+        let ch_lowercase = ch.to_ascii_lowercase();
+
+        let action_performed = match ch_lowercase {
             's' => add_tone(&mut result, &ToneMark::Acute),
             'f' => add_tone(&mut result, &ToneMark::Grave),
             'r' => add_tone(&mut result, &ToneMark::HookAbove),
@@ -40,7 +42,7 @@ where
             'j' => add_tone(&mut result, &ToneMark::Underdot),
             'z' => remove_tone(&mut result),
 
-            'a' | 'e' | 'o' if contains_clean_char(&result, *ch) => {
+            'a' | 'e' | 'o' if contains_clean_char(&result, ch_lowercase) => {
                 modify_letter(&mut result, &LetterModification::Circumflex)
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
