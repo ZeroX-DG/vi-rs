@@ -1,4 +1,4 @@
-use crate::processor::{add_tone, modify_letter};
+use crate::processor::{add_tone, modify_letter, remove_tone};
 use crate::util::modify_letter_or_else;
 use crate::validation::is_valid_word;
 
@@ -11,7 +11,7 @@ fn contains_clean_char(input: &str, ch: char) -> bool {
         .chars()
         .map(clean_char)
         .map(|c| c.to_ascii_lowercase())
-        .any(|clean_ch| clean_ch == ch)
+        .any(|clean_ch| clean_ch == ch.to_ascii_lowercase())
 }
 
 /// Transform input buffer containing a single word to vietnamese string output using telex mode.
@@ -38,6 +38,7 @@ where
             'r' => add_tone(&mut result, &ToneMark::HookAbove),
             'x' => add_tone(&mut result, &ToneMark::Tilde),
             'j' => add_tone(&mut result, &ToneMark::Underdot),
+            'z' => remove_tone(&mut result),
 
             'a' | 'e' | 'o' if contains_clean_char(&result, *ch) => {
                 modify_letter(&mut result, &LetterModification::Circumflex)
