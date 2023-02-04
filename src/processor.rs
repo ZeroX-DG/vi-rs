@@ -1,13 +1,14 @@
-use super::maps::{
-    ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
-    TILDE_MAP,
-};
-use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::parse_vowel;
 use crate::util::{
     extract_letter_modification, get_char_at, get_next_char_index, is_modifiable_vowels,
     is_modified_vowels, is_vowel_with_accent,
 };
+
+use super::maps::{
+    ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
+    TILDE_MAP,
+};
+use super::util::{clean_char, remove_tone_mark};
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
 const MAX_WORD_LENGTH: usize = 7;
@@ -139,9 +140,7 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
         ToneMark::Tilde => &TILDE_MAP,
         ToneMark::Underdot => &DOT_MAP,
     };
-
     *buffer = buffer.chars().map(remove_tone_mark).collect();
-
     // Tone mark already existed. Only remove tone mark & do nothing else.
     if tone_mark_map
         .values()
@@ -169,14 +168,16 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         LetterModification::Circumflex => &CIRCUMFLEX_MAP,
         LetterModification::Dyet => &DYET_MAP,
     };
-    if let Some(existing_modification) = extract_letter_modification(buffer) {
-        if existing_modification == *modification {
-            return false;
-        }
-    }
 
+    let mut is_existing_modification = false;
     let mut modified = false;
     let mut last_index = 0;
+
+    if let Some(existing_modification) = extract_letter_modification(buffer) {
+        if existing_modification == *modification {
+            is_existing_modification = true;
+        }
+    }
 
     while let Some((index, ch)) = buffer
         .char_indices()
@@ -186,16 +187,19 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         last_index = index + 1;
 
         let cleaned_ch = clean_char(ch);
-
-        if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
+        if is_existing_modification == true {
+            modified = false;
+            replace_char_at(buffer, index, cleaned_ch);
+        } else if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
+            dbg!(2);
             modified = true;
             replace_char_at(buffer, index, map[&cleaned_ch]);
         } else if map.contains_key(&ch) {
+            dbg!(3);
             modified = true;
             replace_char_at(buffer, index, map[&ch]);
         }
     }
-
     modified
 }
 

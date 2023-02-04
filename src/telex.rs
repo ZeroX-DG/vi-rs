@@ -3,7 +3,6 @@ use crate::util::modify_letter_or_else;
 use crate::validation::is_valid_word;
 
 use super::processor::{LetterModification, ToneMark};
-
 use super::util::clean_char;
 
 fn contains_clean_char(input: &str, ch: char) -> bool {
@@ -25,8 +24,8 @@ fn contains_clean_char(input: &str, ch: char) -> bool {
 /// assert_eq!(result, "việt".to_owned());
 /// ```
 pub fn transform_buffer<I>(buffer: I, output: &mut String)
-where
-    I: IntoIterator<Item = char>,
+    where
+        I: IntoIterator<Item=char>,
 {
     let mut result = String::new();
     for ch in buffer {
