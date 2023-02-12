@@ -118,7 +118,10 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
         .char_indices()
         .find(|(pos, _)| *pos == index)
         .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-        .expect(&format!("Unable to place: {} into {} at {}", ch, input, index));
+        .expect(&format!(
+            "Unable to place: {} into {} at {}",
+            ch, input, index
+        ));
     input.replace_range(range, &ch.to_string());
 }
 
@@ -191,7 +194,8 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         return false;
     }
 
-    let cleaned_buffer: String = buffer.chars()
+    let cleaned_buffer: String = buffer
+        .chars()
         .map(clean_char)
         .map(|c| c.to_ascii_lowercase())
         .collect();
@@ -202,10 +206,11 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
     if vowel.is_empty() {
         return false;
-    } 
+    }
 
     fn map_clean_index_to_real_index(buffer: &mut String, cleaned_index: usize) -> usize {
-        buffer.char_indices()
+        buffer
+            .char_indices()
             .nth(cleaned_index)
             .map(|(real_index, _)| real_index)
             .unwrap()
@@ -225,7 +230,9 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             cleaned_buffer.find('a'),
             cleaned_buffer.find('o'),
             cleaned_buffer.find('e'),
-        ].into_iter().max();
+        ]
+        .into_iter()
+        .max();
 
         if let Some(Some(index)) = index {
             let index = map_clean_index_to_real_index(buffer, index);
