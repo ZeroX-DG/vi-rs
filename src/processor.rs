@@ -1,3 +1,5 @@
+use phf::Map;
+
 use super::maps::{
     ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
     TILDE_MAP,
@@ -116,7 +118,10 @@ fn replace_char_at(input: &mut String, index: usize, ch: char) {
         .char_indices()
         .find(|(pos, _)| *pos == index)
         .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-        .unwrap();
+        .expect(&format!(
+            "Unable to place: {} into {} at {}",
+            ch, input, index
+        ));
     input.replace_range(range, &ch.to_string());
 }
 
@@ -171,32 +176,119 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     };
     if let Some(existing_modification) = extract_letter_modification(buffer) {
         if existing_modification == *modification {
+            // TODO: Remove existing modification
             return false;
         }
     }
 
-    let mut modified = false;
-    let mut last_index = 0;
+    // Only d will get the Dyet modification and d is always in front
+    if let LetterModification::Dyet = modification {
+        let Some(first_ch) = get_char_at(buffer, 0) else {
+            return false;
+        };
+        let cleaned_ch = clean_char(first_ch);
+        if map.contains_key(&cleaned_ch) {
+            replace_char_at(buffer, 0, map[&cleaned_ch]);
+            return true;
+        }
+        return false;
+    }
 
-    while let Some((index, ch)) = buffer
-        .char_indices()
-        .skip_while(|(index, _)| *index < last_index)
-        .next()
-    {
-        last_index = index + 1;
+    let cleaned_buffer: String = buffer
+        .chars()
+        .map(clean_char)
+        .map(|c| c.to_ascii_lowercase())
+        .collect();
 
-        let cleaned_ch = clean_char(ch);
+    let Ok((_, vowel)) = parse_vowel(&cleaned_buffer) else {
+        return false;
+    };
 
-        if is_modified_vowels(ch) && map.contains_key(&cleaned_ch) {
-            modified = true;
-            replace_char_at(buffer, index, map[&cleaned_ch]);
-        } else if map.contains_key(&ch) {
-            modified = true;
-            replace_char_at(buffer, index, map[&ch]);
+    if vowel.is_empty() {
+        return false;
+    }
+
+    fn map_clean_index_to_real_index(buffer: &mut String, cleaned_index: usize) -> usize {
+        buffer
+            .char_indices()
+            .nth(cleaned_index)
+            .map(|(real_index, _)| real_index)
+            .unwrap()
+    }
+
+    fn get_map_char(buffer: &str, index: usize, map: &Map<char, char>) -> char {
+        let ch = get_char_at(buffer, index).unwrap();
+        if map.contains_key(&ch) {
+            map[&ch]
+        } else {
+            map[&clean_char(ch)]
         }
     }
 
-    modified
+    if let LetterModification::Circumflex = modification {
+        let index = vec![
+            cleaned_buffer.find('a'),
+            cleaned_buffer.find('o'),
+            cleaned_buffer.find('e'),
+        ]
+        .into_iter()
+        .max();
+
+        if let Some(Some(index)) = index {
+            let index = map_clean_index_to_real_index(buffer, index);
+            let ch = get_map_char(&buffer, index, map);
+            replace_char_at(buffer, index, ch);
+            return true;
+        }
+        return false;
+    }
+
+    if let LetterModification::Breve = modification {
+        let Some(index) = cleaned_buffer.find('a') else {
+            return false;
+        };
+        let index = map_clean_index_to_real_index(buffer, index);
+        let ch = get_map_char(&buffer, index, map);
+        println!("Replacing: {} into {} at {}", ch, buffer, index);
+        replace_char_at(buffer, index, ch);
+        return true;
+    }
+
+    if let LetterModification::Horn = modification {
+        if vowel == "oa" {
+            return false;
+        }
+
+        if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
+            let clean_index = cleaned_buffer.find(vowel).unwrap();
+
+            let index = map_clean_index_to_real_index(buffer, clean_index);
+            let ch = get_map_char(&buffer, index, map);
+            replace_char_at(buffer, index, ch);
+
+            let index = map_clean_index_to_real_index(buffer, clean_index + 1);
+            let ch = get_map_char(&buffer, index, map);
+            replace_char_at(buffer, index, ch);
+
+            return true;
+        }
+
+        if let Some(index) = cleaned_buffer.find('u') {
+            let index = map_clean_index_to_real_index(buffer, index);
+            let ch = get_map_char(&buffer, index, map);
+            replace_char_at(buffer, index, ch);
+            return true;
+        }
+
+        if let Some(index) = cleaned_buffer.find('o') {
+            let index = map_clean_index_to_real_index(buffer, index);
+            let ch = get_map_char(&buffer, index, map);
+            replace_char_at(buffer, index, ch);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /// Remove the tone for the letter

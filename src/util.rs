@@ -101,7 +101,7 @@ pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
 
 pub fn get_next_char_index(input: &str, current_index: usize) -> usize {
     let mut index = current_index + 1;
-    while !input.is_char_boundary(index) {
+    while !input.is_char_boundary(index) && input.bytes().len() > current_index {
         index += 1;
     }
     index
