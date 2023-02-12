@@ -249,7 +249,6 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         };
         let index = map_clean_index_to_real_index(buffer, index);
         let ch = get_map_char(&buffer, index, map);
-        println!("Replacing: {} into {} at {}", ch, buffer, index);
         replace_char_at(buffer, index, ch);
         return true;
     }
