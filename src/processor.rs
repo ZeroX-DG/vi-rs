@@ -7,8 +7,8 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::parse_vowel;
 use crate::util::{
-    extract_letter_modification, get_char_at, get_next_char_index, is_modifiable_vowels,
-    is_modified_vowels, is_vowel_with_accent,
+    get_char_at, get_next_char_index, is_modifiable_vowels, is_modified_vowels,
+    is_vowel_with_accent,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -174,12 +174,6 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         LetterModification::Circumflex => &CIRCUMFLEX_MAP,
         LetterModification::Dyet => &DYET_MAP,
     };
-    if let Some(existing_modification) = extract_letter_modification(buffer) {
-        if existing_modification == *modification {
-            // TODO: Remove existing modification
-            return false;
-        }
-    }
 
     // Only d will get the Dyet modification and d is always in front
     if let LetterModification::Dyet = modification {
