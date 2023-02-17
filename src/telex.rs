@@ -45,7 +45,11 @@ where
                 modify_letter(&mut result, &LetterModification::Circumflex)
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
-                modify_letter(result, &LetterModification::Breve)
+                modify_letter_or_else(result, &LetterModification::Breve, |result| {
+                    let insert_ch = if ch.is_lowercase() { 'ư' } else { 'Ư' };
+                    result.push(insert_ch);
+                    true
+                })
             }),
             'd' => modify_letter(&mut result, &LetterModification::Dyet),
             _ => false,
