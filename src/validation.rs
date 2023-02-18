@@ -23,7 +23,7 @@ const FINAL_CONSONANTS: Set<&'static str> = phf_set!["c", "ch", "m", "n", "nh", 
 const VOWELS: Set<&'static str> = phf_set![
     "ia", "ai", "ieu", "io", "ua", "ao", "au", "oi", "a", "i", "o", "e", "u", "oai", "uou", "uo",
     "uu", "ie", "ay", "oa", "eo", "oeo", "iu", "oao", "oay", "oe", "oo", "ui", "uy", "uya", "uyu",
-    "uye", "uoi", "ye", "yeu", "y"
+    "uye", "uoi", "ye", "yeu", "y", "eu", "ue", "uay"
 ];
 
 /// Verify if a word is a valid vietnamese word.
