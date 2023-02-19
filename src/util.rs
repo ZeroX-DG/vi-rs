@@ -2,7 +2,7 @@ use phf::{phf_set, Set};
 
 use crate::{
     maps::{ACCENT_VOWELS, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP, VOWELS},
-    processor::{modify_letter, LetterModification},
+    processor::{modify_letter, LetterModification}, parsing::parse_vowel,
 };
 
 pub fn clean_char(ch: char) -> char {
@@ -58,6 +58,21 @@ pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     if !letter_modified {
         return callback(input);
     }
+
+    true
+}
+
+pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) -> bool {
+    let Ok((_, vowel)) = parse_vowel(input) else {
+        return false;
+    };
+
+    if !vowel.is_empty() {
+        return false;
+    }
+
+    let insert_ch = if !is_uppercase { 'ư' } else { 'Ư' };
+    input.push(insert_ch);
 
     true
 }
