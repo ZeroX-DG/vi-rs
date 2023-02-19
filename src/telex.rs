@@ -1,5 +1,5 @@
 use crate::processor::{add_tone, modify_letter, remove_tone};
-use crate::util::modify_letter_or_else;
+use crate::util::{modify_letter_or_else, insert_ư_if_vowel_not_present};
 use crate::validation::is_valid_word;
 
 use super::processor::{LetterModification, ToneMark};
@@ -46,9 +46,7 @@ where
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
                 modify_letter_or_else(result, &LetterModification::Breve, |result| {
-                    let insert_ch = if ch.is_lowercase() { 'ư' } else { 'Ư' };
-                    result.push(insert_ch);
-                    true
+                    insert_ư_if_vowel_not_present(result, ch.is_uppercase())
                 })
             }),
             'd' => modify_letter(&mut result, &LetterModification::Dyet),
