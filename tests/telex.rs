@@ -18,7 +18,4 @@ gen_test_telex!(
     non_vietnamese_telex,
     "../testdata/input/non_vietnamese_telex.txt"
 );
-gen_test_telex!(
-    bogo_engine_telex,
-    "../testdata/input/bogo_engine_telex.txt"
-);
+gen_test_telex!(bogo_engine_telex, "../testdata/input/bogo_engine_telex.txt");
