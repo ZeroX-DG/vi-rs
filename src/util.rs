@@ -2,7 +2,8 @@ use phf::{phf_set, Set};
 
 use crate::{
     maps::{ACCENT_VOWELS, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP, VOWELS},
-    processor::{modify_letter, LetterModification}, parsing::parse_vowel,
+    parsing::parse_vowel,
+    processor::{modify_letter, LetterModification},
 };
 
 pub fn clean_char(ch: char) -> char {

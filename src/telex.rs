@@ -1,5 +1,5 @@
 use crate::processor::{add_tone, modify_letter, remove_tone};
-use crate::util::{modify_letter_or_else, insert_ư_if_vowel_not_present};
+use crate::util::{insert_ư_if_vowel_not_present, modify_letter_or_else};
 use crate::validation::is_valid_word;
 
 use super::processor::{LetterModification, ToneMark};
