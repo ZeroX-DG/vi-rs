@@ -7,8 +7,8 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::parse_vowel;
 use crate::util::{
-    extract_tone, get_char_at, get_next_char_index, is_modifiable_vowels, is_modified_vowels,
-    is_vowel_with_accent,
+    extract_letter_modifications, extract_tone, get_char_at, get_next_char_index,
+    is_modifiable_vowels, is_modified_vowels, is_vowel_with_accent, remove_modification,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -143,8 +143,14 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
     let Some(tone_mark_position) = get_tone_mark_placement(buffer) else {
         return false;
     };
-    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
 
+    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
+    let replace_char = add_tone_char(tone_mark_ch, tone_mark);
+    replace_char_at(buffer, tone_mark_position, replace_char);
+    true
+}
+
+pub fn add_tone_char(ch: char, tone_mark: &ToneMark) -> char {
     let tone_mark_map = match tone_mark {
         ToneMark::Acute => &ACCUTE_MAP,
         ToneMark::Grave => &GRAVE_MAP,
@@ -152,20 +158,7 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
         ToneMark::Tilde => &TILDE_MAP,
         ToneMark::Underdot => &DOT_MAP,
     };
-
-    // Tone mark already existed. Only remove tone mark & do nothing else.
-    if tone_mark_map
-        .values()
-        .find(|ch| **ch == tone_mark_ch)
-        .is_some()
-    {
-        return false;
-    }
-
-    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
-    let replace_char = tone_mark_map.get(&tone_mark_ch).unwrap_or(&tone_mark_ch);
-    replace_char_at(buffer, tone_mark_position, *replace_char);
-    true
+    *tone_mark_map.get(&ch).unwrap_or(&ch)
 }
 
 /// change a letter to vietnamese modified letter
@@ -174,6 +167,29 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     if buffer.chars().count() > MAX_WORD_LENGTH {
         return false;
     }
+
+    let modifications = extract_letter_modifications(buffer);
+
+    // Remove existing modification if it's already been added
+    for (index, existing_modification) in modifications {
+        if existing_modification == *modification {
+            if existing_modification == LetterModification::Horn && buffer.contains("ưo") {
+                break;
+            }
+            *buffer = buffer
+                .char_indices()
+                .map(|(buffer_index, ch)| {
+                    if buffer_index == index {
+                        remove_modification(ch)
+                    } else {
+                        ch
+                    }
+                })
+                .collect();
+            return false;
+        }
+    }
+
     let map = match modification {
         LetterModification::Horn => &HORN_MAP,
         LetterModification::Breve => &BREVE_MAP,
