@@ -1,9 +1,12 @@
 use phf::{phf_set, Set};
 
 use crate::{
-    maps::{ACCENT_VOWELS, BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP, VOWELS},
+    maps::{
+        ACCENT_VOWELS, ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP,
+        HOOK_ABOVE_MAP, HORN_MAP, TILDE_MAP, VOWELS,
+    },
     parsing::parse_vowel,
-    processor::{modify_letter, LetterModification},
+    processor::{modify_letter, LetterModification, ToneMark},
 };
 
 pub fn clean_char(ch: char) -> char {
@@ -115,6 +118,27 @@ pub fn extract_letter_modification(input: &str) -> Option<LetterModification> {
     None
 }
 
+pub fn extract_tone(input: &str) -> Option<ToneMark> {
+    for ch in input.chars() {
+        if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Acute);
+        }
+        if GRAVE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Grave);
+        }
+        if HOOK_ABOVE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::HookAbove);
+        }
+        if TILDE_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Tilde);
+        }
+        if DOT_MAP.values().find(|c| **c == ch).is_some() {
+            return Some(ToneMark::Underdot);
+        }
+    }
+    None
+}
+
 pub fn get_next_char_index(input: &str, current_index: usize) -> usize {
     let mut index = current_index + 1;
     while !input.is_char_boundary(index) && input.bytes().len() > current_index {
@@ -126,5 +150,6 @@ pub fn get_next_char_index(input: &str, current_index: usize) -> usize {
 pub fn get_char_at(input: &str, index: usize) -> Option<char> {
     input
         .get(index..get_next_char_index(input, index))
-        .map(|res| res.chars().next().unwrap())
+        .map(|res| res.chars().next())
+        .flatten()
 }

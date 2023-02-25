@@ -7,7 +7,7 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::parse_vowel;
 use crate::util::{
-    get_char_at, get_next_char_index, is_modifiable_vowels, is_modified_vowels,
+    extract_tone, get_char_at, get_next_char_index, is_modifiable_vowels, is_modified_vowels,
     is_vowel_with_accent,
 };
 
@@ -132,6 +132,14 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
         return false;
     }
 
+    if let Some(existing_tone_mark) = extract_tone(&buffer) {
+        *buffer = buffer.chars().map(remove_tone_mark).collect();
+
+        if existing_tone_mark == *tone_mark {
+            return false;
+        }
+    }
+
     let Some(tone_mark_position) = get_tone_mark_placement(buffer) else {
         return false;
     };
@@ -144,8 +152,6 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
         ToneMark::Tilde => &TILDE_MAP,
         ToneMark::Underdot => &DOT_MAP,
     };
-
-    *buffer = buffer.chars().map(remove_tone_mark).collect();
 
     // Tone mark already existed. Only remove tone mark & do nothing else.
     if tone_mark_map
