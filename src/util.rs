@@ -61,6 +61,25 @@ pub fn remove_modification(ch: char) -> char {
     }
 }
 
+pub fn replace_char_at(input: &mut String, index: usize, ch: char) {
+    let range = input
+        .char_indices()
+        .find(|(pos, _)| *pos == index)
+        .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
+        .expect(&format!(
+            "Unable to place: {} into {} at {}",
+            ch, input, index
+        ));
+    input.replace_range(range, &ch.to_string());
+}
+
+pub fn replace_last_char(input: &mut String, ch: char) {
+    let Some(last_index) = input.char_indices().last().map(|(index, _)| index) else {
+        return;
+    };
+    replace_char_at(input, last_index, ch);
+}
+
 pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     input: &mut String,
     modification: &LetterModification,
