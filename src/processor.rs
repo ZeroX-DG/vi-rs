@@ -9,6 +9,7 @@ use crate::parsing::parse_vowel;
 use crate::util::{
     extract_letter_modifications, extract_tone, get_char_at, get_next_char_index,
     is_modifiable_vowels, is_modified_vowels, is_vowel_with_accent, remove_modification,
+    replace_char_at,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -111,18 +112,6 @@ fn get_tone_mark_placement(input: &str) -> Option<usize> {
         // Else, but tone mark on whatever vowel comes first
         index
     })
-}
-
-fn replace_char_at(input: &mut String, index: usize, ch: char) {
-    let range = input
-        .char_indices()
-        .find(|(pos, _)| *pos == index)
-        .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-        .expect(&format!(
-            "Unable to place: {} into {} at {}",
-            ch, input, index
-        ));
-    input.replace_range(range, &ch.to_string());
 }
 
 /// Add tone mark to input

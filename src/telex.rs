@@ -1,5 +1,5 @@
 use crate::processor::{add_tone, modify_letter, remove_tone};
-use crate::util::{insert_ư_if_vowel_not_present, modify_letter_or_else};
+use crate::util::{insert_ư_if_vowel_not_present, modify_letter_or_else, replace_last_char};
 use crate::validation::is_valid_word;
 
 use super::processor::{LetterModification, ToneMark};
@@ -29,10 +29,16 @@ where
     I: IntoIterator<Item = char>,
 {
     let mut result = String::new();
+    let mut ư_inserted_previously = false;
     for ch in buffer {
         let ch = &ch;
         let fallback = format!("{}{}", result, ch);
         let ch_lowercase = ch.to_ascii_lowercase();
+
+        if ch_lowercase != 'w' {
+            ư_inserted_previously = false;
+        }
+
         let action_performed = match ch_lowercase {
             's' => add_tone(&mut result, &ToneMark::Acute),
             'f' => add_tone(&mut result, &ToneMark::Grave),
@@ -44,9 +50,15 @@ where
             'a' | 'e' | 'o' if contains_clean_char(&result, ch_lowercase) => {
                 modify_letter(&mut result, &LetterModification::Circumflex)
             }
+            'w' if ư_inserted_previously => {
+                replace_last_char(&mut result, *ch);
+                true
+            }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
                 modify_letter_or_else(result, &LetterModification::Breve, |result| {
-                    insert_ư_if_vowel_not_present(result, ch.is_uppercase())
+                    ư_inserted_previously =
+                        insert_ư_if_vowel_not_present(result, ch.is_uppercase());
+                    ư_inserted_previously
                 })
             }),
             'd' => modify_letter(&mut result, &LetterModification::Dyet),
