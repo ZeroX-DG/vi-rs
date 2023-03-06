@@ -7,8 +7,8 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::{parse_vowel, parse_word, WordComponents};
 use crate::util::{
-    extract_letter_modifications, extract_tone,
-    is_modifiable_vowels, is_modified_vowels, is_vowel_with_accent, remove_modification, replace_nth_char,
+    extract_letter_modifications, extract_tone, is_modifiable_vowels, is_modified_vowels,
+    is_vowel_with_accent, remove_modification, replace_nth_char,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -65,7 +65,8 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
     }
 
     // If vowel already contains a letter with tone mark. Use that letter's position
-    if let Some((index, _)) = vowel.chars()
+    if let Some((index, _)) = vowel
+        .chars()
         .enumerate()
         .find(|(_, ch)| is_vowel_with_accent(*ch))
     {
@@ -73,15 +74,13 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
     }
 
     // If vowel contains "ơ" then tone mark goes there.
-    if let Some((index, _)) = vowel.chars()
-        .enumerate()
-        .find(|(_, ch)| *ch == 'ơ')
-    {
+    if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'ơ') {
         return vowel_index + index;
     }
 
     // If there's a modified vowels then tone mark goes there.
-    if let Some((index, _)) = vowel.chars()
+    if let Some((index, _)) = vowel
+        .chars()
         .enumerate()
         .find(|(_, ch)| is_modified_vowels(*ch))
     {
@@ -101,7 +100,8 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
     }
 
     // If there's a modifiable vowels then tone mark goes there.
-    if let Some((index, _)) = vowel.chars()
+    if let Some((index, _)) = vowel
+        .chars()
         .enumerate()
         .find(|(_, ch)| is_modifiable_vowels(*ch))
     {
@@ -137,8 +137,10 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
 
     let tone_mark_position = get_tone_mark_placement(&components);
 
-    let tone_mark_ch = buffer.chars().nth(tone_mark_position)
-        .expect(&format!("Unable to retrieve character at index {} from {}", tone_mark_position, buffer));
+    let tone_mark_ch = buffer.chars().nth(tone_mark_position).expect(&format!(
+        "Unable to retrieve character at index {} from {}",
+        tone_mark_position, buffer
+    ));
     let replace_char = add_tone_char(tone_mark_ch, tone_mark);
 
     replace_nth_char(buffer, tone_mark_position, replace_char);

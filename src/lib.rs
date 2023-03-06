@@ -1,11 +1,11 @@
 //! A Vietnamese typing composition engine.
-//! 
+//!
 //! VI implement support for Vietnamese text composition using the two most common methods: Telex and VNI.
 //! The two main methods of this library is `telex::transform_buffer` and `vni::transform_buffer` but
 //! a range of useful utility methods and constants for Vietnamese text manipulation are also exposed.
-//! 
+//!
 //! # Example
-//! 
+//!
 //! ```
 //! use vi::vni;
 //! fn main() {
@@ -18,12 +18,12 @@
 //!     println!("{}", result); // prints "việt nam "
 //! }
 //! ```
-//! 
+//!
 //! # Rules
-//! 
+//!
 //! VI aims to be as lean as possible, focusing on only the useful features and main use-cases. Therefore, the engine
 //! implemented these rules by default with no way of configuring them:
-//! 
+//!
 //! - **Tone mark are placed in the new accent:** hoà instead of hòa
 //! - **`w` in telex will insert `ư`:** so `chuw` or `chw` will produce `chư`
 pub mod maps;

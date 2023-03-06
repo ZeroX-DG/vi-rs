@@ -62,9 +62,16 @@ pub fn remove_modification(ch: char) -> char {
 }
 
 pub fn replace_nth_char(input: &mut String, replace_index: usize, replace_ch: char) {
-    *input = input.chars()
+    *input = input
+        .chars()
         .enumerate()
-        .map(|(index, ch)| if index == replace_index { replace_ch } else { ch })
+        .map(|(index, ch)| {
+            if index == replace_index {
+                replace_ch
+            } else {
+                ch
+            }
+        })
         .collect();
 }
 
