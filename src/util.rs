@@ -73,6 +73,13 @@ pub fn replace_char_at(input: &mut String, index: usize, ch: char) {
     input.replace_range(range, &ch.to_string());
 }
 
+pub fn replace_nth_char(input: &mut String, replace_index: usize, replace_ch: char) {
+    *input = input.chars()
+        .enumerate()
+        .map(|(index, ch)| if index == replace_index { replace_ch } else { ch })
+        .collect();
+}
+
 pub fn replace_last_char(input: &mut String, ch: char) {
     let Some(last_index) = input.char_indices().last().map(|(index, _)| index) else {
         return;

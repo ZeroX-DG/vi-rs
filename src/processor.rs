@@ -5,11 +5,11 @@ use super::maps::{
     TILDE_MAP,
 };
 use super::util::{clean_char, remove_tone_mark};
-use crate::parsing::parse_vowel;
+use crate::parsing::{parse_vowel, parse_word, WordComponents};
 use crate::util::{
-    extract_letter_modifications, extract_tone, get_char_at, get_next_char_index,
+    extract_letter_modifications, extract_tone, get_char_at,
     is_modifiable_vowels, is_modified_vowels, is_vowel_with_accent, remove_modification,
-    replace_char_at,
+    replace_char_at, replace_nth_char,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -45,7 +45,7 @@ pub enum LetterModification {
     Dyet,
 }
 
-/// Get position to place tone mark
+/// Get nth character to place tone mark
 ///
 /// # Rules:
 /// 1. Tone mark always above vowel (a, ă, â, e, ê, i, o, ô, ơ, u, ư, y)
@@ -56,62 +56,61 @@ pub enum LetterModification {
 /// second vowel
 /// 5. If a word end with 2 or 3 vowel, put it on the second last one
 /// 6. Else, but tone mark on whatever vowel comes first
-fn get_tone_mark_placement(input: &str) -> Option<usize> {
-    let Ok((_, vowel)) = parse_vowel(input) else {
-        return None;
-    };
-
-    if vowel.is_empty() {
-        return None;
+fn get_tone_mark_placement(components: &WordComponents) -> usize {
+    let vowel = components.vowel;
+    let vowel_len = vowel.chars().count();
+    let vowel_index = components.initial_consonant.chars().count();
+    // If there's only one vowel, then it's guaranteed that the tone mark will go there
+    if vowel_len == 1 {
+        return vowel_index;
     }
 
-    input.find(vowel).map(|index| {
-        let vowel_len = vowel.chars().count();
-        // If there's only one vowel, then it's guaranteed that the tone mark will go there
-        if vowel_len == 1 {
-            return index;
-        }
+    // If vowel already contains a letter with tone mark. Use that letter's position
+    if let Some((index, _)) = vowel.chars()
+        .enumerate()
+        .find(|(_, ch)| is_vowel_with_accent(*ch))
+    {
+        return vowel_index + index;
+    }
 
-        // If vowel already contains a letter with tone mark. Use that letter's position
-        if let Some((offset, _)) = vowel
-            .chars()
-            .enumerate()
-            .find(|(_, ch)| is_vowel_with_accent(*ch))
-        {
-            return index + offset;
-        }
+    // If vowel contains "ơ" then tone mark goes there.
+    if let Some((index, _)) = vowel.chars()
+        .enumerate()
+        .find(|(_, ch)| *ch == 'ơ')
+    {
+        return vowel_index + index;
+    }
 
-        // If vowel contains "ơ" then tone mark goes there.
-        if let Some(pos) = input.find('ơ') {
-            return pos;
-        }
+    // If there's a modified vowels then tone mark goes there.
+    if let Some((index, _)) = vowel.chars()
+        .enumerate()
+        .find(|(_, ch)| is_modified_vowels(*ch))
+    {
+        return vowel_index + index;
+    }
 
-        // If there's a modified vowels then tone mark goes there.
-        if let Some(pos) = input.find(is_modified_vowels) {
-            return pos;
+    // If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the second vowel
+    for pair in ["oa", "oe", "oo", "uy"].iter() {
+        if vowel.contains(pair) {
+            return vowel_index + 1;
         }
+    }
 
-        // If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the second vowel
-        for pair in ["oa", "oe", "oo", "uy"].iter() {
-            if let Some(pos) = input.find(pair) {
-                return get_next_char_index(input, pos);
-            }
-        }
+    // If a word end with 2 or 3 vowel, put it on the second last one
+    if components.final_consonant.is_empty() && vowel_len >= 2 {
+        return vowel_index + vowel_len - 2;
+    }
 
-        // If a word end with 2 or 3 vowel, put it on the second last one
-        let is_end_with_vowel = input.len() == index + vowel_len;
-        if is_end_with_vowel && vowel_len >= 2 {
-            return index + vowel.char_indices().nth(vowel_len - 2).unwrap().0;
-        }
+    // If there's a modifiable vowels then tone mark goes there.
+    if let Some((index, _)) = vowel.chars()
+        .enumerate()
+        .find(|(_, ch)| is_modifiable_vowels(*ch))
+    {
+        return vowel_index + index;
+    }
 
-        // If there's a modifiable vowels then tone mark goes there.
-        if let Some(pos) = input.find(is_modifiable_vowels) {
-            return pos;
-        }
-
-        // Else, but tone mark on whatever vowel comes first
-        index
-    })
+    // Else, but tone mark on whatever vowel comes first
+    vowel_index
 }
 
 /// Add tone mark to input
@@ -129,13 +128,21 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
         }
     }
 
-    let Some(tone_mark_position) = get_tone_mark_placement(buffer) else {
+    let Ok((_, components)) = parse_word(buffer) else {
         return false;
     };
 
-    let tone_mark_ch = get_char_at(buffer, tone_mark_position).unwrap();
+    if components.vowel.is_empty() {
+        return false;
+    }
+
+    let tone_mark_position = get_tone_mark_placement(&components);
+
+    let tone_mark_ch = buffer.chars().nth(tone_mark_position)
+        .expect(&format!("Unable to retrieve character at index {} from {}", tone_mark_position, buffer));
     let replace_char = add_tone_char(tone_mark_ch, tone_mark);
-    replace_char_at(buffer, tone_mark_position, replace_char);
+
+    replace_nth_char(buffer, tone_mark_position, replace_char);
     true
 }
 
@@ -316,44 +323,51 @@ mod tests {
 
     #[test]
     fn get_tone_mark_placement_normal() {
-        let result = get_tone_mark_placement("choe");
-        let expected: Option<usize> = Some(3);
+        let (_, components) = parse_word("choe").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_special() {
-        let result = get_tone_mark_placement("chieu");
-        let expected: Option<usize> = Some(3);
+        let (_, components) = parse_word("chieu").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_mid_not_end() {
-        let result = get_tone_mark_placement("hoang");
-        let expected: Option<usize> = Some(2);
+        let (_, components) = parse_word("hoang").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 2;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_u_and_o() {
-        let result = get_tone_mark_placement("ngươi");
-        let expected: Option<usize> = Some(4);
+        let (_, components) = parse_word("ngươi").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_uppercase() {
-        let result = get_tone_mark_placement("chÊt");
-        let expected: Option<usize> = Some(2);
+        let (_, components) = parse_word("chÊt").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 2;
         assert_eq!(result, expected);
 
-        let result = get_tone_mark_placement("chiÊt");
-        let expected: Option<usize> = Some(3);
+        let (_, components) = parse_word("chiÊt").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 3;
         assert_eq!(result, expected);
 
-        let result = get_tone_mark_placement("cAu");
-        let expected: Option<usize> = Some(1);
+        let (_, components) = parse_word("cAu").unwrap();
+        let result = get_tone_mark_placement(&components);
+        let expected = 1;
         assert_eq!(result, expected);
     }
 
