@@ -1,5 +1,8 @@
+//! Static character mappings for transformation.
+
 use phf::{phf_map, phf_ordered_set, phf_set, Map, OrderedSet, Set};
 
+/// A set of lowercase vowels with accents & tone marks.
 pub static ACCENT_VOWELS: Set<char> = phf_set![
     'à', 'ả', 'ã', 'á', 'ạ', 'ằ', 'ẳ', 'ẵ', 'ắ', 'ặ', 'ầ', 'ẩ', 'ẫ', 'ấ', 'ậ', 'è', 'ẻ', 'ẽ', 'é',
     'ẹ', 'ề', 'ể', 'ễ', 'ế', 'ệ', 'ì', 'ỉ', 'ĩ', 'í', 'ị', 'ò', 'ỏ', 'õ', 'ó', 'ọ', 'ồ', 'ổ', 'ỗ',
@@ -7,6 +10,7 @@ pub static ACCENT_VOWELS: Set<char> = phf_set![
     'ỹ', 'ý'
 ];
 
+/// An ordered set of lowercase vowels, complete with and without accents or tone marks.
 pub static VOWELS: OrderedSet<char> = phf_ordered_set![
     'a', 'à', 'ả', 'ã', 'á', 'ạ', 'ă', 'ằ', 'ẳ', 'ẵ', 'ắ', 'ặ', 'â', 'ầ', 'ẩ', 'ẫ', 'ấ', 'ậ', 'e',
     'è', 'ẻ', 'ẽ', 'é', 'ẹ', 'ê', 'ề', 'ể', 'ễ', 'ế', 'ệ', 'i', 'ì', 'ỉ', 'ĩ', 'í', 'ị', 'o', 'ò',
@@ -14,6 +18,7 @@ pub static VOWELS: OrderedSet<char> = phf_ordered_set![
     'ũ', 'ú', 'ụ', 'ư', 'ừ', 'ử', 'ữ', 'ứ', 'ự', 'y', 'ỳ', 'ỷ', 'ỹ', 'ý', 'ỵ'
 ];
 
+/// A map of characters without tone mark to character with acute tone mark
 pub static ACCUTE_MAP: Map<char, char> = phf_map! {
     'a' => 'á',
     'â' => 'ấ',
@@ -42,6 +47,7 @@ pub static ACCUTE_MAP: Map<char, char> = phf_map! {
     'Y' => 'Ý',
 };
 
+/// A map of characters without tone mark to character with grave tone mark
 pub static GRAVE_MAP: Map<char, char> = phf_map! {
     'a' => 'à',
     'â' => 'ầ',
@@ -70,6 +76,7 @@ pub static GRAVE_MAP: Map<char, char> = phf_map! {
     'Y' => 'Ỳ',
 };
 
+/// A map of characters without tone mark to character with hook above tone mark
 pub static HOOK_ABOVE_MAP: Map<char, char> = phf_map! {
     'a' => 'ả',
     'â' => 'ẩ',
@@ -98,6 +105,7 @@ pub static HOOK_ABOVE_MAP: Map<char, char> = phf_map! {
     'Y' => 'Ỷ',
 };
 
+/// A map of characters without tone mark to character with tilde tone mark
 pub static TILDE_MAP: Map<char, char> = phf_map! {
     'a' => 'ã',
     'ă' => 'ẵ',
@@ -126,6 +134,7 @@ pub static TILDE_MAP: Map<char, char> = phf_map! {
     'Y' => 'Ỹ',
 };
 
+/// A map of characters without tone mark to character with dot tone mark
 pub static DOT_MAP: Map<char, char> = phf_map! {
     'a' => 'ạ',
     'ă' => 'ặ',
@@ -154,6 +163,7 @@ pub static DOT_MAP: Map<char, char> = phf_map! {
     'Y' => 'Ỵ',
 };
 
+/// A map of characters without accent to character with circumflex accent
 pub static CIRCUMFLEX_MAP: Map<char, char> = phf_map! {
     'a' => 'â',
     'e' => 'ê',
@@ -194,11 +204,13 @@ pub static CIRCUMFLEX_MAP: Map<char, char> = phf_map! {
     'Ò' => 'Ồ',
 };
 
+/// A map of characters without accent to character with dyet accent
 pub static DYET_MAP: Map<char, char> = phf_map! {
     'd' => 'đ',
     'D' => 'Đ',
 };
 
+/// A map of characters without accent to character with horn accent
 pub static HORN_MAP: Map<char, char> = phf_map! {
     'u' => 'ư',
     'o' => 'ơ',
@@ -225,6 +237,7 @@ pub static HORN_MAP: Map<char, char> = phf_map! {
     'Ọ' => 'Ợ',
 };
 
+/// A map of characters without accent to character with breve accent
 pub static BREVE_MAP: Map<char, char> = phf_map! {
     'a' => 'ă',
     'á' => 'ắ',

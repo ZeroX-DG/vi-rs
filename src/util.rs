@@ -61,23 +61,23 @@ pub fn remove_modification(ch: char) -> char {
     }
 }
 
-pub fn replace_char_at(input: &mut String, index: usize, ch: char) {
-    let range = input
-        .char_indices()
-        .find(|(pos, _)| *pos == index)
-        .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-        .expect(&format!(
-            "Unable to place: {} into {} at {}",
-            ch, input, index
-        ));
-    input.replace_range(range, &ch.to_string());
+pub fn replace_nth_char(input: &mut String, replace_index: usize, replace_ch: char) {
+    *input = input
+        .chars()
+        .enumerate()
+        .map(|(index, ch)| {
+            if index == replace_index {
+                replace_ch
+            } else {
+                ch
+            }
+        })
+        .collect();
 }
 
 pub fn replace_last_char(input: &mut String, ch: char) {
-    let Some(last_index) = input.char_indices().last().map(|(index, _)| index) else {
-        return;
-    };
-    replace_char_at(input, last_index, ch);
+    let last_index = input.chars().count() - 1;
+    replace_nth_char(input, last_index, ch);
 }
 
 pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
@@ -130,7 +130,8 @@ pub fn is_modifiable_vowels(c: char) -> bool {
 
 pub fn extract_letter_modifications(input: &str) -> Vec<(usize, LetterModification)> {
     input
-        .char_indices()
+        .chars()
+        .enumerate()
         .filter_map(|(index, ch)| {
             if HORN_MAP.values().find(|c| **c == ch).is_some() {
                 return Some((index, LetterModification::Horn));
@@ -176,19 +177,4 @@ pub fn extract_tone_char(ch: char) -> Option<ToneMark> {
         return Some(ToneMark::Underdot);
     }
     None
-}
-
-pub fn get_next_char_index(input: &str, current_index: usize) -> usize {
-    let mut index = current_index + 1;
-    while !input.is_char_boundary(index) && input.bytes().len() > current_index {
-        index += 1;
-    }
-    index
-}
-
-pub fn get_char_at(input: &str, index: usize) -> Option<char> {
-    input
-        .get(index..get_next_char_index(input, index))
-        .map(|res| res.chars().next())
-        .flatten()
 }

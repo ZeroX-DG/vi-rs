@@ -1,3 +1,4 @@
+//! The telex method transformation
 use crate::processor::{add_tone, modify_letter, remove_tone};
 use crate::util::{insert_ư_if_vowel_not_present, modify_letter_or_else, replace_last_char};
 use crate::validation::is_valid_word;
