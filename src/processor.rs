@@ -7,9 +7,8 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::{parse_vowel, parse_word, WordComponents};
 use crate::util::{
-    extract_letter_modifications, extract_tone, get_char_at,
-    is_modifiable_vowels, is_modified_vowels, is_vowel_with_accent, remove_modification,
-    replace_char_at, replace_nth_char,
+    extract_letter_modifications, extract_tone,
+    is_modifiable_vowels, is_modified_vowels, is_vowel_with_accent, remove_modification, replace_nth_char,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -195,12 +194,12 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
     // Only d will get the Dyet modification and d is always in front
     if let LetterModification::Dyet = modification {
-        let Some(first_ch) = get_char_at(buffer, 0) else {
+        let Some(first_ch) = buffer.chars().nth(0) else {
             return false;
         };
         let cleaned_ch = clean_char(first_ch);
         if map.contains_key(&cleaned_ch) {
-            replace_char_at(buffer, 0, map[&cleaned_ch]);
+            replace_nth_char(buffer, 0, map[&cleaned_ch]);
             return true;
         }
         return false;
@@ -220,16 +219,8 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         return false;
     }
 
-    fn map_clean_index_to_real_index(buffer: &mut String, cleaned_index: usize) -> usize {
-        buffer
-            .char_indices()
-            .nth(cleaned_index)
-            .map(|(real_index, _)| real_index)
-            .unwrap()
-    }
-
     fn get_map_char(buffer: &str, index: usize, map: &Map<char, char>) -> char {
-        let ch = get_char_at(buffer, index).unwrap();
+        let ch = buffer.chars().nth(index).unwrap();
         if map.contains_key(&ch) {
             map[&ch]
         } else {
@@ -247,9 +238,8 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         .max();
 
         if let Some(Some(index)) = index {
-            let index = map_clean_index_to_real_index(buffer, index);
             let ch = get_map_char(&buffer, index, map);
-            replace_char_at(buffer, index, ch);
+            replace_nth_char(buffer, index, ch);
             return true;
         }
         return false;
@@ -259,9 +249,8 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         let Some(index) = cleaned_buffer.find('a') else {
             return false;
         };
-        let index = map_clean_index_to_real_index(buffer, index);
         let ch = get_map_char(&buffer, index, map);
-        replace_char_at(buffer, index, ch);
+        replace_nth_char(buffer, index, ch);
         return true;
     }
 
@@ -273,28 +262,24 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
             let clean_index = cleaned_buffer.find(vowel).unwrap();
 
-            let index = map_clean_index_to_real_index(buffer, clean_index);
-            let ch = get_map_char(&buffer, index, map);
-            replace_char_at(buffer, index, ch);
+            let ch = get_map_char(&buffer, clean_index, map);
+            replace_nth_char(buffer, clean_index, ch);
 
-            let index = map_clean_index_to_real_index(buffer, clean_index + 1);
-            let ch = get_map_char(&buffer, index, map);
-            replace_char_at(buffer, index, ch);
+            let ch = get_map_char(&buffer, clean_index + 1, map);
+            replace_nth_char(buffer, clean_index + 1, ch);
 
             return true;
         }
 
         if let Some(index) = cleaned_buffer.find('u') {
-            let index = map_clean_index_to_real_index(buffer, index);
             let ch = get_map_char(&buffer, index, map);
-            replace_char_at(buffer, index, ch);
+            replace_nth_char(buffer, index, ch);
             return true;
         }
 
         if let Some(index) = cleaned_buffer.find('o') {
-            let index = map_clean_index_to_real_index(buffer, index);
             let ch = get_map_char(&buffer, index, map);
-            replace_char_at(buffer, index, ch);
+            replace_nth_char(buffer, index, ch);
             return true;
         }
     }
