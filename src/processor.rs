@@ -173,16 +173,8 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             if existing_modification == LetterModification::Horn && buffer.contains("ưo") {
                 break;
             }
-            *buffer = buffer
-                .char_indices()
-                .map(|(buffer_index, ch)| {
-                    if buffer_index == index {
-                        remove_modification(ch)
-                    } else {
-                        ch
-                    }
-                })
-                .collect();
+            let ch = buffer.chars().nth(index).unwrap();
+            replace_nth_char(buffer, index, remove_modification(ch));
             return false;
         }
     }
