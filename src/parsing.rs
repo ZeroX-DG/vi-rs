@@ -1,3 +1,4 @@
+//! Parser for parsing an input string as a Vietnamese word
 use crate::util::is_vowel;
 use nom::{
     branch::alt,

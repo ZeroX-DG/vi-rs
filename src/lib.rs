@@ -4,6 +4,13 @@
 //! The two main methods of this library is `telex::transform_buffer` and `vni::transform_buffer` but
 //! a range of useful utility methods and constants for Vietnamese text manipulation are also exposed.
 //!
+//! # Aspirations
+//!
+//! - Minimal to zero configuration. The engine should have a default configurations that fit with most usecases.
+//! - Support all transformation behaviours & orders. Adding a tonemark during or after typing a word should just work.
+//! - Be as fast as possible.
+//! - Be as simple as possible.
+//!
 //! # Example
 //!
 //! ```

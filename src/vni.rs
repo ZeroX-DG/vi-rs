@@ -1,3 +1,4 @@
+//! The vni method transformation
 use crate::{
     processor::{add_tone, modify_letter, remove_tone},
     validation::is_valid_word,

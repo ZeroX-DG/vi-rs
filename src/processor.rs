@@ -1,3 +1,7 @@
+//! The core of the engine, where all the transformation algorithms lives.
+//!
+//! The idea is both the telex & vni modules will use the transformation algorithms
+//! from this module to perform text transformation according to their method rules.
 use phf::Map;
 
 use super::maps::{

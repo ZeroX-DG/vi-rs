@@ -1,3 +1,5 @@
+//! Static character mappings for transformation.
+
 use phf::{phf_map, phf_ordered_set, phf_set, Map, OrderedSet, Set};
 
 /// A set of lowercase vowels with accents & tone marks.
