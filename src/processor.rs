@@ -144,9 +144,10 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     let modifications = extract_letter_modifications(buffer);
 
     // Remove existing modification if it's already been added
+    let raw_buffer: String = buffer.chars().map(remove_tone_mark).collect();
     for (index, existing_modification) in modifications {
         if existing_modification == *modification {
-            if existing_modification == LetterModification::Horn && buffer.contains("ưo") {
+            if existing_modification == LetterModification::Horn && !raw_buffer.contains("ươ") {
                 break;
             }
             let ch = buffer.chars().nth(index).unwrap();
