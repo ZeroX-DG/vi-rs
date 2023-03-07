@@ -18,33 +18,31 @@ use crate::util::{
 const MAX_WORD_LENGTH: usize = 7;
 const SPECIAL_VOWEL_PAIRS: Set<&'static str> = phf_set!("oa", "oe", "oo", "uy", "uo");
 
-/// A tone mark in Vietnamese
-///
-/// - **Acute:** Dấu sắc
-/// - **Grave:** Dấu huyền
-/// - **HookAbove:** Dấu hỏi
-/// - **Tilde:** Dấu ngã
-/// - **Underdot:** Dấu nặng
+/// Vietnamese's tone mark
 #[derive(Debug, PartialEq)]
 pub enum ToneMark {
+    /// Dấu sắc
     Acute,
+    /// Dấu huyền
     Grave,
+    /// Dấu hỏi
     HookAbove,
+    /// Dấu ngã
     Tilde,
+    /// Dấu nặng
     Underdot,
 }
 
 /// A modification to be apply to a letter
-///
-/// - **Circumflex:** The chevron shaped (ˆ) part on top of a character.
-/// - **Breve:** The part that shaped like a bottom half of a circle (˘)
-/// - **Horn:** The hook that attach to the character. For example, ư
-/// - **Dyet:** The line that go through the character d (đ).
 #[derive(Debug, PartialEq)]
 pub enum LetterModification {
+    /// The chevron shaped (ˆ) part on top of a character.
     Circumflex,
+    /// The part that shaped like a bottom half of a circle (˘)
     Breve,
+    /// The hook that attach to the character. For example, ư
     Horn,
+    /// The line that go through the character d (đ).
     Dyet,
 }
 
@@ -88,8 +86,8 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
     vowel_index + 1
 }
 
-/// Add tone mark to input
-/// Return if the tone mark has been added or not
+/// Add tone mark to input.
+/// Return if the tone mark has been added or not.
 pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
     if buffer.chars().count() > MAX_WORD_LENGTH {
         return false;
@@ -123,6 +121,8 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
     true
 }
 
+/// Add tone mark to input character.
+/// Return a new char with the tone mark.
 pub fn add_tone_char(ch: char, tone_mark: &ToneMark) -> char {
     let tone_mark_map = match tone_mark {
         ToneMark::Acute => &ACCUTE_MAP,
@@ -134,8 +134,8 @@ pub fn add_tone_char(ch: char, tone_mark: &ToneMark) -> char {
     *tone_mark_map.get(&ch).unwrap_or(&ch)
 }
 
-/// change a letter to vietnamese modified letter
-/// Return if the letter has been modified or not and what's the output
+/// change a letter to vietnamese modified letter.
+/// Return if the letter has been modified or not and what's the output.
 pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> bool {
     if buffer.chars().count() > MAX_WORD_LENGTH {
         return false;

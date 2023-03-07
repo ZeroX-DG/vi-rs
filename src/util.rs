@@ -1,3 +1,4 @@
+//! Useful utilities for manipulating Vietnamese string & characters.
 use crate::{
     maps::{
         ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
@@ -7,6 +8,7 @@ use crate::{
     processor::{add_tone_char, modify_letter, LetterModification, ToneMark},
 };
 
+/// Strip off tone mark & modifications from an input char.
 pub fn clean_char(ch: char) -> char {
     let is_uppercase = ch.is_uppercase();
     let accents = vec![
@@ -33,6 +35,7 @@ pub fn clean_char(ch: char) -> char {
     result
 }
 
+/// Remove tone mark from an input char.
 pub fn remove_tone_mark(ch: char) -> char {
     let is_uppercase = ch.is_uppercase();
     let ch_lowercase = ch.to_lowercase().next().unwrap();
@@ -50,6 +53,7 @@ pub fn remove_tone_mark(ch: char) -> char {
     result
 }
 
+/// Remove modification from an input char.
 pub fn remove_modification(ch: char) -> char {
     let clean_ch = clean_char(ch);
 
@@ -59,6 +63,9 @@ pub fn remove_modification(ch: char) -> char {
     }
 }
 
+/// Replace a character at an index in an input char.
+///
+/// Note: It's character index, not byte index.
 pub fn replace_nth_char(input: &mut String, replace_index: usize, replace_ch: char) {
     *input = input
         .chars()
@@ -73,11 +80,15 @@ pub fn replace_nth_char(input: &mut String, replace_index: usize, replace_ch: ch
         .collect();
 }
 
+/// Replace the last character in an input char.
+///
+/// This is equivalent to `replace_nth_char(input, input.chars().count() - 1, replace_char)`
 pub fn replace_last_char(input: &mut String, ch: char) {
     let last_index = input.chars().count() - 1;
     replace_nth_char(input, last_index, ch);
 }
 
+/// Perform letter modification or fallback to a callback function.
 pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     input: &mut String,
     modification: &LetterModification,
@@ -92,6 +103,7 @@ pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
     true
 }
 
+/// Append an ư character to the input string if it doesn't contain any vowel.
 pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) -> bool {
     let Ok((_, vowel)) = parse_vowel(input) else {
         return false;
@@ -107,10 +119,14 @@ pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) ->
     true
 }
 
+/// Check if a character is a vowel
 pub fn is_vowel(c: char) -> bool {
     VOWELS.contains(&c) || VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
+/// Extract letter modifications from an input string.
+///
+/// Note: In some cases, there might be more than 1 modification. E.g đươc has 3 modifications.
 pub fn extract_letter_modifications(input: &str) -> Vec<(usize, LetterModification)> {
     input
         .chars()
@@ -133,6 +149,7 @@ pub fn extract_letter_modifications(input: &str) -> Vec<(usize, LetterModificati
         .collect()
 }
 
+/// Extract a tone mark from an input string. There can only be one tone mark.
 pub fn extract_tone(input: &str) -> Option<ToneMark> {
     for ch in input.chars() {
         let Some(tone_mark) = extract_tone_char(ch) else {
@@ -143,6 +160,7 @@ pub fn extract_tone(input: &str) -> Option<ToneMark> {
     None
 }
 
+/// Extract a tone mark from an input char.
 pub fn extract_tone_char(ch: char) -> Option<ToneMark> {
     if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
         return Some(ToneMark::Acute);
