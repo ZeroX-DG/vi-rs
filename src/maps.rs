@@ -1,14 +1,6 @@
 //! Static character mappings for transformation.
 
-use phf::{phf_map, phf_ordered_set, phf_set, Map, OrderedSet, Set};
-
-/// A set of lowercase vowels with accents & tone marks.
-pub static ACCENT_VOWELS: Set<char> = phf_set![
-    'à', 'ả', 'ã', 'á', 'ạ', 'ằ', 'ẳ', 'ẵ', 'ắ', 'ặ', 'ầ', 'ẩ', 'ẫ', 'ấ', 'ậ', 'è', 'ẻ', 'ẽ', 'é',
-    'ẹ', 'ề', 'ể', 'ễ', 'ế', 'ệ', 'ì', 'ỉ', 'ĩ', 'í', 'ị', 'ò', 'ỏ', 'õ', 'ó', 'ọ', 'ồ', 'ổ', 'ỗ',
-    'ố', 'ộ', 'ờ', 'ở', 'ỡ', 'ớ', 'ợ', 'ù', 'ủ', 'ũ', 'ú', 'ụ', 'ừ', 'ử', 'ữ', 'ứ', 'ự', 'ỳ', 'ỷ',
-    'ỹ', 'ý'
-];
+use phf::{phf_map, phf_ordered_set, Map, OrderedSet};
 
 /// An ordered set of lowercase vowels, complete with and without accents or tone marks.
 pub static VOWELS: OrderedSet<char> = phf_ordered_set![
