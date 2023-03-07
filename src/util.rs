@@ -1,8 +1,6 @@
-use phf::{phf_set, Set};
-
 use crate::{
     maps::{
-        ACCENT_VOWELS, ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP,
+        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP,
         HOOK_ABOVE_MAP, HORN_MAP, TILDE_MAP, VOWELS,
     },
     parsing::parse_vowel,
@@ -109,23 +107,8 @@ pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) ->
     true
 }
 
-const MODIFIED_VOWELS: Set<char> = phf_set!['ă', 'â', 'ê', 'ô', 'ơ', 'ư'];
-const MODIFIABLE_VOWELS: Set<char> = phf_set!['a', 'e', 'o', 'u'];
-
 pub fn is_vowel(c: char) -> bool {
     VOWELS.contains(&c) || VOWELS.contains(&c.to_lowercase().next().unwrap())
-}
-
-pub fn is_vowel_with_accent(c: char) -> bool {
-    ACCENT_VOWELS.contains(&c) || ACCENT_VOWELS.contains(&c.to_lowercase().next().unwrap())
-}
-
-pub fn is_modified_vowels(c: char) -> bool {
-    MODIFIED_VOWELS.contains(&c) || MODIFIED_VOWELS.contains(&c.to_lowercase().next().unwrap())
-}
-
-pub fn is_modifiable_vowels(c: char) -> bool {
-    MODIFIABLE_VOWELS.contains(&c) || MODIFIABLE_VOWELS.contains(&c.to_lowercase().next().unwrap())
 }
 
 pub fn extract_letter_modifications(input: &str) -> Vec<(usize, LetterModification)> {

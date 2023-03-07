@@ -2,7 +2,7 @@
 //!
 //! The idea is both the telex & vni modules will use the transformation algorithms
 //! from this module to perform text transformation according to their method rules.
-use phf::Map;
+use phf::{Map, phf_set, Set};
 
 use super::maps::{
     ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
@@ -11,12 +11,13 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::{parse_vowel, parse_word, WordComponents};
 use crate::util::{
-    extract_letter_modifications, extract_tone, is_modifiable_vowels, is_modified_vowels,
-    is_vowel_with_accent, remove_modification, replace_nth_char,
+    extract_letter_modifications, extract_tone,
+    remove_modification, replace_nth_char,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
 const MAX_WORD_LENGTH: usize = 7;
+const SPECIAL_VOWEL_PAIRS: Set<&'static str> = phf_set!("oa", "oe", "oo", "uy");
 
 /// A tone mark in Vietnamese
 ///
@@ -51,14 +52,11 @@ pub enum LetterModification {
 /// Get nth character to place tone mark
 ///
 /// # Rules:
-/// 1. Tone mark always above vowel (a, ă, â, e, ê, i, o, ô, ơ, u, ư, y)
-/// 2. If a word contains ơ, tone mark goes there
-/// 3. If a modified letter goes with a non-modified vowel, tone mark should be
-/// on modifed letter
-/// 4. If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
-/// second vowel
-/// 5. If a word end with 2 or 3 vowel, put it on the second last one
-/// 6. Else, but tone mark on whatever vowel comes first
+/// 1. If a vowel contains ơ, tone mark goes there
+/// 2. If a vowel contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
+/// second character
+/// 3. If a vowel end with 2 put it on the first one
+/// 4. Else, but tone mark on second vowel character
 fn get_tone_mark_placement(components: &WordComponents) -> usize {
     let vowel = components.vowel;
     let vowel_len = vowel.chars().count();
@@ -68,52 +66,24 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
         return vowel_index;
     }
 
-    // If vowel already contains a letter with tone mark. Use that letter's position
-    if let Some((index, _)) = vowel
-        .chars()
-        .enumerate()
-        .find(|(_, ch)| is_vowel_with_accent(*ch))
-    {
-        return vowel_index + index;
-    }
-
     // If vowel contains "ơ" then tone mark goes there.
     if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'ơ') {
         return vowel_index + index;
     }
 
-    // If there's a modified vowels then tone mark goes there.
-    if let Some((index, _)) = vowel
-        .chars()
-        .enumerate()
-        .find(|(_, ch)| is_modified_vowels(*ch))
-    {
-        return vowel_index + index;
+    // Special vowels require the tone mark to be placed on the second character
+    let raw_vowel: String = vowel.chars().map(clean_char).collect();
+    if SPECIAL_VOWEL_PAIRS.iter().any(|pair| raw_vowel.contains(pair)) {
+        return vowel_index + 1;
     }
 
-    // If a word contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the second vowel
-    for pair in ["oa", "oe", "oo", "uy"].iter() {
-        if vowel.contains(pair) {
-            return vowel_index + 1;
-        }
+    // If a word end with 2 character vowel, put it on the first character
+    if components.final_consonant.is_empty() && vowel_len == 2 {
+        return vowel_index;
     }
 
-    // If a word end with 2 or 3 vowel, put it on the second last one
-    if components.final_consonant.is_empty() && vowel_len >= 2 {
-        return vowel_index + vowel_len - 2;
-    }
-
-    // If there's a modifiable vowels then tone mark goes there.
-    if let Some((index, _)) = vowel
-        .chars()
-        .enumerate()
-        .find(|(_, ch)| is_modifiable_vowels(*ch))
-    {
-        return vowel_index + index;
-    }
-
-    // Else, but tone mark on whatever vowel comes first
-    vowel_index
+    // Else, put tone mark on second vowel
+    vowel_index + 1
 }
 
 /// Add tone mark to input
