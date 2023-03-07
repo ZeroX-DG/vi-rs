@@ -2,7 +2,7 @@
 //!
 //! The idea is both the telex & vni modules will use the transformation algorithms
 //! from this module to perform text transformation according to their method rules.
-use phf::{Map, phf_set, Set};
+use phf::{phf_set, Map, Set};
 
 use super::maps::{
     ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
@@ -11,8 +11,7 @@ use super::maps::{
 use super::util::{clean_char, remove_tone_mark};
 use crate::parsing::{parse_vowel, parse_word, WordComponents};
 use crate::util::{
-    extract_letter_modifications, extract_tone,
-    remove_modification, replace_nth_char,
+    extract_letter_modifications, extract_tone, remove_modification, replace_nth_char,
 };
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
@@ -73,7 +72,10 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
 
     // Special vowels require the tone mark to be placed on the second character
     let raw_vowel: String = vowel.chars().map(clean_char).collect();
-    if SPECIAL_VOWEL_PAIRS.iter().any(|pair| raw_vowel.contains(pair)) {
+    if SPECIAL_VOWEL_PAIRS
+        .iter()
+        .any(|pair| raw_vowel.contains(pair))
+    {
         return vowel_index + 1;
     }
 

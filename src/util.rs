@@ -1,7 +1,7 @@
 use crate::{
     maps::{
-        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP,
-        HOOK_ABOVE_MAP, HORN_MAP, TILDE_MAP, VOWELS,
+        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
+        HORN_MAP, TILDE_MAP, VOWELS,
     },
     parsing::parse_vowel,
     processor::{add_tone_char, modify_letter, LetterModification, ToneMark},
