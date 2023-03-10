@@ -2,7 +2,7 @@
 //!
 //! The idea is both the telex & vni modules will use the transformation algorithms
 //! from this module to perform text transformation according to their method rules.
-use phf::{phf_set, Map, Set};
+use phf::{phf_set, Set};
 
 use super::maps::{
     ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
@@ -89,7 +89,7 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
 /// Add tone mark to input.
 /// Return if the tone mark has been added or not.
 pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
-    if buffer.chars().count() > MAX_WORD_LENGTH {
+    if buffer.is_empty() || buffer.chars().count() > MAX_WORD_LENGTH {
         return false;
     }
 
@@ -137,23 +137,8 @@ pub fn add_tone_char(ch: char, tone_mark: &ToneMark) -> char {
 /// change a letter to vietnamese modified letter.
 /// Return if the letter has been modified or not and what's the output.
 pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> bool {
-    if buffer.chars().count() > MAX_WORD_LENGTH {
+    if buffer.is_empty() || buffer.chars().count() > MAX_WORD_LENGTH {
         return false;
-    }
-
-    let modifications = extract_letter_modifications(buffer);
-
-    // Remove existing modification if it's already been added
-    let raw_buffer: String = buffer.chars().map(remove_tone_mark).collect();
-    for (index, existing_modification) in modifications {
-        if existing_modification == *modification {
-            if existing_modification == LetterModification::Horn && !raw_buffer.contains("ươ") {
-                break;
-            }
-            let ch = buffer.chars().nth(index).unwrap();
-            replace_nth_char(buffer, index, remove_modification(ch));
-            return false;
-        }
     }
 
     let map = match modification {
@@ -163,17 +148,46 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         LetterModification::Dyet => &DYET_MAP,
     };
 
+    let existing_modifications = extract_letter_modifications(buffer);
+
+    // NOTE: Impossible modification include:
+    // - No valid place to modify
+    // - Valid place but overflow (aaa -> âa -> the last a is overflow)
+    // - Valid place but need replace (aaw -> âw -> the â need to be replaced with ă)
+    let is_modification_impossible = !buffer.contains(|c| map.contains_key(&c));
+
+    // Modification overflow is when a modification cannot be applied since it's already been applied.
+    let is_modification_overflow = existing_modifications
+        .iter()
+        .any(|(_, existing_modification)| existing_modification == modification);
+
+    if is_modification_impossible {
+        existing_modifications
+            .iter()
+            .filter(|(_, existing_modification)| existing_modification == modification)
+            .for_each(|(index, _)| {
+                let ch = buffer.chars().nth(*index).map(remove_modification).unwrap();
+                replace_nth_char(buffer, *index, ch);
+            });
+
+        if is_modification_overflow {
+            return false;
+        }
+    }
+
+    let get_map_char = |index: usize| -> char {
+        let ch = buffer.chars().nth(index).map(remove_modification).unwrap();
+        map.get(&ch).map(|ch| *ch).expect(&format!(
+            "Couldn't retrieve replace char for {} for {:?}",
+            ch, modification
+        ))
+    };
+
     // Only d will get the Dyet modification and d is always in front
     if let LetterModification::Dyet = modification {
-        let Some(first_ch) = buffer.chars().nth(0) else {
-            return false;
-        };
-        let cleaned_ch = clean_char(first_ch);
-        if map.contains_key(&cleaned_ch) {
-            replace_nth_char(buffer, 0, map[&cleaned_ch]);
-            return true;
-        }
-        return false;
+        let ch = get_map_char(0);
+        replace_nth_char(buffer, 0, ch);
+        return true;
     }
 
     let cleaned_buffer: String = buffer
@@ -190,15 +204,6 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         return false;
     }
 
-    fn get_map_char(buffer: &str, index: usize, map: &Map<char, char>) -> char {
-        let ch = buffer.chars().nth(index).unwrap();
-        if map.contains_key(&ch) {
-            map[&ch]
-        } else {
-            map[&clean_char(ch)]
-        }
-    }
-
     if let LetterModification::Circumflex = modification {
         let index = vec![
             cleaned_buffer.find('a'),
@@ -206,10 +211,11 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             cleaned_buffer.find('e'),
         ]
         .into_iter()
-        .max();
+        .max()
+        .flatten();
 
-        if let Some(Some(index)) = index {
-            let ch = get_map_char(&buffer, index, map);
+        if let Some(index) = index {
+            let ch = get_map_char(index);
             replace_nth_char(buffer, index, ch);
             return true;
         }
@@ -220,7 +226,7 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         let Some(index) = cleaned_buffer.find('a') else {
             return false;
         };
-        let ch = get_map_char(&buffer, index, map);
+        let ch = get_map_char(index);
         replace_nth_char(buffer, index, ch);
         return true;
     }
@@ -231,25 +237,23 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         }
 
         if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
-            let clean_index = cleaned_buffer.find(vowel).unwrap();
+            let index = cleaned_buffer.find(vowel).unwrap();
 
-            let ch = get_map_char(&buffer, clean_index, map);
-            replace_nth_char(buffer, clean_index, ch);
-
-            let ch = get_map_char(&buffer, clean_index + 1, map);
-            replace_nth_char(buffer, clean_index + 1, ch);
-
+            let ch1 = get_map_char(index);
+            let ch2 = get_map_char(index + 1);
+            replace_nth_char(buffer, index, ch1);
+            replace_nth_char(buffer, index + 1, ch2);
             return true;
         }
 
         if let Some(index) = cleaned_buffer.find('u') {
-            let ch = get_map_char(&buffer, index, map);
+            let ch = get_map_char(index);
             replace_nth_char(buffer, index, ch);
             return true;
         }
 
         if let Some(index) = cleaned_buffer.find('o') {
-            let ch = get_map_char(&buffer, index, map);
+            let ch = get_map_char(index);
             replace_nth_char(buffer, index, ch);
             return true;
         }
