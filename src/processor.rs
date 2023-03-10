@@ -49,7 +49,7 @@ pub enum LetterModification {
 /// Get nth character to place tone mark
 ///
 /// # Rules:
-/// 1. If a vowel contains ơ, tone mark goes there
+/// 1. If a vowel contains ơ or ê, tone mark goes there
 /// 2. If a vowel contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
 /// second character
 /// 3. If a vowel end with 2 put it on the first one
@@ -65,6 +65,11 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
 
     // If vowel contains "ơ" then tone mark goes there.
     if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'ơ') {
+        return vowel_index + index;
+    }
+
+    // If vowel contains "ê" then tone mark goes there.
+    if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'ê') {
         return vowel_index + index;
     }
 
