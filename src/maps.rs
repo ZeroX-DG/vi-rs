@@ -215,6 +215,7 @@ pub static HORN_MAP: Map<char, char> = phf_map! {
     'ũ' => 'ữ',
     'õ' => 'ỡ',
     'ọ' => 'ợ',
+    'ụ' => 'ự',
     // uppercase
     'U' => 'Ư',
     'O' => 'Ơ',
@@ -227,6 +228,7 @@ pub static HORN_MAP: Map<char, char> = phf_map! {
     'Ũ' => 'Ữ',
     'Õ' => 'Ỡ',
     'Ọ' => 'Ợ',
+    'Ụ' => 'Ự',
 };
 
 /// A map of characters without accent to character with breve accent
