@@ -155,18 +155,25 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
     let existing_modifications = extract_letter_modifications(buffer);
 
-    // NOTE: Impossible modification include:
-    // - No valid place to modify
+    // NOTE: This could means:
     // - Valid place but overflow (aaa -> âa -> the last a is overflow)
     // - Valid place but need replace (aaw -> âw -> the â need to be replaced with ă)
-    let is_modification_impossible = !buffer.contains(|c| map.contains_key(&c));
+    let is_modificable_char_present = buffer.contains(|c| map.contains_key(&c));
+
+    // - No valid place to modify
+    let is_modification_impossible =
+        !is_modificable_char_present && !buffer.contains(|c| map.contains_key(&clean_char(c)));
+
+    if is_modification_impossible {
+        return false;
+    }
 
     // Modification overflow is when a modification cannot be applied since it's already been applied.
     let is_modification_overflow = existing_modifications
         .iter()
         .any(|(_, existing_modification)| existing_modification == modification);
 
-    if is_modification_impossible {
+    if !is_modificable_char_present {
         existing_modifications
             .iter()
             .filter(|(_, existing_modification)| existing_modification == modification)
