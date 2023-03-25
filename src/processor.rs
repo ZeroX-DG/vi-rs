@@ -258,13 +258,11 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             return true;
         }
 
-        if let Some(index) = cleaned_buffer.find('u') {
-            let ch = get_map_char(index);
-            replace_nth_char(buffer, index, ch);
-            return true;
-        }
-
-        if let Some(index) = cleaned_buffer.find('o') {
+        if let Some(vowel_relative_index) = vowel.find('u').or(vowel.find('o')) {
+            let Some(vowel_index) = cleaned_buffer.find(vowel) else {
+                return false;
+            };
+            let index = vowel_index + vowel_relative_index;
             let ch = get_map_char(index);
             replace_nth_char(buffer, index, ch);
             return true;
