@@ -1,5 +1,7 @@
 //! The telex method transformation
-use crate::processor::{add_tone, modify_letter, remove_tone, Transformation};
+use crate::processor::{
+    add_tone, modify_letter, remove_tone, reposition_tone_mark, Transformation,
+};
 use crate::util::{insert_ư_if_vowel_not_present, modify_letter_or_else, replace_last_char};
 use crate::validation::is_valid_word;
 use crate::TransformResult;
@@ -78,6 +80,15 @@ where
 
         if transformation == Transformation::LetterModificationRemoved {
             letter_modification_removed = true;
+        }
+
+        match transformation {
+            Transformation::LetterModificationAdded
+            | Transformation::LetterModificationRemoved
+            | Transformation::LetterModificationReplaced => {
+                reposition_tone_mark(&mut result);
+            }
+            _ => {}
         }
 
         let action_performed = match transformation {

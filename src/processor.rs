@@ -329,6 +329,14 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     return Transformation::Ignored;
 }
 
+/// Re-position existing tone mark to a valid position
+pub fn reposition_tone_mark(buffer: &mut String) {
+    if let Some(existing_tone_mark) = extract_tone(&buffer) {
+        *buffer = buffer.chars().map(remove_tone_mark).collect();
+        add_tone(buffer, &existing_tone_mark);
+    }
+}
+
 /// Remove the tone for the letter
 pub fn remove_tone(input: &mut String) -> Transformation {
     if input.chars().count() > MAX_WORD_LENGTH {

@@ -1,6 +1,6 @@
 //! The vni method transformation
 use crate::{
-    processor::{add_tone, modify_letter, remove_tone, Transformation},
+    processor::{add_tone, modify_letter, remove_tone, reposition_tone_mark, Transformation},
     validation::is_valid_word,
     TransformResult,
 };
@@ -50,6 +50,15 @@ where
 
         if transformation == Transformation::LetterModificationRemoved {
             letter_modification_removed = true;
+        }
+
+        match transformation {
+            Transformation::LetterModificationAdded
+            | Transformation::LetterModificationRemoved
+            | Transformation::LetterModificationReplaced => {
+                reposition_tone_mark(&mut result);
+            }
+            _ => {}
         }
 
         let action_performed = match transformation {
