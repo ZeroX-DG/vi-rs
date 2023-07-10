@@ -1,7 +1,8 @@
 //! The vni method transformation
 use crate::{
-    processor::{add_tone, modify_letter, remove_tone},
+    processor::{add_tone, modify_letter, remove_tone, Transformation},
     validation::is_valid_word,
+    TransformResult,
 };
 
 use super::processor::{LetterModification, ToneMark};
@@ -16,17 +17,20 @@ use super::processor::{LetterModification, ToneMark};
 /// transform_buffer("viet65".chars(), &mut result);
 /// assert_eq!(result, "việt".to_owned());
 /// ```
-pub fn transform_buffer<I>(buffer: I, output: &mut String)
+pub fn transform_buffer<I>(buffer: I, output: &mut String) -> TransformResult
 where
     I: IntoIterator<Item = char>,
 {
     let mut result = String::new();
+    let mut tone_mark_removed = false;
+    let mut letter_modification_removed = false;
+
     for ch in buffer {
         let ch = &ch;
 
         let fallback = format!("{}{}", result, ch);
 
-        let action_performed = match ch {
+        let transformation = match ch {
             '1' => add_tone(&mut result, &ToneMark::Acute),
             '2' => add_tone(&mut result, &ToneMark::Grave),
             '3' => add_tone(&mut result, &ToneMark::HookAbove),
@@ -37,7 +41,22 @@ where
             '8' => modify_letter(&mut result, &LetterModification::Breve),
             '9' => modify_letter(&mut result, &LetterModification::Dyet),
             '0' => remove_tone(&mut result),
-            _ => false,
+            _ => Transformation::Ignored,
+        };
+
+        if transformation == Transformation::ToneMarkRemoved {
+            tone_mark_removed = true;
+        }
+
+        if transformation == Transformation::LetterModificationRemoved {
+            letter_modification_removed = true;
+        }
+
+        let action_performed = match transformation {
+            Transformation::Ignored
+            | Transformation::LetterModificationRemoved
+            | Transformation::ToneMarkRemoved => false,
+            _ => true,
         };
 
         if !action_performed {
@@ -47,4 +66,9 @@ where
         }
     }
     output.push_str(&result);
+
+    TransformResult {
+        tone_mark_removed,
+        letter_modification_removed,
+    }
 }

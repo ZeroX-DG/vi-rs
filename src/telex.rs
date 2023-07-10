@@ -1,7 +1,8 @@
 //! The telex method transformation
-use crate::processor::{add_tone, modify_letter, remove_tone};
+use crate::processor::{add_tone, modify_letter, remove_tone, Transformation};
 use crate::util::{insert_ư_if_vowel_not_present, modify_letter_or_else, replace_last_char};
 use crate::validation::is_valid_word;
+use crate::TransformResult;
 
 use super::processor::{LetterModification, ToneMark};
 
@@ -25,12 +26,15 @@ fn contains_clean_char(input: &str, ch: char) -> bool {
 /// transform_buffer("vieetj".chars(), &mut result);
 /// assert_eq!(result, "việt".to_owned());
 /// ```
-pub fn transform_buffer<I>(buffer: I, output: &mut String)
+pub fn transform_buffer<I>(buffer: I, output: &mut String) -> TransformResult
 where
     I: IntoIterator<Item = char>,
 {
     let mut result = String::new();
     let mut ư_inserted_previously = false;
+    let mut tone_mark_removed = false;
+    let mut letter_modification_removed = false;
+
     for ch in buffer {
         let ch = &ch;
         let fallback = format!("{}{}", result, ch);
@@ -40,30 +44,47 @@ where
             ư_inserted_previously = false;
         }
 
-        let action_performed = match ch_lowercase {
+        let transformation = match ch_lowercase {
             's' => add_tone(&mut result, &ToneMark::Acute),
             'f' => add_tone(&mut result, &ToneMark::Grave),
             'r' => add_tone(&mut result, &ToneMark::HookAbove),
             'x' => add_tone(&mut result, &ToneMark::Tilde),
             'j' => add_tone(&mut result, &ToneMark::Underdot),
             'z' => remove_tone(&mut result),
-
             'a' | 'e' | 'o' if contains_clean_char(&result, ch_lowercase) => {
                 modify_letter(&mut result, &LetterModification::Circumflex)
             }
             'w' if ư_inserted_previously => {
                 replace_last_char(&mut result, *ch);
-                true
+                Transformation::LetterModificationAdded
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
                 modify_letter_or_else(result, &LetterModification::Breve, |result| {
-                    ư_inserted_previously =
-                        insert_ư_if_vowel_not_present(result, ch.is_uppercase());
-                    ư_inserted_previously
+                    let transformation = insert_ư_if_vowel_not_present(result, ch.is_uppercase());
+                    ư_inserted_previously = match transformation {
+                        Transformation::Ignored => false,
+                        _ => true,
+                    };
+                    transformation
                 })
             }),
             'd' => modify_letter(&mut result, &LetterModification::Dyet),
-            _ => false,
+            _ => Transformation::Ignored,
+        };
+
+        if transformation == Transformation::ToneMarkRemoved {
+            tone_mark_removed = true;
+        }
+
+        if transformation == Transformation::LetterModificationRemoved {
+            letter_modification_removed = true;
+        }
+
+        let action_performed = match transformation {
+            Transformation::Ignored
+            | Transformation::LetterModificationRemoved
+            | Transformation::ToneMarkRemoved => false,
+            _ => true,
         };
 
         if !action_performed {
@@ -73,4 +94,9 @@ where
         }
     }
     output.push_str(&result);
+
+    TransformResult {
+        tone_mark_removed,
+        letter_modification_removed,
+    }
 }

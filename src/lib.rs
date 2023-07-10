@@ -40,3 +40,13 @@ pub mod telex;
 pub mod util;
 pub mod validation;
 pub mod vni;
+
+/// A result of a buffer transformation.
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub struct TransformResult {
+    /// Indicates whether a tone mark has been removed during the transformation.
+    tone_mark_removed: bool,
+    /// Indicates whether a letter modification has been removed during the transformation.
+    letter_modification_removed: bool,
+}

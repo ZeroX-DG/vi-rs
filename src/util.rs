@@ -5,7 +5,7 @@ use crate::{
         HORN_MAP, TILDE_MAP, VOWELS,
     },
     parsing::parse_vowel,
-    processor::{add_tone_char, modify_letter, LetterModification, ToneMark},
+    processor::{add_tone_char, modify_letter, LetterModification, ToneMark, Transformation},
 };
 
 /// Strip off tone mark & modifications from an input char.
@@ -89,34 +89,33 @@ pub fn replace_last_char(input: &mut String, ch: char) {
 }
 
 /// Perform letter modification or fallback to a callback function.
-pub fn modify_letter_or_else<F: FnMut(&mut String) -> bool>(
+pub fn modify_letter_or_else<F: FnMut(&mut String) -> Transformation>(
     input: &mut String,
     modification: &LetterModification,
     mut callback: F,
-) -> bool {
-    let letter_modified = modify_letter(input, modification);
+) -> Transformation {
+    let transformation = modify_letter(input, modification);
 
-    if !letter_modified {
-        return callback(input);
+    match transformation {
+        Transformation::Ignored | Transformation::LetterModificationRemoved => callback(input),
+        _ => transformation,
     }
-
-    true
 }
 
 /// Append an ư character to the input string if it doesn't contain any vowel.
-pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) -> bool {
+pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) -> Transformation {
     let Ok((_, vowel)) = parse_vowel(input) else {
-        return false;
+        return Transformation::Ignored;
     };
 
     if !vowel.is_empty() {
-        return false;
+        return Transformation::Ignored;
     }
 
     let insert_ch = if !is_uppercase { 'ư' } else { 'Ư' };
     input.push(insert_ch);
 
-    true
+    Transformation::LetterModificationAdded
 }
 
 /// Check if a character is a vowel

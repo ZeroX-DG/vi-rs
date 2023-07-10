@@ -46,6 +46,27 @@ pub enum LetterModification {
     Dyet,
 }
 
+/// A resulted transformation
+#[derive(Debug, PartialEq, Clone)]
+pub enum Transformation {
+    /// A tone mark has been successfully added on a "tone-less" word.
+    ToneMarkAdded,
+    /// A new tone mark has been placed to replace an existing tone mark.
+    ToneMarkReplaced,
+    /// A tone mark has been removed from the word
+    ToneMarkRemoved,
+
+    /// A letter modification has been added on a word without removing any existing modification.
+    LetterModificationAdded,
+    /// A letter modification has been added to replace an existing modification.
+    LetterModificationReplaced,
+    /// A letter modification has been removed from the word
+    LetterModificationRemoved,
+
+    /// The transformation cannot be applied and has been ignored
+    Ignored,
+}
+
 /// Get nth character to place tone mark
 ///
 /// # Rules:
@@ -92,26 +113,29 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
 }
 
 /// Add tone mark to input.
-/// Return if the tone mark has been added or not.
-pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
+/// Return AddToneResult
+pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> Transformation {
     if buffer.is_empty() || buffer.chars().count() > MAX_WORD_LENGTH {
-        return false;
+        return Transformation::Ignored;
     }
+
+    let mut tone_mark_replaced = false;
 
     if let Some(existing_tone_mark) = extract_tone(&buffer) {
         *buffer = buffer.chars().map(remove_tone_mark).collect();
 
         if existing_tone_mark == *tone_mark {
-            return false;
+            return Transformation::ToneMarkRemoved;
         }
+        tone_mark_replaced = true;
     }
 
     let Ok((_, components)) = parse_word(buffer) else {
-        return false;
+        return Transformation::Ignored;
     };
 
     if components.vowel.is_empty() {
-        return false;
+        return Transformation::Ignored;
     }
 
     let tone_mark_position = get_tone_mark_placement(&components);
@@ -123,7 +147,12 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> bool {
     let replace_char = add_tone_char(tone_mark_ch, tone_mark);
 
     replace_nth_char(buffer, tone_mark_position, replace_char);
-    true
+
+    if tone_mark_replaced {
+        Transformation::ToneMarkReplaced
+    } else {
+        Transformation::ToneMarkAdded
+    }
 }
 
 /// Add tone mark to input character.
@@ -141,9 +170,9 @@ pub fn add_tone_char(ch: char, tone_mark: &ToneMark) -> char {
 
 /// change a letter to vietnamese modified letter.
 /// Return if the letter has been modified or not and what's the output.
-pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> bool {
+pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> Transformation {
     if buffer.is_empty() || buffer.chars().count() > MAX_WORD_LENGTH {
-        return false;
+        return Transformation::Ignored;
     }
 
     let map = match modification {
@@ -165,7 +194,7 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         !is_modificable_char_present && !buffer.contains(|c| map.contains_key(&clean_char(c)));
 
     if is_modification_impossible {
-        return false;
+        return Transformation::Ignored;
     }
 
     // Modification overflow is when a modification cannot be applied since it's already been applied.
@@ -173,17 +202,20 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         .iter()
         .any(|(_, existing_modification)| existing_modification == modification);
 
+    let mut modification_replaced_index = None;
+
     if !is_modificable_char_present {
         existing_modifications
             .iter()
             .filter(|(_, existing_modification)| existing_modification == modification)
             .for_each(|(index, _)| {
+                modification_replaced_index = Some(*index);
                 let ch = buffer.chars().nth(*index).map(remove_modification).unwrap();
                 replace_nth_char(buffer, *index, ch);
             });
 
         if is_modification_overflow {
-            return false;
+            return Transformation::LetterModificationRemoved;
         }
     }
 
@@ -199,7 +231,10 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     if let LetterModification::Dyet = modification {
         let ch = get_map_char(0);
         replace_nth_char(buffer, 0, ch);
-        return true;
+        if let Some(0) = modification_replaced_index {
+            return Transformation::LetterModificationReplaced;
+        }
+        return Transformation::LetterModificationAdded;
     }
 
     let cleaned_buffer: String = buffer
@@ -209,11 +244,11 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         .collect();
 
     let Ok((_, vowel)) = parse_vowel(&cleaned_buffer) else {
-        return false;
+        return Transformation::Ignored;
     };
 
     if vowel.is_empty() {
-        return false;
+        return Transformation::Ignored;
     }
 
     if let LetterModification::Circumflex = modification {
@@ -226,26 +261,37 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         .max()
         .flatten();
 
-        if let Some(index) = index {
-            let ch = get_map_char(index);
-            replace_nth_char(buffer, index, ch);
-            return true;
+        let Some(index) = index else {
+            return Transformation::Ignored;
+        };
+
+        let ch = get_map_char(index);
+        replace_nth_char(buffer, index, ch);
+        if let Some(replace_index) = modification_replaced_index {
+            if replace_index == index {
+                return Transformation::LetterModificationReplaced;
+            }
         }
-        return false;
+        return Transformation::LetterModificationAdded;
     }
 
     if let LetterModification::Breve = modification {
         let Some(index) = cleaned_buffer.find('a') else {
-            return false;
+            return Transformation::Ignored;
         };
         let ch = get_map_char(index);
         replace_nth_char(buffer, index, ch);
-        return true;
+        if let Some(replace_index) = modification_replaced_index {
+            if replace_index == index {
+                return Transformation::LetterModificationReplaced;
+            }
+        }
+        return Transformation::LetterModificationAdded;
     }
 
     if let LetterModification::Horn = modification {
         if vowel == "oa" {
-            return false;
+            return Transformation::Ignored;
         }
 
         if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
@@ -255,27 +301,38 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             let ch2 = get_map_char(index + 1);
             replace_nth_char(buffer, index, ch1);
             replace_nth_char(buffer, index + 1, ch2);
-            return true;
+
+            if let Some(replace_index) = modification_replaced_index {
+                if replace_index == index || replace_index == index + 1 {
+                    return Transformation::LetterModificationReplaced;
+                }
+            }
+            return Transformation::LetterModificationAdded;
         }
 
         if let Some(vowel_relative_index) = vowel.find('u').or(vowel.find('o')) {
             let Some(vowel_index) = cleaned_buffer.find(vowel) else {
-                return false;
+                return Transformation::Ignored;
             };
             let index = vowel_index + vowel_relative_index;
             let ch = get_map_char(index);
             replace_nth_char(buffer, index, ch);
-            return true;
+            if let Some(replace_index) = modification_replaced_index {
+                if replace_index == index {
+                    return Transformation::LetterModificationReplaced;
+                }
+            }
+            return Transformation::LetterModificationAdded;
         }
     }
 
-    return false;
+    return Transformation::Ignored;
 }
 
 /// Remove the tone for the letter
-pub fn remove_tone(input: &mut String) -> bool {
+pub fn remove_tone(input: &mut String) -> Transformation {
     if input.chars().count() > MAX_WORD_LENGTH {
-        return false;
+        return Transformation::Ignored;
     }
     let mut result = input.chars().map(remove_tone_mark).collect::<String>();
     if result == *input {
@@ -284,7 +341,11 @@ pub fn remove_tone(input: &mut String) -> bool {
     let tone_removed = result != *input;
     *input = result;
 
-    tone_removed
+    if tone_removed {
+        Transformation::ToneMarkRemoved
+    } else {
+        Transformation::Ignored
+    }
 }
 
 #[cfg(test)]
@@ -344,15 +405,15 @@ mod tests {
     #[test]
     fn modify_letter_existing_tone_mark() {
         let mut buffer = "ẹ".to_string();
-        let modified = modify_letter(&mut buffer, &LetterModification::Circumflex);
+        let transformation = modify_letter(&mut buffer, &LetterModification::Circumflex);
         let expected = "ệ";
-        assert!(modified);
+        assert!(transformation == Transformation::LetterModificationAdded);
         assert_eq!(buffer, expected);
 
         let mut buffer = "Ẹ".to_string();
-        let modified = modify_letter(&mut buffer, &LetterModification::Circumflex);
+        let transformation = modify_letter(&mut buffer, &LetterModification::Circumflex);
         let expected = "Ệ";
-        assert!(modified);
+        assert!(transformation == Transformation::LetterModificationAdded);
         assert_eq!(buffer, expected);
     }
 }
