@@ -16,7 +16,7 @@ use crate::util::{
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
 const MAX_WORD_LENGTH: usize = 7;
-const SPECIAL_VOWEL_PAIRS: Set<&'static str> = phf_set!("oa", "oe", "oo", "uy", "uo");
+const SPECIAL_VOWEL_PAIRS: Set<&'static str> = phf_set!("oa", "oe", "oo", "uy", "uo", "ie");
 
 /// Vietnamese's tone mark
 #[derive(Debug, PartialEq)]
