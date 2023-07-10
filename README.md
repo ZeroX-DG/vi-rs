@@ -25,7 +25,7 @@ Add `vi` to your dependencies in `Cargo.toml`.
 
 ```
 [dependencies]
-vi = "0.3.8"
+vi = "0.4.0"
 ```
 
 ## Examples
