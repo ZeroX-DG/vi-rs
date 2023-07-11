@@ -94,6 +94,11 @@ fn get_tone_mark_placement(components: &WordComponents) -> usize {
         return vowel_index + index;
     }
 
+    // If vowel contains "â" then tone mark goes there.
+    if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'â') {
+        return vowel_index + index;
+    }
+
     // Special vowels require the tone mark to be placed on the second character
     let raw_vowel: String = vowel.chars().map(clean_char).collect();
     if SPECIAL_VOWEL_PAIRS
