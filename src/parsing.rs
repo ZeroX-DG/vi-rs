@@ -14,7 +14,7 @@ pub struct WordComponents<'a> {
 }
 
 fn initial_consonant(input: &str) -> IResult<&str, &str> {
-    if input == "gi" || input == "gin" {
+    if input.eq_ignore_ascii_case("gi") || input.eq_ignore_ascii_case("gin") {
         return tag_no_case("g")(input);
     }
     alt((tag_no_case("gi"), tag_no_case("qu"), take_till(is_vowel)))(input)
