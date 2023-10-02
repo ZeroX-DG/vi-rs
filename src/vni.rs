@@ -66,9 +66,9 @@ where
         }
 
         let action_performed = match transformation {
-            Transformation::Ignored
-            | Transformation::LetterModificationRemoved
-            | Transformation::ToneMarkRemoved => false,
+            Transformation::Ignored | Transformation::LetterModificationRemoved => false,
+            // If tone mark was intentionally removed with 0 character then it's count as an action.
+            Transformation::ToneMarkRemoved => *ch == '0',
             _ => true,
         };
 
