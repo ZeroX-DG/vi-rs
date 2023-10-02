@@ -2,6 +2,8 @@
 //!
 //! The idea is both the telex & vni modules will use the transformation algorithms
 //! from this module to perform text transformation according to their method rules.
+use std::collections::HashSet;
+
 use phf::{phf_set, Set};
 
 use super::maps::{
@@ -9,7 +11,7 @@ use super::maps::{
     TILDE_MAP,
 };
 use super::util::{clean_char, remove_tone_mark};
-use crate::parsing::{parse_vowel, parse_word, WordComponents};
+use crate::parsing::{parse_word, WordComponents};
 use crate::util::{
     extract_letter_modifications, extract_tone, remove_modification, replace_nth_char,
 };
@@ -34,7 +36,7 @@ pub enum ToneMark {
 }
 
 /// A modification to be apply to a letter
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum LetterModification {
     /// The chevron shaped (ˆ) part on top of a character.
     Circumflex,
@@ -248,9 +250,13 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         .map(|c| c.to_ascii_lowercase())
         .collect();
 
-    let Ok((_, vowel)) = parse_vowel(&cleaned_buffer) else {
+    let Ok((_, word)) = parse_word(&cleaned_buffer) else {
         return Transformation::Ignored;
     };
+
+    let vowel = word.vowel;
+    let initial_consonant = word.initial_consonant;
+    let final_consonant = word.final_consonant;
 
     if vowel.is_empty() {
         return Transformation::Ignored;
@@ -299,6 +305,13 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
             return Transformation::Ignored;
         }
 
+        if vowel == "uo" && !initial_consonant.is_empty() && final_consonant.is_empty() {
+            let index = cleaned_buffer.find(vowel).unwrap();
+            let ch = get_map_char(index + 1);
+            replace_nth_char(buffer, index + 1, ch);
+            return Transformation::LetterModificationAdded;
+        }
+
         if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
             let index = cleaned_buffer.find(vowel).unwrap();
 
@@ -339,6 +352,28 @@ pub fn reposition_tone_mark(buffer: &mut String) {
     if let Some(existing_tone_mark) = extract_tone(&buffer) {
         *buffer = buffer.chars().map(remove_tone_mark).collect();
         add_tone(buffer, &existing_tone_mark);
+    }
+}
+
+/// Re-position existing letter modification to a valid position
+pub fn reposition_letter_modification(buffer: &mut String) {
+    let Ok((_, word)) = parse_word(buffer) else {
+        return;
+    };
+
+    if word.initial_consonant.is_empty() && word.final_consonant.is_empty() {
+        return;
+    }
+
+    let existing_modifications = extract_letter_modifications(buffer)
+        .into_iter()
+        .map(|(_, modification)| modification)
+        .collect::<HashSet<LetterModification>>();
+
+    *buffer = buffer.chars().map(remove_modification).collect();
+
+    for modification in existing_modifications {
+        modify_letter(buffer, &modification);
     }
 }
 

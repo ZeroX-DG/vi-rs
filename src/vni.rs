@@ -1,6 +1,10 @@
 //! The vni method transformation
 use crate::{
-    processor::{add_tone, modify_letter, remove_tone, reposition_tone_mark, Transformation},
+    processor::{
+        add_tone, modify_letter, remove_tone, reposition_letter_modification, reposition_tone_mark,
+        Transformation,
+    },
+    util::is_vowel,
     validation::is_valid_word,
     TransformResult,
 };
@@ -73,6 +77,11 @@ where
         } else if !is_valid_word(&result) {
             result = fallback;
         }
+
+        if is_vowel(*ch) {
+            reposition_tone_mark(&mut result);
+        }
+        reposition_letter_modification(&mut result);
     }
     output.push_str(&result);
 
