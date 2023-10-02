@@ -66,10 +66,7 @@ where
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
                 modify_letter_or_else(result, &LetterModification::Breve, |result| {
                     let transformation = insert_ư_if_vowel_not_present(result, ch.is_uppercase());
-                    ư_inserted_previously = match transformation {
-                        Transformation::Ignored => false,
-                        _ => true,
-                    };
+                    ư_inserted_previously = transformation != Transformation::Ignored;
                     transformation
                 })
             }),

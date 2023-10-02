@@ -108,7 +108,9 @@ pub fn insert_ư_if_vowel_not_present(input: &mut String, is_uppercase: bool) ->
         return Transformation::Ignored;
     };
 
-    if !vowel.is_empty() {
+    // gi is a special case where the "i" can potentially be a vowel but if followed by ư then it's not.
+    // so we can safely insert ư after gi
+    if !vowel.is_empty() && input != "gi" {
         return Transformation::Ignored;
     }
 
