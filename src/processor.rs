@@ -263,18 +263,21 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     }
 
     if let LetterModification::Circumflex = modification {
-        let index = vec![
+        let indexes = vec![
             cleaned_buffer.find('a'),
             cleaned_buffer.find('o'),
             cleaned_buffer.find('e'),
         ]
-        .into_iter()
-        .max()
-        .flatten();
+        .iter()
+        .filter_map(|index| *index)
+        .collect::<Vec<usize>>();
 
-        let Some(index) = index else {
+        // There has to be exactly 1 character that is valid for circumflex. Never 2 or more.
+        if indexes.len() != 1 {
             return Transformation::Ignored;
-        };
+        }
+
+        let index = *indexes.first().unwrap();
 
         let ch = get_map_char(index);
         replace_nth_char(buffer, index, ch);
