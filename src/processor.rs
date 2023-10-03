@@ -364,7 +364,25 @@ pub fn reposition_letter_modification(buffer: &mut String) {
         return;
     };
 
-    if word.initial_consonant.is_empty() && word.final_consonant.is_empty() {
+    let cleaned_vowel: String = word
+        .vowel
+        .chars()
+        .map(clean_char)
+        .map(|c| c.to_ascii_lowercase())
+        .collect();
+
+    if word.initial_consonant.is_empty()
+        && word.final_consonant.is_empty()
+        && cleaned_vowel != "uoi"
+    {
+        return;
+    }
+
+    // Special case for ưo where the reposition can only be decided when the final consonant is present
+    if word.vowel.eq_ignore_ascii_case("ưo")
+        && !word.initial_consonant.is_empty()
+        && word.final_consonant.is_empty()
+    {
         return;
     }
 
