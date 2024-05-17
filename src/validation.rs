@@ -32,13 +32,15 @@ pub fn is_valid_word(input: &str) -> bool {
         return false;
     };
 
-    if components.vowel.is_empty() {
-        return true;
-    }
-
-    if !are_valid_consonants(components.initial_consonant, components.final_consonant) {
+    if !components.initial_consonant.is_empty()
+        && !is_valid_initial_consonant(&components.initial_consonant)
+    {
         return false;
     }
+
+    if components.vowel.is_empty() {
+        return true;
+    } 
 
     let cleaned_vowel: String = components
         .vowel
@@ -46,6 +48,12 @@ pub fn is_valid_word(input: &str) -> bool {
         .map(|c| clean_char(c).to_ascii_lowercase())
         .collect();
     if !VOWELS.contains(&cleaned_vowel.as_str()) {
+        return false;
+    }
+
+    if !components.final_consonant.is_empty()
+        && !is_valid_final_consonant(&components.final_consonant)
+    {
         return false;
     }
 
