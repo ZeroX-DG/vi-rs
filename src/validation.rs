@@ -60,18 +60,6 @@ pub fn is_valid_word(input: &str) -> bool {
     true
 }
 
-pub fn are_valid_consonants(initial_consonant: &str, final_consonant: &str) -> bool {
-    if !initial_consonant.is_empty() && !is_valid_initial_consonant(&initial_consonant) {
-        return false;
-    }
-
-    if !final_consonant.is_empty() && !is_valid_final_consonant(&final_consonant) {
-        return false;
-    }
-
-    true
-}
-
 pub fn is_valid_initial_consonant(consonant: &str) -> bool {
     let consonant = consonant.to_lowercase();
     let consonant_length = consonant.chars().count();
