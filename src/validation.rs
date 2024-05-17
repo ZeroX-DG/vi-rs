@@ -40,7 +40,7 @@ pub fn is_valid_word(input: &str) -> bool {
 
     if components.vowel.is_empty() {
         return true;
-    } 
+    }
 
     let cleaned_vowel: String = components
         .vowel
