@@ -133,16 +133,16 @@ pub fn extract_letter_modifications(input: &str) -> Vec<(usize, LetterModificati
         .chars()
         .enumerate()
         .filter_map(|(index, ch)| {
-            if HORN_MAP.values().find(|c| **c == ch).is_some() {
+            if HORN_MAP.values().any(|c| *c == ch) {
                 return Some((index, LetterModification::Horn));
             }
-            if BREVE_MAP.values().find(|c| **c == ch).is_some() {
+            if BREVE_MAP.values().any(|c| *c == ch) {
                 return Some((index, LetterModification::Breve));
             }
-            if CIRCUMFLEX_MAP.values().find(|c| **c == ch).is_some() {
+            if CIRCUMFLEX_MAP.values().any(|c| *c == ch) {
                 return Some((index, LetterModification::Circumflex));
             }
-            if DYET_MAP.values().find(|c| **c == ch).is_some() {
+            if DYET_MAP.values().any(|c| *c == ch) {
                 return Some((index, LetterModification::Dyet));
             }
             None
@@ -163,19 +163,19 @@ pub fn extract_tone(input: &str) -> Option<ToneMark> {
 
 /// Extract a tone mark from an input char.
 pub fn extract_tone_char(ch: char) -> Option<ToneMark> {
-    if ACCUTE_MAP.values().find(|c| **c == ch).is_some() {
+    if ACCUTE_MAP.values().any(|c| *c == ch) {
         return Some(ToneMark::Acute);
     }
-    if GRAVE_MAP.values().find(|c| **c == ch).is_some() {
+    if GRAVE_MAP.values().any(|c| *c == ch) {
         return Some(ToneMark::Grave);
     }
-    if HOOK_ABOVE_MAP.values().find(|c| **c == ch).is_some() {
+    if HOOK_ABOVE_MAP.values().any(|c| *c == ch) {
         return Some(ToneMark::HookAbove);
     }
-    if TILDE_MAP.values().find(|c| **c == ch).is_some() {
+    if TILDE_MAP.values().any(|c| *c == ch) {
         return Some(ToneMark::Tilde);
     }
-    if DOT_MAP.values().find(|c| **c == ch).is_some() {
+    if DOT_MAP.values().any(|c| *c == ch) {
         return Some(ToneMark::Underdot);
     }
     None

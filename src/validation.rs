@@ -33,7 +33,7 @@ pub fn is_valid_word(input: &str) -> bool {
     };
 
     if !components.initial_consonant.is_empty()
-        && !is_valid_initial_consonant(&components.initial_consonant)
+        && !is_valid_initial_consonant(components.initial_consonant)
     {
         return false;
     }
@@ -47,12 +47,12 @@ pub fn is_valid_word(input: &str) -> bool {
         .chars()
         .map(|c| clean_char(c).to_ascii_lowercase())
         .collect();
-    if !VOWELS.contains(&cleaned_vowel.as_str()) {
+    if !VOWELS.contains(cleaned_vowel.as_str()) {
         return false;
     }
 
     if !components.final_consonant.is_empty()
-        && !is_valid_final_consonant(&components.final_consonant)
+        && !is_valid_final_consonant(components.final_consonant)
     {
         return false;
     }
@@ -70,7 +70,7 @@ pub fn is_valid_initial_consonant(consonant: &str) -> bool {
     }
 
     if consonant_length == 2 {
-        return DIGRAPHS_INITIAL_CONSONANTS.contains(&consonant.as_str());
+        return DIGRAPHS_INITIAL_CONSONANTS.contains(consonant.as_str());
     }
 
     if consonant_length == 3 {
@@ -82,5 +82,5 @@ pub fn is_valid_initial_consonant(consonant: &str) -> bool {
 
 pub fn is_valid_final_consonant(consonant: &str) -> bool {
     let consonant = consonant.to_lowercase();
-    FINAL_CONSONANTS.contains(&consonant.as_str())
+    FINAL_CONSONANTS.contains(consonant.as_str())
 }

@@ -14,7 +14,7 @@ macro_rules! gen_test {
             let contents = include_str!($path);
             let mut settings = insta::Settings::clone_current();
             settings.set_snapshot_path("../testdata/output/");
-            settings.set_info(&crate::shared::Metadata { input_file: $path });
+            settings.set_info(&$crate::shared::Metadata { input_file: $path });
             settings.bind(|| {
                 insta::assert_snapshot!($test_method(contents));
             });
@@ -28,14 +28,14 @@ where
 {
     let mut result = String::new();
     for line in input.lines() {
-        let words = line.trim().split_whitespace();
+        let words = line.split_whitespace();
 
         let mut transformed_line = String::new();
         for word in words {
             let transformed_words = transformer(word);
             write!(&mut transformed_line, "{} ", transformed_words).unwrap();
         }
-        write!(&mut result, "{}\n", transformed_line.trim()).unwrap();
+        writeln!(&mut result, "{}", transformed_line.trim()).unwrap();
     }
     result
 }
