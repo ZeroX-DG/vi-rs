@@ -100,7 +100,7 @@ where
 
         if !action_performed {
             result.push(*ch);
-        } else if !is_valid_word(&result) {
+        } else if !ư_inserted_previously && !is_valid_word(&result) {
             result = fallback;
         }
 
