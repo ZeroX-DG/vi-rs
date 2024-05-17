@@ -69,6 +69,25 @@ pub enum Transformation {
     Ignored,
 }
 
+macro_rules! replace_modification_or_ignore {
+    ($buffer:ident, $modification:expr, $map:ident, $index:expr) => {
+        let ch = $buffer
+            .chars()
+            .nth($index)
+            .map(remove_modification)
+            .unwrap();
+        let Some(replace_ch) = $map.get(&ch).map(|ch| *ch) else {
+            log::warn!(
+                "Couldn't retrieve replace char for {} for {:?}",
+                ch,
+                $modification
+            );
+            return Transformation::Ignored;
+        };
+        replace_nth_char($buffer, $index, replace_ch);
+    };
+}
+
 /// Get nth character to place tone mark
 ///
 /// # Rules:
@@ -226,18 +245,10 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         }
     }
 
-    let get_map_char = |index: usize| -> char {
-        let ch = buffer.chars().nth(index).map(remove_modification).unwrap();
-        map.get(&ch).map(|ch| *ch).expect(&format!(
-            "Couldn't retrieve replace char for {} for {:?}",
-            ch, modification
-        ))
-    };
-
-    // Only d will get the Dyet modification and d is always in front
+    // Only d will get the Dyet modification and d is always at the start
+    // If there's no d, we'll ignore this transformation.
     if let LetterModification::Dyet = modification {
-        let ch = get_map_char(0);
-        replace_nth_char(buffer, 0, ch);
+        replace_modification_or_ignore!(buffer, modification, map, 0);
         if let Some(0) = modification_replaced_index {
             return Transformation::LetterModificationReplaced;
         }
@@ -279,8 +290,7 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
         let index = *indexes.first().unwrap();
 
-        let ch = get_map_char(index);
-        replace_nth_char(buffer, index, ch);
+        replace_modification_or_ignore!(buffer, modification, map, index);
         if let Some(replace_index) = modification_replaced_index {
             if replace_index == index {
                 return Transformation::LetterModificationReplaced;
@@ -293,8 +303,8 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         let Some(index) = cleaned_buffer.find('a') else {
             return Transformation::Ignored;
         };
-        let ch = get_map_char(index);
-        replace_nth_char(buffer, index, ch);
+
+        replace_modification_or_ignore!(buffer, modification, map, index);
         if let Some(replace_index) = modification_replaced_index {
             if replace_index == index {
                 return Transformation::LetterModificationReplaced;
@@ -310,18 +320,16 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
 
         if vowel == "uo" && !initial_consonant.is_empty() && final_consonant.is_empty() {
             let index = cleaned_buffer.find(vowel).unwrap();
-            let ch = get_map_char(index + 1);
-            replace_nth_char(buffer, index + 1, ch);
+
+            replace_modification_or_ignore!(buffer, modification, map, index + 1);
             return Transformation::LetterModificationAdded;
         }
 
         if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
             let index = cleaned_buffer.find(vowel).unwrap();
 
-            let ch1 = get_map_char(index);
-            let ch2 = get_map_char(index + 1);
-            replace_nth_char(buffer, index, ch1);
-            replace_nth_char(buffer, index + 1, ch2);
+            replace_modification_or_ignore!(buffer, modification, map, index);
+            replace_modification_or_ignore!(buffer, modification, map, index + 1);
 
             if let Some(replace_index) = modification_replaced_index {
                 if replace_index == index || replace_index == index + 1 {
@@ -336,8 +344,9 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
                 return Transformation::Ignored;
             };
             let index = vowel_index + vowel_relative_index;
-            let ch = get_map_char(index);
-            replace_nth_char(buffer, index, ch);
+
+            replace_modification_or_ignore!(buffer, modification, map, index);
+
             if let Some(replace_index) = modification_replaced_index {
                 if replace_index == index {
                     return Transformation::LetterModificationReplaced;
