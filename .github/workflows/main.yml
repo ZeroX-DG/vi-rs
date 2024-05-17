@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   lint:
-    name: Formatting Checks
+    name: Lints Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -17,6 +17,12 @@ jobs:
       - name: Check Formatting
         run: |
           cargo fmt --all -- --check
+
+      - name: Fetch before build
+        run: cargo fetch
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -Dwarnings
 
   test:
     name: Run Tests
