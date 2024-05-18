@@ -1,10 +1,7 @@
 use crate::{
-    editing::{
-        add_modification_char, add_tone_char, get_modification_positions, get_tone_mark_placement,
-        replace_nth_char,
-    },
+    editing::{add_modification_char, add_tone_char, get_tone_mark_placement, replace_nth_char},
     parsing::{extract_letter_modifications, extract_tone, parse_word},
-    processor::{LetterModification, ToneMark},
+    processor::{modify_letter, LetterModification, ToneMark},
     util::clean_char,
 };
 
@@ -13,7 +10,7 @@ pub struct Word {
     pub vowel: String,
     pub final_consonant: String,
     pub tone_mark: Option<ToneMark>,
-    pub letter_modifications: Vec<LetterModification>,
+    pub letter_modifications: Vec<(usize, LetterModification)>,
 }
 
 impl Word {
@@ -40,9 +37,26 @@ impl Word {
     }
 
     pub fn push(&mut self, ch: char) {
-        let mut raw = self.to_string();
-        raw.push(ch);
-        self.set(raw);
+        let clean_word = format!(
+            "{}{}{}{}",
+            self.initial_consonant, self.vowel, self.final_consonant, ch
+        );
+        let (_, word) = parse_word(&clean_word).unwrap();
+        self.initial_consonant = word
+            .initial_consonant
+            .chars()
+            .map(|c| clean_char(c))
+            .collect();
+        self.vowel = word.vowel.chars().map(|c| clean_char(c)).collect();
+        self.final_consonant = word.final_consonant.to_string();
+
+        // Recompute modification location
+        let mut modifications = std::mem::take(&mut self.letter_modifications);
+        modifications.dedup_by_key(|(_, modifcation)| modifcation.clone());
+
+        for (_, modification) in modifications {
+            modify_letter(self, &modification);
+        }
     }
 
     pub fn set(&mut self, raw: String) {
@@ -66,26 +80,30 @@ impl Word {
         self.set(raw);
     }
 
+    pub fn contains_modification(&self, modification: &LetterModification) -> bool {
+        self.letter_modifications
+            .iter()
+            .any(|(_, m)| m == modification)
+    }
+
     pub fn to_string(&self) -> String {
         let mut result = format!(
             "{}{}{}",
             self.initial_consonant, self.vowel, self.final_consonant
         );
+
+        for (position, modification) in &self.letter_modifications {
+            let ch = result.chars().nth(*position).unwrap();
+            let replace_char = add_modification_char(ch, &modification);
+
+            replace_nth_char(&mut result, *position, replace_char);
+        }
+
         if let Some(tone_mark) = &self.tone_mark {
-            let tone_mark_position = get_tone_mark_placement(&self);
+            let tone_mark_position = get_tone_mark_placement(&result);
             let ch = result.chars().nth(tone_mark_position).unwrap();
             let replace_char = add_tone_char(ch, tone_mark);
             replace_nth_char(&mut result, tone_mark_position, replace_char);
-        }
-
-        for modification in &self.letter_modifications {
-            let modification_positions = get_modification_positions(&self, modification);
-
-            for position in modification_positions {
-                let ch = result.chars().nth(position).unwrap();
-                let replace_char = add_modification_char(ch, modification);
-                replace_nth_char(&mut result, position, replace_char);
-            }
         }
         result
     }

@@ -3,6 +3,7 @@ use crate::{
         ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
         HORN_MAP, TILDE_MAP,
     },
+    parsing::parse_word,
     processor::{LetterModification, ToneMark},
     word::Word,
 };
@@ -17,9 +18,10 @@ const SPECIAL_VOWEL_PAIRS: [&'static str; 6] = ["oa", "oe", "oo", "uy", "uo", "i
 /// second character
 /// 3. If a vowel end with 2 put it on the first one
 /// 4. Else, but tone mark on second vowel character
-pub fn get_tone_mark_placement(word: &Word) -> usize {
+pub fn get_tone_mark_placement(raw_word: &str) -> usize {
+    let (_, word) = parse_word(raw_word).unwrap();
     let vowel = &word.vowel;
-    let vowel_len = vowel.len();
+    let vowel_len = vowel.chars().count();
     let vowel_index = word.initial_consonant.chars().count();
     // If there's only one vowel, then it's guaranteed that the tone mark will go there
     if vowel_len == 1 {
@@ -115,15 +117,13 @@ pub fn get_modification_positions(word: &Word, modification: &LetterModification
 
     let vowel_index = word.initial_consonant.chars().count();
 
+    let vowel = word.vowel.to_lowercase();
+
     if let LetterModification::Circumflex = modification {
-        let indexes = [
-            word.vowel.find('a'),
-            word.vowel.find('o'),
-            word.vowel.find('e'),
-        ]
-        .iter()
-        .filter_map(|index| *index)
-        .collect::<Vec<usize>>();
+        let indexes = [vowel.find('a'), vowel.find('o'), vowel.find('e')]
+            .iter()
+            .filter_map(|index| *index)
+            .collect::<Vec<usize>>();
 
         // There has to be exactly 1 character that is valid for circumflex. Never 2 or more.
         if indexes.len() != 1 {
@@ -135,29 +135,26 @@ pub fn get_modification_positions(word: &Word, modification: &LetterModification
     }
 
     if let LetterModification::Breve = modification {
-        let Some(index) = word.vowel.find('a') else {
+        let Some(index) = vowel.find('a') else {
             return Vec::new();
         };
         return vec![vowel_index + index];
     }
 
     if let LetterModification::Horn = modification {
-        if word.vowel == "oa" {
+        if vowel == "oa" {
             return Vec::new();
         }
 
-        if word.vowel == "uo"
-            && !word.initial_consonant.is_empty()
-            && word.final_consonant.is_empty()
-        {
+        if vowel == "uo" && !word.initial_consonant.is_empty() && word.final_consonant.is_empty() {
             return vec![vowel_index + 1];
         }
 
-        if word.vowel == "uo" || word.vowel == "uoi" || word.vowel == "uou" {
+        if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
             return vec![vowel_index, vowel_index + 1];
         }
 
-        if let Some(index) = word.vowel.find('u').or(word.vowel.find('o')) {
+        if let Some(index) = vowel.find('u').or(vowel.find('o')) {
             return vec![vowel_index + index];
         }
     }
@@ -170,50 +167,43 @@ mod tests {
 
     #[test]
     fn get_tone_mark_placement_normal() {
-        let word = Word::from("choe");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("choe");
         let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_special() {
-        let word = Word::from("chieu");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("chieu");
         let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_mid_not_end() {
-        let word = Word::from("hoang");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("hoang");
         let expected = 2;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_u_and_o() {
-        let word = Word::from("ngươi");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("ngươi");
         let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_uppercase() {
-        let word = Word::from("chÊt");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("chÊt");
         let expected = 2;
         assert_eq!(result, expected);
 
-        let word = Word::from("chiÊt");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("chiÊt");
         let expected = 3;
         assert_eq!(result, expected);
 
-        let word = Word::from("cAu");
-        let result = get_tone_mark_placement(&word);
+        let result = get_tone_mark_placement("cAu");
         let expected = 1;
         assert_eq!(result, expected);
     }

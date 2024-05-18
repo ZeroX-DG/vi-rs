@@ -53,7 +53,10 @@ where
                         Transformation::Ignored | Transformation::LetterModificationRemoved => {
                             let transformation =
                                 if word.vowel.is_empty() || word.to_string() == "gi" {
-                                    word.push('ư');
+                                    word.push('u');
+                                    let last_index = (word.len() - 1) as usize;
+                                    word.letter_modifications
+                                        .push((last_index, LetterModification::Horn));
                                     Transformation::LetterModificationAdded
                                 } else {
                                     Transformation::Ignored

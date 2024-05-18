@@ -1,5 +1,12 @@
 //! Parser for parsing an input string as a Vietnamese word
-use crate::{maps::{ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP, TILDE_MAP}, processor::{LetterModification, ToneMark}, util::is_vowel};
+use crate::{
+    maps::{
+        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
+        HORN_MAP, TILDE_MAP,
+    },
+    processor::{LetterModification, ToneMark},
+    util::is_vowel,
+};
 use nom::{
     branch::alt,
     bytes::complete::{tag_no_case, take_till, take_while},
@@ -44,22 +51,22 @@ pub fn parse_word(input: &str) -> IResult<&str, WordComponents<'_>> {
 /// Extract letter modifications from an input string.
 ///
 /// Note: In some cases, there might be more than 1 modification. E.g đươc has 3 modifications.
-pub fn extract_letter_modifications(input: &str) -> Vec<LetterModification> {
+pub fn extract_letter_modifications(input: &str) -> Vec<(usize, LetterModification)> {
     input
         .chars()
         .enumerate()
-        .filter_map(|(_, ch)| {
+        .filter_map(|(index, ch)| {
             if HORN_MAP.values().any(|c| *c == ch) {
-                return Some(LetterModification::Horn);
+                return Some((index, LetterModification::Horn));
             }
             if BREVE_MAP.values().any(|c| *c == ch) {
-                return Some(LetterModification::Breve);
+                return Some((index, LetterModification::Breve));
             }
             if CIRCUMFLEX_MAP.values().any(|c| *c == ch) {
-                return Some(LetterModification::Circumflex);
+                return Some((index, LetterModification::Circumflex));
             }
             if DYET_MAP.values().any(|c| *c == ch) {
-                return Some(LetterModification::Dyet);
+                return Some((index, LetterModification::Dyet));
             }
             None
         })

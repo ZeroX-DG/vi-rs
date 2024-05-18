@@ -3,7 +3,7 @@
 //! The idea is both the telex & vni modules will use the transformation algorithms
 //! from this module to perform text transformation according to their method rules.
 use super::maps::{BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP};
-use crate::word::Word;
+use crate::{editing::get_modification_positions, word::Word};
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
 const MAX_WORD_LENGTH: u8 = 7;
@@ -89,12 +89,44 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
         return Transformation::Ignored;
     }
 
-    // Remove the modification if it's already exist
-    if word.letter_modifications.contains(modification) {
+    // Remove the modification if it's already exist except for horn when two character with the same horn modification can exist
+    if word.contains_modification(modification) {
+        // Special case where you don't remove the modification but add another one on top if possible
+        if let LetterModification::Horn = modification {
+            let current_modifications: Vec<&(usize, LetterModification)> = word
+                .letter_modifications
+                .iter()
+                .filter(|(_, modification)| *modification == LetterModification::Horn)
+                .collect();
+            let horn_modification_count = current_modifications.len();
+
+            let vowel = word.vowel.to_lowercase();
+            let vowel_index = word.initial_consonant.chars().count();
+            let modification_possibilities: Vec<usize> = [vowel.find('u'), vowel.find('o')]
+                .iter()
+                .filter_map(|index| index.map(|index| vowel_index + index))
+                .collect();
+
+            let max_horn_modification_possible = modification_possibilities.len();
+
+            if horn_modification_count < max_horn_modification_possible {
+                let other_modification_position = modification_possibilities
+                    .iter()
+                    .find(|index| {
+                        current_modifications
+                            .iter()
+                            .any(|(current_index, _)| *current_index != **index)
+                    })
+                    .unwrap();
+                word.letter_modifications
+                    .push((*other_modification_position, LetterModification::Horn));
+                return Transformation::LetterModificationAdded;
+            }
+        }
         word.letter_modifications.remove(
             word.letter_modifications
                 .iter()
-                .position(|m| m == modification)
+                .position(|(_, m)| m == modification)
                 .unwrap(),
         );
         return Transformation::LetterModificationRemoved;
@@ -104,10 +136,16 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
     if *modification == LetterModification::Dyet {
         if let Some(first_char) = word.initial_consonant.chars().nth(0) {
             if DYET_MAP.contains_key(&first_char) {
-                word.letter_modifications.push(LetterModification::Dyet);
+                word.letter_modifications
+                    .push((0, LetterModification::Dyet));
                 return Transformation::LetterModificationAdded;
             }
         }
+        return Transformation::Ignored;
+    }
+
+    // Ignore special case
+    if *modification == LetterModification::Horn && word.vowel.to_lowercase() == "oa" {
         return Transformation::Ignored;
     }
 
@@ -120,13 +158,25 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
 
     // Add the modification if the word have no modification or only have dyet modification
     if word.letter_modifications.is_empty()
-        || word.letter_modifications == [LetterModification::Dyet]
+        || (word.letter_modifications.len() == 1
+            && word.contains_modification(&LetterModification::Dyet))
     {
         // No letter can be transformed
         if !word.vowel.contains(|c| map.contains_key(&c)) {
             return Transformation::Ignored;
         }
-        word.letter_modifications.push(modification.clone());
+
+        let positions = get_modification_positions(word, modification);
+
+        if positions.is_empty() {
+            return Transformation::Ignored;
+        }
+
+        for position in positions {
+            word.letter_modifications
+                .push((position, modification.clone()));
+        }
+
         return Transformation::LetterModificationAdded;
     }
 
@@ -136,9 +186,13 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
     }
 
     // Otherwise replace the modification
+    let positions = get_modification_positions(word, modification);
     word.letter_modifications
-        .retain(|modification| *modification == LetterModification::Dyet);
-    word.letter_modifications.push(modification.clone());
+        .retain(|(_, modification)| *modification == LetterModification::Dyet);
+    for position in positions {
+        word.letter_modifications
+            .push((position, modification.clone()));
+    }
     Transformation::LetterModificationReplaced
 }
 
