@@ -60,7 +60,7 @@ where
             }
             'w' if ư_inserted_previously => {
                 replace_last_char(&mut result, ch);
-                Transformation::LetterModificationAdded
+                Transformation::LetterModificationRemoved
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
                 modify_letter_or_else(result, &LetterModification::Breve, |result| {
