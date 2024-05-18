@@ -147,7 +147,7 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> Transformation {
 
     let mut tone_mark_replaced = false;
 
-    if let Some(existing_tone_mark) = extract_tone(&buffer) {
+    if let Some(existing_tone_mark) = extract_tone(buffer) {
         *buffer = buffer.chars().map(remove_tone_mark).collect();
 
         if existing_tone_mark == *tone_mark {
@@ -166,10 +166,12 @@ pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> Transformation {
 
     let tone_mark_position = get_tone_mark_placement(&components);
 
-    let tone_mark_ch = buffer.chars().nth(tone_mark_position).expect(&format!(
-        "Unable to retrieve character at index {} from {}",
-        tone_mark_position, buffer
-    ));
+    let tone_mark_ch = buffer.chars().nth(tone_mark_position).unwrap_or_else(|| {
+        panic!(
+            "Unable to retrieve character at index {} from {}",
+            tone_mark_position, buffer
+        )
+    });
     let replace_char = add_tone_char(tone_mark_ch, tone_mark);
 
     replace_nth_char(buffer, tone_mark_position, replace_char);
@@ -274,7 +276,7 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
     }
 
     if let LetterModification::Circumflex = modification {
-        let indexes = vec![
+        let indexes = [
             cleaned_buffer.find('a'),
             cleaned_buffer.find('o'),
             cleaned_buffer.find('e'),
@@ -356,12 +358,12 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         }
     }
 
-    return Transformation::Ignored;
+    Transformation::Ignored
 }
 
 /// Re-position existing tone mark to a valid position
 pub fn reposition_tone_mark(buffer: &mut String) {
-    if let Some(existing_tone_mark) = extract_tone(&buffer) {
+    if let Some(existing_tone_mark) = extract_tone(buffer) {
         *buffer = buffer.chars().map(remove_tone_mark).collect();
         add_tone(buffer, &existing_tone_mark);
     }
