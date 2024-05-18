@@ -11,7 +11,7 @@ use crate::{
 /// Strip off tone mark & modifications from an input char.
 pub fn clean_char(ch: char) -> char {
     let is_uppercase = ch.is_uppercase();
-    let accents = vec![
+    static ACCENTS: [&str; 7] = [
         "aàảãáạăằẳẵắặâầẩẫấậ",
         "dđ",
         "eèẻẽéẹêềểễếệ",
@@ -22,7 +22,7 @@ pub fn clean_char(ch: char) -> char {
     ];
     let ch_lowercase = ch.to_lowercase().to_string();
     let mut result = ch;
-    for accent in accents {
+    for accent in ACCENTS {
         if accent.contains(&ch_lowercase) {
             result = accent.chars().next().unwrap();
         }
