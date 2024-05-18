@@ -38,6 +38,8 @@ pub mod telex;
 pub mod util;
 pub mod validation;
 pub mod vni;
+pub mod word;
+pub mod editing;
 
 /// A result of a buffer transformation.
 #[derive(Debug, Clone)]

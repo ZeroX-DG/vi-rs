@@ -2,26 +2,14 @@
 //!
 //! The idea is both the telex & vni modules will use the transformation algorithms
 //! from this module to perform text transformation according to their method rules.
-use std::collections::HashSet;
-
-use phf::{phf_set, Set};
-
-use super::maps::{
-    ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP,
-    TILDE_MAP,
-};
-use super::util::{clean_char, remove_tone_mark};
-use crate::parsing::{parse_word, WordComponents};
-use crate::util::{
-    extract_letter_modifications, extract_tone, remove_modification, replace_nth_char,
-};
+use super::maps::{BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP};
+use crate::word::Word;
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
-const MAX_WORD_LENGTH: usize = 7;
-const SPECIAL_VOWEL_PAIRS: Set<&'static str> = phf_set!("oa", "oe", "oo", "uy", "uo", "ie");
+const MAX_WORD_LENGTH: u8 = 7;
 
 /// Vietnamese's tone mark
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ToneMark {
     /// Dấu sắc
     Acute,
@@ -36,7 +24,7 @@ pub enum ToneMark {
 }
 
 /// A modification to be apply to a letter
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum LetterModification {
     /// The chevron shaped (ˆ) part on top of a character.
     Circumflex,
@@ -69,137 +57,48 @@ pub enum Transformation {
     Ignored,
 }
 
-macro_rules! replace_modification_or_ignore {
-    ($buffer:ident, $modification:expr, $map:ident, $index:expr) => {
-        let ch = $buffer
-            .chars()
-            .nth($index)
-            .map(remove_modification)
-            .unwrap();
-        let Some(replace_ch) = $map.get(&ch).map(|ch| *ch) else {
-            log::warn!(
-                "Couldn't retrieve replace char for {} for {:?}",
-                ch,
-                $modification
-            );
-            return Transformation::Ignored;
-        };
-        replace_nth_char($buffer, $index, replace_ch);
-    };
-}
-
-/// Get nth character to place tone mark
-///
-/// # Rules:
-/// 1. If a vowel contains ơ or ê, tone mark goes there
-/// 2. If a vowel contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
-/// second character
-/// 3. If a vowel end with 2 put it on the first one
-/// 4. Else, but tone mark on second vowel character
-fn get_tone_mark_placement(components: &WordComponents) -> usize {
-    let vowel = components.vowel;
-    let vowel_len = vowel.chars().count();
-    let vowel_index = components.initial_consonant.chars().count();
-    // If there's only one vowel, then it's guaranteed that the tone mark will go there
-    if vowel_len == 1 {
-        return vowel_index;
-    }
-
-    // If vowel contains "ơ" then tone mark goes there.
-    if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'ơ') {
-        return vowel_index + index;
-    }
-
-    // If vowel contains "ê" then tone mark goes there.
-    if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'ê') {
-        return vowel_index + index;
-    }
-
-    // If vowel contains "â" then tone mark goes there.
-    if let Some((index, _)) = vowel.chars().enumerate().find(|(_, ch)| *ch == 'â') {
-        return vowel_index + index;
-    }
-
-    // Special vowels require the tone mark to be placed on the second character
-    let raw_vowel: String = vowel.chars().map(clean_char).collect();
-    if SPECIAL_VOWEL_PAIRS
-        .iter()
-        .any(|pair| raw_vowel.contains(pair))
-    {
-        return vowel_index + 1;
-    }
-
-    // If a word end with 2 character vowel, put it on the first character
-    if components.final_consonant.is_empty() && vowel_len == 2 {
-        return vowel_index;
-    }
-
-    // Else, put tone mark on second vowel
-    vowel_index + 1
-}
-
 /// Add tone mark to input.
 /// Return AddToneResult
-pub fn add_tone(buffer: &mut String, tone_mark: &ToneMark) -> Transformation {
-    if buffer.is_empty() || buffer.chars().count() > MAX_WORD_LENGTH {
+pub fn add_tone(word: &mut Word, tone_mark: &ToneMark) -> Transformation {
+    if word.is_emtpy() || word.len() > MAX_WORD_LENGTH {
         return Transformation::Ignored;
     }
 
-    let mut tone_mark_replaced = false;
-
-    if let Some(existing_tone_mark) = extract_tone(buffer) {
-        *buffer = buffer.chars().map(remove_tone_mark).collect();
-
+    if let Some(existing_tone_mark) = word.tone_mark.clone() {
         if existing_tone_mark == *tone_mark {
+            word.tone_mark = None;
             return Transformation::ToneMarkRemoved;
+        } else {
+            word.tone_mark = Some(tone_mark.clone());
+            return Transformation::ToneMarkReplaced;
         }
-        tone_mark_replaced = true;
-    }
-
-    let Ok((_, components)) = parse_word(buffer) else {
-        return Transformation::Ignored;
-    };
-
-    if components.vowel.is_empty() {
-        return Transformation::Ignored;
-    }
-
-    let tone_mark_position = get_tone_mark_placement(&components);
-
-    let tone_mark_ch = buffer.chars().nth(tone_mark_position).unwrap_or_else(|| {
-        panic!(
-            "Unable to retrieve character at index {} from {}",
-            tone_mark_position, buffer
-        )
-    });
-    let replace_char = add_tone_char(tone_mark_ch, tone_mark);
-
-    replace_nth_char(buffer, tone_mark_position, replace_char);
-
-    if tone_mark_replaced {
-        Transformation::ToneMarkReplaced
     } else {
-        Transformation::ToneMarkAdded
+        word.tone_mark = Some(tone_mark.clone());
+        return Transformation::ToneMarkAdded;
     }
-}
-
-/// Add tone mark to input character.
-/// Return a new char with the tone mark.
-pub fn add_tone_char(ch: char, tone_mark: &ToneMark) -> char {
-    let tone_mark_map = match tone_mark {
-        ToneMark::Acute => &ACCUTE_MAP,
-        ToneMark::Grave => &GRAVE_MAP,
-        ToneMark::HookAbove => &HOOK_ABOVE_MAP,
-        ToneMark::Tilde => &TILDE_MAP,
-        ToneMark::Underdot => &DOT_MAP,
-    };
-    *tone_mark_map.get(&ch).unwrap_or(&ch)
 }
 
 /// change a letter to vietnamese modified letter.
 /// Return if the letter has been modified or not and what's the output.
-pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> Transformation {
-    if buffer.is_empty() || buffer.chars().count() > MAX_WORD_LENGTH {
+pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Transformation {
+    if word.is_emtpy() || word.len() > MAX_WORD_LENGTH {
+        return Transformation::Ignored;
+    }
+
+    // Remove the modification if it's already exist
+    if word.letter_modifications.contains(modification) {
+        word.letter_modifications.remove(word.letter_modifications.iter().position(|m| m == modification).unwrap());
+        return Transformation::LetterModificationRemoved;
+    }
+
+    // Add the modification if it's dyet (because you can't replace dyet with anything, only add or remove)
+    if *modification == LetterModification::Dyet {
+        if let Some(first_char) = word.initial_consonant.chars().nth(0) {
+            if DYET_MAP.contains_key(&first_char) {
+                word.letter_modifications.push(LetterModification::Dyet);
+                return Transformation::LetterModificationAdded;
+            }
+        }
         return Transformation::Ignored;
     }
 
@@ -210,290 +109,40 @@ pub fn modify_letter(buffer: &mut String, modification: &LetterModification) -> 
         LetterModification::Dyet => &DYET_MAP,
     };
 
-    let existing_modifications = extract_letter_modifications(buffer);
-
-    // NOTE: This could means:
-    // - Valid place but overflow (aaa -> âa -> the last a is overflow)
-    // - Valid place but need replace (aaw -> âw -> the â need to be replaced with ă)
-    let is_modificable_char_present = buffer.contains(|c| map.contains_key(&c));
-
-    // - No valid place to modify
-    let is_modification_impossible =
-        !is_modificable_char_present && !buffer.contains(|c| map.contains_key(&clean_char(c)));
-
-    if is_modification_impossible {
-        return Transformation::Ignored;
-    }
-
-    // Modification overflow is when a modification cannot be applied since it's already been applied.
-    let is_modification_overflow = existing_modifications
-        .iter()
-        .any(|(_, existing_modification)| existing_modification == modification);
-
-    let mut modification_replaced_index = None;
-
-    if !is_modificable_char_present {
-        existing_modifications
-            .iter()
-            .filter(|(_, existing_modification)| existing_modification == modification)
-            .for_each(|(index, _)| {
-                modification_replaced_index = Some(*index);
-                let ch = buffer.chars().nth(*index).map(remove_modification).unwrap();
-                replace_nth_char(buffer, *index, ch);
-            });
-
-        if is_modification_overflow {
-            return Transformation::LetterModificationRemoved;
+    // Add the modification if the word have no modification or only have dyet modification
+    if word.letter_modifications.is_empty() || word.letter_modifications == [LetterModification::Dyet] {
+        // No letter can be transformed
+        if !word.vowel.contains(|c| map.contains_key(&c)) {
+            return Transformation::Ignored;
         }
-    }
-
-    // Only d will get the Dyet modification and d is always at the start
-    // If there's no d, we'll ignore this transformation.
-    if let LetterModification::Dyet = modification {
-        replace_modification_or_ignore!(buffer, modification, map, 0);
-        if let Some(0) = modification_replaced_index {
-            return Transformation::LetterModificationReplaced;
-        }
+        word.letter_modifications.push(modification.clone());
         return Transformation::LetterModificationAdded;
     }
 
-    let cleaned_buffer: String = buffer
-        .chars()
-        .map(clean_char)
-        .map(|c| c.to_ascii_lowercase())
-        .collect();
-
-    let Ok((_, word)) = parse_word(&cleaned_buffer) else {
-        return Transformation::Ignored;
-    };
-
-    let vowel = word.vowel;
-    let initial_consonant = word.initial_consonant;
-    let final_consonant = word.final_consonant;
-
-    if vowel.is_empty() {
+    // No letter can be transformed
+    if !word.vowel.contains(|c| map.contains_key(&c)) {
         return Transformation::Ignored;
     }
 
-    if let LetterModification::Circumflex = modification {
-        let indexes = [
-            cleaned_buffer.find('a'),
-            cleaned_buffer.find('o'),
-            cleaned_buffer.find('e'),
-        ]
-        .iter()
-        .filter_map(|index| *index)
-        .collect::<Vec<usize>>();
-
-        // There has to be exactly 1 character that is valid for circumflex. Never 2 or more.
-        if indexes.len() != 1 {
-            return Transformation::Ignored;
-        }
-
-        let index = *indexes.first().unwrap();
-
-        replace_modification_or_ignore!(buffer, modification, map, index);
-        if let Some(replace_index) = modification_replaced_index {
-            if replace_index == index {
-                return Transformation::LetterModificationReplaced;
-            }
-        }
-        return Transformation::LetterModificationAdded;
-    }
-
-    if let LetterModification::Breve = modification {
-        let Some(index) = cleaned_buffer.find('a') else {
-            return Transformation::Ignored;
-        };
-
-        replace_modification_or_ignore!(buffer, modification, map, index);
-        if let Some(replace_index) = modification_replaced_index {
-            if replace_index == index {
-                return Transformation::LetterModificationReplaced;
-            }
-        }
-        return Transformation::LetterModificationAdded;
-    }
-
-    if let LetterModification::Horn = modification {
-        if vowel == "oa" {
-            return Transformation::Ignored;
-        }
-
-        if vowel == "uo" && !initial_consonant.is_empty() && final_consonant.is_empty() {
-            let index = cleaned_buffer.find(vowel).unwrap();
-
-            replace_modification_or_ignore!(buffer, modification, map, index + 1);
-            return Transformation::LetterModificationAdded;
-        }
-
-        if vowel == "uo" || vowel == "uoi" || vowel == "uou" {
-            let index = cleaned_buffer.find(vowel).unwrap();
-
-            replace_modification_or_ignore!(buffer, modification, map, index);
-            replace_modification_or_ignore!(buffer, modification, map, index + 1);
-
-            if let Some(replace_index) = modification_replaced_index {
-                if replace_index == index || replace_index == index + 1 {
-                    return Transformation::LetterModificationReplaced;
-                }
-            }
-            return Transformation::LetterModificationAdded;
-        }
-
-        if let Some(vowel_relative_index) = vowel.find('u').or(vowel.find('o')) {
-            let Some(vowel_index) = cleaned_buffer.find(vowel) else {
-                return Transformation::Ignored;
-            };
-            let index = vowel_index + vowel_relative_index;
-
-            replace_modification_or_ignore!(buffer, modification, map, index);
-
-            if let Some(replace_index) = modification_replaced_index {
-                if replace_index == index {
-                    return Transformation::LetterModificationReplaced;
-                }
-            }
-            return Transformation::LetterModificationAdded;
-        }
-    }
-
-    Transformation::Ignored
+    // Otherwise replace the modification
+    word.letter_modifications.retain(|modification| *modification == LetterModification::Dyet);
+    word.letter_modifications.push(modification.clone());
+    Transformation::LetterModificationReplaced
 }
 
-/// Re-position existing tone mark to a valid position
-pub fn reposition_tone_mark(buffer: &mut String) {
-    if let Some(existing_tone_mark) = extract_tone(buffer) {
-        *buffer = buffer.chars().map(remove_tone_mark).collect();
-        add_tone(buffer, &existing_tone_mark);
-    }
-}
-
-/// Re-position existing letter modification to a valid position
-pub fn reposition_letter_modification(buffer: &mut String) {
-    let Ok((_, word)) = parse_word(buffer) else {
-        return;
-    };
-
-    let cleaned_vowel: String = word
-        .vowel
-        .chars()
-        .map(clean_char)
-        .map(|c| c.to_ascii_lowercase())
-        .collect();
-
-    if word.initial_consonant.is_empty()
-        && word.final_consonant.is_empty()
-        && cleaned_vowel != "uoi"
-    {
-        return;
-    }
-
-    // Special case for ưo where the reposition can only be decided when the final consonant is present
-    if word.vowel.eq_ignore_ascii_case("ưo")
-        && !word.initial_consonant.is_empty()
-        && word.final_consonant.is_empty()
-    {
-        return;
-    }
-
-    let existing_modifications = extract_letter_modifications(buffer)
-        .into_iter()
-        .map(|(_, modification)| modification)
-        .collect::<HashSet<LetterModification>>();
-
-    *buffer = buffer.chars().map(remove_modification).collect();
-
-    for modification in existing_modifications {
-        modify_letter(buffer, &modification);
-    }
-}
 
 /// Remove the tone for the letter
-pub fn remove_tone(input: &mut String) -> Transformation {
-    if input.chars().count() > MAX_WORD_LENGTH {
+pub fn remove_tone(input: &mut Word) -> Transformation {
+    if input.len() > MAX_WORD_LENGTH {
         return Transformation::Ignored;
     }
-    let mut result = input.chars().map(remove_tone_mark).collect::<String>();
-    if result == *input {
-        result = result.chars().map(clean_char).collect();
-    }
-    let tone_removed = result != *input;
-    *input = result;
+
+    let tone_removed = input.tone_mark.is_some();
+    input.tone_mark = None;
 
     if tone_removed {
         Transformation::ToneMarkRemoved
     } else {
         Transformation::Ignored
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn get_tone_mark_placement_normal() {
-        let (_, components) = parse_word("choe").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 3;
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_tone_mark_placement_special() {
-        let (_, components) = parse_word("chieu").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 3;
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_tone_mark_placement_mid_not_end() {
-        let (_, components) = parse_word("hoang").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 2;
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_tone_mark_placement_u_and_o() {
-        let (_, components) = parse_word("ngươi").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 3;
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_tone_mark_placement_uppercase() {
-        let (_, components) = parse_word("chÊt").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 2;
-        assert_eq!(result, expected);
-
-        let (_, components) = parse_word("chiÊt").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 3;
-        assert_eq!(result, expected);
-
-        let (_, components) = parse_word("cAu").unwrap();
-        let result = get_tone_mark_placement(&components);
-        let expected = 1;
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn modify_letter_existing_tone_mark() {
-        let mut buffer = "ẹ".to_string();
-        let transformation = modify_letter(&mut buffer, &LetterModification::Circumflex);
-        let expected = "ệ";
-        assert!(transformation == Transformation::LetterModificationAdded);
-        assert_eq!(buffer, expected);
-
-        let mut buffer = "Ẹ".to_string();
-        let transformation = modify_letter(&mut buffer, &LetterModification::Circumflex);
-        let expected = "Ệ";
-        assert!(transformation == Transformation::LetterModificationAdded);
-        assert_eq!(buffer, expected);
     }
 }
