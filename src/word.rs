@@ -3,7 +3,7 @@ use crate::{
         add_modification_char, add_tone_char, get_modification_positions, get_tone_mark_placement,
         replace_nth_char,
     },
-    parsing::parse_word,
+    parsing::{extract_letter_modifications, extract_tone, parse_word},
     processor::{LetterModification, ToneMark},
     util::clean_char,
 };
@@ -54,6 +54,9 @@ impl Word {
             .collect();
         self.vowel = word.vowel.chars().map(|c| clean_char(c)).collect();
         self.final_consonant = word.final_consonant.to_string();
+
+        self.letter_modifications = extract_letter_modifications(&raw);
+        self.tone_mark = extract_tone(&raw);
     }
 
     pub fn replace_last_char(&mut self, ch: char) {

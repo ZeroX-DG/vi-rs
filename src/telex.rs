@@ -1,5 +1,6 @@
 //! The telex method transformation
 use crate::processor::{add_tone, modify_letter, remove_tone, Transformation};
+use crate::validation::is_valid_word;
 use crate::word::Word;
 use crate::TransformResult;
 
@@ -25,6 +26,7 @@ where
     let mut letter_modification_removed = false;
 
     for ch in buffer {
+        let fallback = format!("{}{}", word.to_string(), ch);
         let ch_lowercase = ch.to_ascii_lowercase();
 
         if ch_lowercase != 'w' {
@@ -85,6 +87,8 @@ where
 
         if !action_performed {
             word.push(ch);
+        } else if !ư_inserted_previously && !is_valid_word(&word.to_string()) {
+            word.set(fallback);
         }
     }
     output.push_str(&word.to_string());
