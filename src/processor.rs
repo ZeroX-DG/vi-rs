@@ -64,6 +64,10 @@ pub fn add_tone(word: &mut Word, tone_mark: &ToneMark) -> Transformation {
         return Transformation::Ignored;
     }
 
+    if word.vowel.is_empty() {
+        return Transformation::Ignored;
+    }
+
     if let Some(existing_tone_mark) = word.tone_mark.clone() {
         if existing_tone_mark == *tone_mark {
             word.tone_mark = None;
@@ -87,7 +91,12 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
 
     // Remove the modification if it's already exist
     if word.letter_modifications.contains(modification) {
-        word.letter_modifications.remove(word.letter_modifications.iter().position(|m| m == modification).unwrap());
+        word.letter_modifications.remove(
+            word.letter_modifications
+                .iter()
+                .position(|m| m == modification)
+                .unwrap(),
+        );
         return Transformation::LetterModificationRemoved;
     }
 
@@ -110,7 +119,9 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
     };
 
     // Add the modification if the word have no modification or only have dyet modification
-    if word.letter_modifications.is_empty() || word.letter_modifications == [LetterModification::Dyet] {
+    if word.letter_modifications.is_empty()
+        || word.letter_modifications == [LetterModification::Dyet]
+    {
         // No letter can be transformed
         if !word.vowel.contains(|c| map.contains_key(&c)) {
             return Transformation::Ignored;
@@ -125,11 +136,11 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
     }
 
     // Otherwise replace the modification
-    word.letter_modifications.retain(|modification| *modification == LetterModification::Dyet);
+    word.letter_modifications
+        .retain(|modification| *modification == LetterModification::Dyet);
     word.letter_modifications.push(modification.clone());
     Transformation::LetterModificationReplaced
 }
-
 
 /// Remove the tone for the letter
 pub fn remove_tone(input: &mut Word) -> Transformation {

@@ -1,4 +1,11 @@
-use crate::{maps::{ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP, HORN_MAP, TILDE_MAP}, processor::{LetterModification, ToneMark}, word::Word};
+use crate::{
+    maps::{
+        ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
+        HORN_MAP, TILDE_MAP,
+    },
+    processor::{LetterModification, ToneMark},
+    word::Word,
+};
 
 const SPECIAL_VOWEL_PAIRS: [&'static str; 6] = ["oa", "oe", "oo", "uy", "uo", "ie"];
 
@@ -35,10 +42,7 @@ pub fn get_tone_mark_placement(word: &Word) -> usize {
     }
 
     // Special vowels require the tone mark to be placed on the second character
-    if SPECIAL_VOWEL_PAIRS
-        .iter()
-        .any(|pair| vowel.contains(pair))
-    {
+    if SPECIAL_VOWEL_PAIRS.iter().any(|pair| vowel.contains(pair)) {
         return vowel_index + 1;
     }
 
@@ -142,7 +146,10 @@ pub fn get_modification_positions(word: &Word, modification: &LetterModification
             return Vec::new();
         }
 
-        if word.vowel == "uo" && !word.initial_consonant.is_empty() && word.final_consonant.is_empty() {
+        if word.vowel == "uo"
+            && !word.initial_consonant.is_empty()
+            && word.final_consonant.is_empty()
+        {
             return vec![vowel_index + 1];
         }
 

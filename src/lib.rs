@@ -31,6 +31,7 @@
 //!
 //! - **Tone mark are placed in the new accent:** hoà instead of hòa
 //! - **`w` in telex will insert `ư`:** so `chuw` or `chw` will produce `chư`
+pub mod editing;
 pub mod maps;
 pub mod parsing;
 pub mod processor;
@@ -39,7 +40,6 @@ pub mod util;
 pub mod validation;
 pub mod vni;
 pub mod word;
-pub mod editing;
 
 /// A result of a buffer transformation.
 #[derive(Debug, Clone)]

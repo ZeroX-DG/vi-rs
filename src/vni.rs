@@ -1,9 +1,8 @@
 //! The vni method transformation
 use crate::{
-    processor::{
-        add_tone, modify_letter, remove_tone,
-        Transformation,
-    }, validation::is_valid_word, word::Word, TransformResult
+    processor::{add_tone, modify_letter, remove_tone, Transformation},
+    word::Word,
+    TransformResult,
 };
 
 use super::processor::{LetterModification, ToneMark};
