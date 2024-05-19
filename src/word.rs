@@ -44,11 +44,7 @@ impl Word {
             self.initial_consonant, self.vowel, self.final_consonant, ch
         );
         let (_, word) = parse_word(&clean_word).unwrap();
-        self.initial_consonant = word
-            .initial_consonant
-            .chars()
-            .map(clean_char)
-            .collect();
+        self.initial_consonant = word.initial_consonant.chars().map(clean_char).collect();
         self.vowel = word.vowel.chars().map(clean_char).collect();
         self.final_consonant = word.final_consonant.to_string();
 
@@ -82,11 +78,7 @@ impl Word {
 
     pub fn set(&mut self, raw: String) {
         let (_, word) = parse_word(&raw).unwrap();
-        self.initial_consonant = word
-            .initial_consonant
-            .chars()
-            .map(clean_char)
-            .collect();
+        self.initial_consonant = word.initial_consonant.chars().map(clean_char).collect();
         self.vowel = word.vowel.chars().map(clean_char).collect();
         self.final_consonant = word.final_consonant.to_string();
 
