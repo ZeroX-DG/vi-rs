@@ -50,7 +50,23 @@ impl Word {
         self.vowel = word.vowel.chars().map(|c| clean_char(c)).collect();
         self.final_consonant = word.final_consonant.to_string();
 
-        // Recompute modification location
+        self.recalculate_modifications();
+    }
+
+    pub fn recalculate_modifications(&mut self) {
+        // consonants are required to recalculate, unless it's the word uoi
+        if self.initial_consonant.is_empty() && self.final_consonant.is_empty() && !self.vowel.eq_ignore_ascii_case("uoi") {
+            return;
+        }
+
+        // Special case for uo where the reposition can only be decided when the final consonant is present
+        if self.vowel.eq_ignore_ascii_case("uo")
+            && !self.initial_consonant.is_empty()
+            && self.final_consonant.is_empty()
+        {
+            return;
+        }
+
         let mut modifications = std::mem::take(&mut self.letter_modifications);
         modifications.dedup_by_key(|(_, modifcation)| modifcation.clone());
 
