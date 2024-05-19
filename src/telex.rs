@@ -54,7 +54,7 @@ where
                             let transformation =
                                 if word.vowel.is_empty() || word.to_string() == "gi" {
                                     word.push(if ch.is_lowercase() { 'u' } else { 'U' });
-                                    let last_index = (word.len() - 1) as usize;
+                                    let last_index = word.len() - 1;
                                     word.letter_modifications
                                         .push((last_index, LetterModification::Horn));
                                     Transformation::LetterModificationAdded

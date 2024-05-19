@@ -60,7 +60,7 @@ pub enum Transformation {
 /// Add tone mark to input.
 /// Return AddToneResult
 pub fn add_tone(word: &mut Word, tone_mark: &ToneMark) -> Transformation {
-    if word.is_emtpy() || word.len() > MAX_WORD_LENGTH {
+    if word.is_empty() || word.len() > MAX_WORD_LENGTH {
         return Transformation::Ignored;
     }
 
@@ -85,7 +85,7 @@ pub fn add_tone(word: &mut Word, tone_mark: &ToneMark) -> Transformation {
 /// change a letter to vietnamese modified letter.
 /// Return if the letter has been modified or not and what's the output.
 pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Transformation {
-    if word.is_emtpy() || word.len() > MAX_WORD_LENGTH {
+    if word.is_empty() || word.len() > MAX_WORD_LENGTH {
         return Transformation::Ignored;
     }
 

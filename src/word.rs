@@ -32,7 +32,7 @@ impl Word {
             + self.final_consonant.chars().count()
     }
 
-    pub fn is_emtpy(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.initial_consonant.is_empty()
             && self.vowel.is_empty()
             && self.final_consonant.is_empty()
