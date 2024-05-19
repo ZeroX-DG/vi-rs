@@ -71,14 +71,14 @@ pub fn add_tone(word: &mut Word, tone_mark: &ToneMark) -> Transformation {
     if let Some(existing_tone_mark) = word.tone_mark.clone() {
         if existing_tone_mark == *tone_mark {
             word.tone_mark = None;
-            return Transformation::ToneMarkRemoved;
+            Transformation::ToneMarkRemoved
         } else {
             word.tone_mark = Some(tone_mark.clone());
-            return Transformation::ToneMarkReplaced;
+            Transformation::ToneMarkReplaced
         }
     } else {
         word.tone_mark = Some(tone_mark.clone());
-        return Transformation::ToneMarkAdded;
+        Transformation::ToneMarkAdded
     }
 }
 
@@ -134,7 +134,7 @@ pub fn modify_letter(word: &mut Word, modification: &LetterModification) -> Tran
 
     // Add the modification if it's dyet (because you can't replace dyet with anything, only add or remove)
     if *modification == LetterModification::Dyet {
-        if let Some(first_char) = word.initial_consonant.chars().nth(0) {
+        if let Some(first_char) = word.initial_consonant.chars().next() {
             if DYET_MAP.contains_key(&first_char) {
                 word.letter_modifications
                     .push((0, LetterModification::Dyet));

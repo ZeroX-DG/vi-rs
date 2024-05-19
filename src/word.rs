@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     editing::{add_modification_char, add_tone_char, get_tone_mark_placement, replace_nth_char},
     parsing::{extract_letter_modifications, extract_tone, parse_word},
@@ -45,9 +47,9 @@ impl Word {
         self.initial_consonant = word
             .initial_consonant
             .chars()
-            .map(|c| clean_char(c))
+            .map(clean_char)
             .collect();
-        self.vowel = word.vowel.chars().map(|c| clean_char(c)).collect();
+        self.vowel = word.vowel.chars().map(clean_char).collect();
         self.final_consonant = word.final_consonant.to_string();
 
         self.recalculate_modifications();
@@ -83,9 +85,9 @@ impl Word {
         self.initial_consonant = word
             .initial_consonant
             .chars()
-            .map(|c| clean_char(c))
+            .map(clean_char)
             .collect();
-        self.vowel = word.vowel.chars().map(|c| clean_char(c)).collect();
+        self.vowel = word.vowel.chars().map(clean_char).collect();
         self.final_consonant = word.final_consonant.to_string();
 
         self.letter_modifications = extract_letter_modifications(&raw);
@@ -104,8 +106,10 @@ impl Word {
             .iter()
             .any(|(_, m)| m == modification)
     }
+}
 
-    pub fn to_string(&self) -> String {
+impl Display for Word {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = format!(
             "{}{}{}",
             self.initial_consonant, self.vowel, self.final_consonant
@@ -113,7 +117,7 @@ impl Word {
 
         for (position, modification) in &self.letter_modifications {
             let ch = result.chars().nth(*position).unwrap();
-            let replace_char = add_modification_char(ch, &modification);
+            let replace_char = add_modification_char(ch, modification);
 
             replace_nth_char(&mut result, *position, replace_char);
         }
@@ -124,7 +128,8 @@ impl Word {
             let replace_char = add_tone_char(ch, tone_mark);
             replace_nth_char(&mut result, tone_mark_position, replace_char);
         }
-        result
+
+        write!(f, "{}", result)
     }
 }
 

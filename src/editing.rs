@@ -8,7 +8,7 @@ use crate::{
     word::Word,
 };
 
-const SPECIAL_VOWEL_PAIRS: [&'static str; 6] = ["oa", "oe", "oo", "uy", "uo", "ie"];
+const SPECIAL_VOWEL_PAIRS: [&str; 6] = ["oa", "oe", "oo", "uy", "uo", "ie"];
 
 /// Get nth character to place tone mark
 ///
@@ -158,7 +158,7 @@ pub fn get_modification_positions(word: &Word, modification: &LetterModification
             return vec![vowel_index + index];
         }
     }
-    return Vec::new();
+    Vec::new()
 }
 
 #[cfg(test)]
