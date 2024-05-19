@@ -26,16 +26,16 @@ impl Word {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.initial_consonant.chars().count()
+            + self.vowel.chars().count()
+            + self.final_consonant.chars().count()
+    }
+
     pub fn is_emtpy(&self) -> bool {
         self.initial_consonant.is_empty()
             && self.vowel.is_empty()
             && self.final_consonant.is_empty()
-    }
-
-    pub fn len(&self) -> u8 {
-        self.initial_consonant.chars().count() as u8
-            + self.vowel.chars().count() as u8
-            + self.final_consonant.chars().count() as u8
     }
 
     pub fn push(&mut self, ch: char) {

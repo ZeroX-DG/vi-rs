@@ -26,7 +26,7 @@ where
     let mut letter_modification_removed = false;
 
     for ch in buffer {
-        let fallback = format!("{}{}", word.to_string(), ch);
+        let fallback = format!("{}{}", word, ch);
         let ch_lowercase = ch.to_ascii_lowercase();
 
         if ch_lowercase != 'w' {

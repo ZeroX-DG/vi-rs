@@ -28,7 +28,7 @@ where
 
     for ch in buffer {
         let ch = &ch;
-        let fallback = format!("{}{}", word.to_string(), ch);
+        let fallback = format!("{}{}", word, ch);
 
         let transformation = match ch {
             '1' => add_tone(&mut word, &ToneMark::Acute),

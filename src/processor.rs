@@ -6,7 +6,7 @@ use super::maps::{BREVE_MAP, CIRCUMFLEX_MAP, DYET_MAP, HORN_MAP};
 use crate::{editing::get_modification_positions, word::Word};
 
 /// Maximum length of a Vietnamese "word" is 7 letters long (nghiêng)
-const MAX_WORD_LENGTH: u8 = 7;
+const MAX_WORD_LENGTH: usize = 7;
 
 /// Vietnamese's tone mark
 #[derive(Debug, PartialEq, Clone)]
