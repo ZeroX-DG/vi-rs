@@ -1,6 +1,7 @@
 //! The vni method transformation
 use crate::{
     processor::{add_tone, modify_letter, remove_tone, Transformation},
+    validation::is_valid_word,
     word::Word,
     TransformResult,
 };
@@ -27,6 +28,7 @@ where
 
     for ch in buffer {
         let ch = &ch;
+        let fallback = format!("{}{}", word.to_string(), ch);
 
         let transformation = match ch {
             '1' => add_tone(&mut word, &ToneMark::Acute),
@@ -59,6 +61,8 @@ where
 
         if !action_performed {
             word.push(*ch);
+        } else if !is_valid_word(&word.to_string()) {
+            word.set(fallback);
         }
     }
 

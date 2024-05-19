@@ -55,7 +55,10 @@ impl Word {
 
     pub fn recalculate_modifications(&mut self) {
         // consonants are required to recalculate, unless it's the word uoi
-        if self.initial_consonant.is_empty() && self.final_consonant.is_empty() && !self.vowel.eq_ignore_ascii_case("uoi") {
+        if self.initial_consonant.is_empty()
+            && self.final_consonant.is_empty()
+            && !self.vowel.eq_ignore_ascii_case("uoi")
+        {
             return;
         }
 
