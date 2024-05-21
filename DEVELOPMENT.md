@@ -18,7 +18,7 @@ To publish a new version, follow these steps:
 
 1. Work out what version you want to publish using semver.
 2. Update `Cargo.toml` with the new version.
-3. Run `git stage Cargo.toml`
+3. Create a commit of whatever changed currently.
 4. Run `git tag <version>`
 5. Run `cargo build --release`
 6. Run `cargo publish`
