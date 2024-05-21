@@ -45,7 +45,7 @@ where
             }
             'w' if ư_inserted_previously => {
                 word.replace_last_char(ch);
-                Transformation::LetterModificationAdded
+                Transformation::LetterModificationRemoved
             }
             'w' => match modify_letter(&mut word, &LetterModification::Horn) {
                 Transformation::Ignored | Transformation::LetterModificationRemoved => {

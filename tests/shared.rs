@@ -2,6 +2,7 @@ use serde::Serialize;
 use std::fmt::Write;
 
 #[derive(Serialize)]
+#[allow(dead_code)]
 pub(crate) struct Metadata<'a> {
     pub(crate) input_file: &'a str,
 }

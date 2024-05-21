@@ -4,24 +4,25 @@ on: [push, pull_request]
 
 jobs:
   lint:
-    name: Formatting Checks
+    name: Lints Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt
+        run: |
+          rustup component add rustfmt clippy
 
       - name: Check Formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: |
+          cargo fmt --all -- --check
+
+      - name: Fetch before build
+        run: cargo fetch
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -Dwarnings
 
   test:
     name: Run Tests
@@ -32,15 +33,8 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: actions/checkout@v4
 
       - name: Run Tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: |
+          cargo test
