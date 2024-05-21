@@ -1,31 +1,31 @@
 //! The cache for word transformation.
-//! 
+//!
 //! Since vi-rs work by looping through a list of character & apply transformation on a word,
 //! it's much more beneficial to store the current state of the word as a struct rather than
-//! a string so it doesn't need to be parsed everytime a transformation is applied. 
-//! 
+//! a string so it doesn't need to be parsed everytime a transformation is applied.
+//!
 //! Normally you'd start by constructing an empty word at the start of the process,
 //! and then perform various manipulations on the words. Afterwards, you can call `to_string()`
 //! to retrieve a String value representing the final state of the word.
-//! 
+//!
 //! ## Example:
-//! 
+//!
 //! ```
 //! use vi::word::Word;
 //! use vi::processor::{modify_letter, add_tone, LetterModification, ToneMark};
-//! 
+//!
 //! let mut word = Word::empty();
 //! word.push('t');
 //! word.push('u');
 //! word.push('y');
 //! word.push('e');
 //! word.push('t');
-//! 
+//!
 //! modify_letter(&mut word, &LetterModification::Circumflex);
 //! add_tone(&mut word, &ToneMark::Acute);
-//! 
+//!
 //! println!("{}", word); // tuyết
-//! 
+//!
 //! ```
 use std::fmt::Display;
 
