@@ -41,7 +41,6 @@ where
     let mut letter_modification_removed = false;
 
     for ch in buffer {
-        let ch = &ch;
         let fallback = format!("{}{}", result, ch);
         let ch_lowercase = ch.to_ascii_lowercase();
 
@@ -60,8 +59,8 @@ where
                 modify_letter(&mut result, &LetterModification::Circumflex)
             }
             'w' if ư_inserted_previously => {
-                replace_last_char(&mut result, *ch);
-                Transformation::LetterModificationAdded
+                replace_last_char(&mut result, ch);
+                Transformation::LetterModificationRemoved
             }
             'w' => modify_letter_or_else(&mut result, &LetterModification::Horn, |result| {
                 modify_letter_or_else(result, &LetterModification::Breve, |result| {
@@ -99,12 +98,12 @@ where
         };
 
         if !action_performed {
-            result.push(*ch);
+            result.push(ch);
         } else if !ư_inserted_previously && !is_valid_word(&result) {
             result = fallback;
         }
 
-        if is_vowel(*ch) {
+        if is_vowel(ch) {
             reposition_tone_mark(&mut result);
         }
         reposition_letter_modification(&mut result);
