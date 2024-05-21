@@ -11,3 +11,15 @@ If the output of the snapshot test is different, you can review those difference
 ## Run benchmark
 
 Just run `cargo bench` and watch the magic. The code for the benchmark is located in `benches` folder.
+
+## Publish
+
+To publish a new version, follow these steps:
+
+1. Work out what version you want to publish using semver.
+2. Update `Cargo.toml` with the new version.
+3. Run `git stage Cargo.toml`
+4. Run `git tag <version>`
+5. Run `cargo build --release`
+6. Run `cargo publish`
+7. Run `git push --follow-tags`
