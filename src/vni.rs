@@ -27,7 +27,6 @@ where
     let mut letter_modification_removed = false;
 
     for ch in buffer {
-        let ch = &ch;
         let fallback = format!("{}{}", word, ch);
 
         let transformation = match ch {
@@ -55,12 +54,12 @@ where
         let action_performed = match transformation {
             Transformation::Ignored | Transformation::LetterModificationRemoved => false,
             // If tone mark was intentionally removed with 0 character then it's count as an action.
-            Transformation::ToneMarkRemoved => *ch == '0',
+            Transformation::ToneMarkRemoved => ch == '0',
             _ => true,
         };
 
         if !action_performed {
-            word.push(*ch);
+            word.push(ch);
         } else if !is_valid_word(&word.to_string()) {
             word.set(fallback);
         }
