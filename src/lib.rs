@@ -45,8 +45,8 @@ pub mod word;
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct TransformResult {
-    /// Indicates whether a tone mark has been removed during the transformation.
-    tone_mark_removed: bool,
-    /// Indicates whether a letter modification has been removed during the transformation.
-    letter_modification_removed: bool,
+    /// Indicates whether a tone mark has been removed after the transformation.
+    pub tone_mark_removed: bool,
+    /// Indicates whether a letter modification has been removed after the transformation.
+    pub letter_modification_removed: bool,
 }
