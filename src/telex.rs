@@ -81,7 +81,12 @@ where
             letter_modification_removed = true;
         }
 
+        let initial_ư_removed = Transformation::LetterModificationRemoved == transformation
+            && ư_inserted_previously
+            && word.len() == 1;
+
         let action_performed = match transformation {
+            Transformation::LetterModificationRemoved if initial_ư_removed => true,
             Transformation::Ignored | Transformation::LetterModificationRemoved => false,
             // If tone mark was intentionally removed with z character then it's count as an action.
             Transformation::ToneMarkRemoved => ch_lowercase == 'z',
@@ -90,8 +95,12 @@ where
 
         if !action_performed {
             word.push(ch);
-        } else if !ư_inserted_previously && !is_valid_word(&word.to_string()) {
+        } else if !initial_ư_removed && !is_valid_word(&word.to_string()) {
             word.set(fallback);
+        }
+
+        if initial_ư_removed {
+            ư_inserted_previously = false;
         }
     }
     output.push_str(&word.to_string());
