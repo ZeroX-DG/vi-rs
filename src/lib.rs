@@ -35,8 +35,12 @@ pub mod maps;
 pub mod methods;
 pub mod parsing;
 pub mod processor;
+#[deprecated(since = "0.7.0")]
+pub mod telex;
 pub mod util;
 pub mod validation;
+#[deprecated(since = "0.7.0")]
+pub mod vni;
 pub mod word;
 
 pub use methods::*;
