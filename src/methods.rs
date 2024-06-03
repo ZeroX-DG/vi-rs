@@ -96,7 +96,7 @@ where
                 }
                 Action::RemoveToneMark => remove_tone(&mut word),
                 Action::InsertƯ => {
-                    let transformation = if word.vowel.is_empty() || word.to_string() == "gi" {
+                    if word.vowel.is_empty() || word.to_string() == "gi" {
                         word.push(if ch.is_lowercase() { 'u' } else { 'U' });
                         let last_index = word.len() - 1;
                         word.letter_modifications
@@ -104,8 +104,7 @@ where
                         Transformation::LetterModificationAdded
                     } else {
                         Transformation::Ignored
-                    };
-                    transformation
+                    }
                 }
                 Action::ResetInsertedƯ if matches!(last_executed_action, Some(Action::InsertƯ)) =>
                 {
