@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 0.7.0 - 2024-06-03
+
 ### Changed
 
 - `vi::telex` & `vi::vni` are deprecated & will be removed in the next release. Users are recommended to use `vi::methods` instead.
