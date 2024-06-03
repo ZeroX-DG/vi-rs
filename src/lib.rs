@@ -14,11 +14,10 @@
 //! # Example
 //!
 //! ```
-//! use vi::vni;
 //! let inputs = vec![vec!['v', 'i', 'e', 't', '5', '6'], vec!['n', 'a', 'm']];
 //! let mut result = String::new();
 //! for input in inputs {
-//!     vni::transform_buffer(input.iter().cloned(), &mut result);
+//!     vi::transform_buffer(&vi::VNI, input.iter().cloned(), &mut result);
 //!     result.push(' ');
 //! }
 //! println!("{}", result); // prints "việt nam "
@@ -33,20 +32,11 @@
 //! - **`w` in telex will insert `ư`:** so `chuw` or `chw` will produce `chư`
 pub mod editing;
 pub mod maps;
+pub mod methods;
 pub mod parsing;
 pub mod processor;
-pub mod telex;
 pub mod util;
 pub mod validation;
-pub mod vni;
 pub mod word;
 
-/// A result of a buffer transformation.
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
-pub struct TransformResult {
-    /// Indicates whether a tone mark has been removed after the transformation.
-    pub tone_mark_removed: bool,
-    /// Indicates whether a letter modification has been removed after the transformation.
-    pub letter_modification_removed: bool,
-}
+pub use methods::*;

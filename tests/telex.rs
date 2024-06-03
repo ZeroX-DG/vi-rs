@@ -3,7 +3,7 @@ mod shared;
 fn snapshot_transform(lines: &str) -> String {
     shared::transform_lines(lines, |word| {
         let mut trasformed_word = String::new();
-        vi::telex::transform_buffer(word.chars(), &mut trasformed_word);
+        vi::transform_buffer(&vi::TELEX, word.chars(), &mut trasformed_word);
         trasformed_word
     })
 }

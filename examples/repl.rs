@@ -1,7 +1,6 @@
 extern crate vi;
 
 use rustyline::DefaultEditor;
-use vi::{telex, vni};
 
 // A REPL for testing transformation result.
 fn main() {
@@ -16,11 +15,13 @@ fn main() {
         let mut result = String::new();
 
         for word in input.split_whitespace() {
-            if method == "telex" {
-                telex::transform_buffer(word.chars(), &mut result)
+            let definition = if method == "telex" {
+                &vi::TELEX
             } else {
-                vni::transform_buffer(word.chars(), &mut result)
+                &vi::VNI
             };
+
+            vi::transform_buffer(definition, word.chars(), &mut result);
             result.push(' ');
         }
 
