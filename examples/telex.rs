@@ -1,7 +1,5 @@
 extern crate vi;
 
-use vi::telex;
-
 fn main() {
     let inputs = "hoiwx anh tifnh yeue gioosng nhuw cais cheets nuotos trooi taats car";
 
@@ -9,7 +7,7 @@ fn main() {
 
     let mut result = String::new();
     for word in words {
-        telex::transform_buffer(word.chars(), &mut result);
+        vi::transform_buffer(&vi::TELEX, word.chars(), &mut result);
         result.push(' ');
     }
 

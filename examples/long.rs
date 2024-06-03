@@ -1,6 +1,6 @@
 extern crate vi;
 
-use vi::vni;
+use vi::{transform_buffer, VNI};
 
 fn main() {
     let inputs = "xin chao2 toi6 la2 Hung7, toi6 den961 tu72 Viet65 Nam";
@@ -9,7 +9,7 @@ fn main() {
 
     let mut result = String::new();
     for word in words {
-        vni::transform_buffer(word.chars(), &mut result);
+        transform_buffer(&VNI, word.chars(), &mut result);
         result.push(' ');
     }
 
