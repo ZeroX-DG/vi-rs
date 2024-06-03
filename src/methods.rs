@@ -8,12 +8,13 @@ use crate::{
     word::Word,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Action {
     AddTonemark(ToneMark),
     ModifyLetter(LetterModification),
     ModifyLetterOnCharacterFamily(LetterModification, char),
     InsertƯ,
+    ResetInsertedƯ,
     RemoveToneMark,
 }
 
@@ -50,7 +51,7 @@ pub static TELEX: Definition = phf_map! {
     'a' => &[Action::ModifyLetterOnCharacterFamily(LetterModification::Circumflex, 'a')],
     'e' => &[Action::ModifyLetterOnCharacterFamily(LetterModification::Circumflex, 'e')],
     'o' => &[Action::ModifyLetterOnCharacterFamily(LetterModification::Circumflex, 'o')],
-    'w' => &[Action::ModifyLetter(LetterModification::Horn), Action::ModifyLetter(LetterModification::Breve), Action::InsertƯ],
+    'w' => &[Action::ResetInsertedƯ, Action::ModifyLetter(LetterModification::Horn), Action::ModifyLetter(LetterModification::Breve), Action::InsertƯ],
     'd' => &[Action::ModifyLetter(LetterModification::Dyet)],
     'z' => &[Action::RemoveToneMark],
 };
@@ -66,6 +67,8 @@ where
     let mut word = Word::empty();
     let mut tone_mark_removed = false;
     let mut letter_modification_removed = false;
+
+    let mut last_executed_action = None;
 
     for ch in buffer {
         let lowercase_ch = ch.to_ascii_lowercase();
@@ -104,6 +107,11 @@ where
                     };
                     transformation
                 }
+                Action::ResetInsertedƯ if matches!(last_executed_action, Some(Action::InsertƯ)) =>
+                {
+                    word.replace_last_char(ch);
+                    Transformation::LetterModificationRemoved
+                }
                 _ => Transformation::Ignored,
             };
 
@@ -130,10 +138,20 @@ where
                 _ => true,
             };
 
+            // If the action is to trigger reset ư insert then we don't need further processing
+            if *action == Action::ResetInsertedƯ {
+                last_executed_action = Some(action.clone());
+                break;
+            }
+
             if !action_performed {
                 word.push(ch);
+                last_executed_action = None;
             } else if !is_valid_word(&word.to_string()) {
                 word.set(fallback);
+                last_executed_action = None;
+            } else {
+                last_executed_action = Some(action.clone());
             }
             break;
         }
