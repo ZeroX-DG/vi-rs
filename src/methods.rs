@@ -24,6 +24,13 @@
 //! To define a new typing definition, you need to declare a definition map, which is a [`phf::Map`]:
 //!
 //! ```
+//! use phf::phf_map;
+//! use vi::{
+//!    processor::{LetterModification, ToneMark},
+//!    Action, Definition,
+//! };
+//! use vi::methods::transform_buffer;
+//!
 //! pub static MY_VNI: Definition = phf_map! {
 //!     '1' => &[Action::AddTonemark(ToneMark::Acute)],
 //!     '2' => &[Action::AddTonemark(ToneMark::Grave)],
@@ -37,15 +44,10 @@
 //!     'z' => &[Action::ResetInsertedƯ, Action::InsertƯ],
 //!     '0' => &[Action::RemoveToneMark],
 //! };
-//! ```
 //!
-//! Then you can pass that in [`transform_buffer`] as usual:
-//!
-//! ```
-//! use vi::methods::transform_buffer;
-//!
+//! // Then you can pass that in `transform_buffer` as usual:
 //! let mut result = String::new();
-//! transform_buffer(MY_VNI, "chza".chars(), &mut result);
+//! transform_buffer(&MY_VNI, "chza".chars(), &mut result);
 //! assert_eq!(result, "chưa".to_owned());
 //! ```
 use phf::{phf_map, Map};
@@ -85,9 +87,14 @@ pub enum Action {
 /// If a character can trigger different actions depending on what is possible, its value will contains multiple Action. For example,
 ///
 /// ```
+/// use phf::phf_map;
+/// use vi::{
+///    processor::{LetterModification, ToneMark},
+///    Action, Definition,
+/// };
 /// pub static TELEX: Definition = phf_map! {
 ///     'w' => &[Action::ResetInsertedƯ, Action::ModifyLetter(LetterModification::Horn), Action::ModifyLetter(LetterModification::Breve), Action::InsertƯ],
-/// }
+/// };
 /// ```
 ///
 /// The definition above specify that `w` can trigger a `ResetInseretedƯ`, or if that doesn't work, a `ModifyLetter(LetterModification::Horn)` action
