@@ -1,3 +1,4 @@
+//! Useful utilties functions that might be helpful for developing a Vietnamese IME.
 use crate::maps::VOWELS;
 
 /// Strip off tone mark & modifications from an input char.

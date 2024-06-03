@@ -28,8 +28,10 @@
 //! VI aims to be as lean as possible, focusing on only the useful features and main use-cases. Therefore, the engine
 //! implemented these rules by default with no way of configuring them:
 //!
-//! - **Tone mark are placed in the new accent:** hoà instead of hòa
+//! - **Tone mark are placed in the new accent:** `hoà` instead of `hòa`
 //! - **`w` in telex will insert `ư`:** so `chuw` or `chw` will produce `chư`
+//!
+//! Although, should you need to customise any behaviour, you can create your custom typing methods. See: [`methods`].
 pub mod editing;
 pub mod maps;
 pub mod methods;

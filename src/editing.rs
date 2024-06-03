@@ -1,3 +1,6 @@
+//! Functions used for character editing.
+//!
+//! These functions work directly with character & string instead of the abstract word struct.
 use crate::{
     maps::{
         ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
