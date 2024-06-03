@@ -12,6 +12,8 @@ use crate::{
 pub enum Action {
     AddTonemark(ToneMark),
     ModifyLetter(LetterModification),
+    ModifyLetterOnCharacterFamily(LetterModification, char),
+    InsertƯ,
     RemoveToneMark,
 }
 
@@ -39,8 +41,19 @@ pub static VNI: Definition = phf_map! {
     '0' => &[Action::RemoveToneMark],
 };
 
-/// TODO: Define Telex
-pub static TELEX: Definition = phf_map! {};
+pub static TELEX: Definition = phf_map! {
+    's' => &[Action::AddTonemark(ToneMark::Acute)],
+    'f' => &[Action::AddTonemark(ToneMark::Grave)],
+    'r' => &[Action::AddTonemark(ToneMark::HookAbove)],
+    'x' => &[Action::AddTonemark(ToneMark::Tilde)],
+    'j' => &[Action::AddTonemark(ToneMark::Underdot)],
+    'a' => &[Action::ModifyLetterOnCharacterFamily(LetterModification::Circumflex, 'a')],
+    'e' => &[Action::ModifyLetterOnCharacterFamily(LetterModification::Circumflex, 'e')],
+    'o' => &[Action::ModifyLetterOnCharacterFamily(LetterModification::Circumflex, 'o')],
+    'w' => &[Action::ModifyLetter(LetterModification::Horn), Action::ModifyLetter(LetterModification::Breve), Action::InsertƯ],
+    'd' => &[Action::ModifyLetter(LetterModification::Dyet)],
+    'z' => &[Action::RemoveToneMark],
+};
 
 pub fn transform_buffer<I>(
     definition: &Definition,
@@ -63,16 +76,44 @@ where
             continue;
         }
 
+        let fallback = format!("{}{}", word, ch);
         let actions = definition.get(&lowercase_ch).unwrap();
 
-        for action in actions.iter() {
-            let fallback = format!("{}{}", word, ch);
+        let mut action_iter = actions.iter();
+        let mut action = action_iter.next().unwrap();
 
+        loop {
             let transformation = match action {
                 Action::AddTonemark(tonemark) => add_tone(&mut word, tonemark),
                 Action::ModifyLetter(modification) => modify_letter(&mut word, modification),
+                Action::ModifyLetterOnCharacterFamily(modification, family_char)
+                    if word.vowel.to_ascii_lowercase().contains(*family_char) =>
+                {
+                    modify_letter(&mut word, modification)
+                }
                 Action::RemoveToneMark => remove_tone(&mut word),
+                Action::InsertƯ => {
+                    let transformation = if word.vowel.is_empty() || word.to_string() == "gi" {
+                        word.push(if ch.is_lowercase() { 'u' } else { 'U' });
+                        let last_index = word.len() - 1;
+                        word.letter_modifications
+                            .push((last_index, LetterModification::Horn));
+                        Transformation::LetterModificationAdded
+                    } else {
+                        Transformation::Ignored
+                    };
+                    transformation
+                }
+                _ => Transformation::Ignored,
             };
+
+            // If the transformation cannot be applied, try the next action if there's one.
+            if transformation == Transformation::Ignored {
+                if let Some(next_action) = action_iter.next() {
+                    action = next_action;
+                    continue;
+                }
+            }
 
             if transformation == Transformation::ToneMarkRemoved {
                 tone_mark_removed = true;
@@ -94,6 +135,7 @@ where
             } else if !is_valid_word(&word.to_string()) {
                 word.set(fallback);
             }
+            break;
         }
     }
 
