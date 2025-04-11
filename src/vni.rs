@@ -1,6 +1,6 @@
 use crate::TransformResult;
 
-/// Transform input buffer containing a single word to vietnamese string output using vni mode.
+/// Transform input buffer containing a single syllable to vietnamese string output using vni mode.
 ///
 /// # Example
 /// ```

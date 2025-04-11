@@ -1,4 +1,4 @@
-//! Parser for parsing an input string as a Vietnamese word
+//! Parser for parsing an input string as a Vietnamese syllable
 use crate::{
     maps::{
         ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
@@ -14,7 +14,7 @@ use nom::{
     IResult,
 };
 
-pub struct WordComponents<'a> {
+pub struct SyllableComponents<'a> {
     pub initial_consonant: &'a str,
     pub vowel: &'a str,
     pub final_consonant: &'a str,
@@ -36,11 +36,11 @@ pub fn parse_vowel(input: &str) -> IResult<&str, &str> {
     Ok((rest, vowel))
 }
 
-pub fn parse_word(input: &str) -> IResult<&str, WordComponents<'_>> {
+pub fn parse_syllable(input: &str) -> IResult<&str, SyllableComponents<'_>> {
     let (rest, (initial_consonant, vowel)) = tuple((initial_consonant, vowel))(input)?;
     Ok((
         rest,
-        WordComponents {
+        SyllableComponents {
             initial_consonant,
             vowel,
             final_consonant: rest,
