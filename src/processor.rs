@@ -23,6 +23,16 @@ pub enum ToneMark {
     Underdot,
 }
 
+/// Determines how accent marks are placed on syllables
+#[derive(Debug, PartialEq, Clone, Default)]
+pub enum AccentStyle {
+    /// Old-style accent placement rules.
+    Old,
+    /// New-style accent placement (default).
+    #[default]
+    New,
+}
+
 /// A modification to be apply to a letter
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum LetterModification {
@@ -118,13 +128,15 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
                             .any(|(current_index, _)| *current_index != **index)
                     })
                     .unwrap();
-                syllable.letter_modifications
+                syllable
+                    .letter_modifications
                     .push((*other_modification_position, LetterModification::Horn));
                 return Transformation::LetterModificationAdded;
             }
         }
         syllable.letter_modifications.remove(
-            syllable.letter_modifications
+            syllable
+                .letter_modifications
                 .iter()
                 .position(|(_, m)| m == modification)
                 .unwrap(),
@@ -136,7 +148,8 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
     if *modification == LetterModification::Dyet {
         if let Some(first_char) = syllable.initial_consonant.chars().next() {
             if DYET_MAP.contains_key(&first_char) {
-                syllable.letter_modifications
+                syllable
+                    .letter_modifications
                     .push((0, LetterModification::Dyet));
                 return Transformation::LetterModificationAdded;
             }
@@ -173,7 +186,8 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
         }
 
         for position in positions {
-            syllable.letter_modifications
+            syllable
+                .letter_modifications
                 .push((position, modification.clone()));
         }
 
@@ -187,10 +201,12 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
 
     // Otherwise replace the modification
     let positions = get_modification_positions(syllable, modification);
-    syllable.letter_modifications
+    syllable
+        .letter_modifications
         .retain(|(_, modification)| *modification == LetterModification::Dyet);
     for position in positions {
-        syllable.letter_modifications
+        syllable
+            .letter_modifications
             .push((position, modification.clone()));
     }
     Transformation::LetterModificationReplaced

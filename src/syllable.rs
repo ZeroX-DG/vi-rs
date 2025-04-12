@@ -14,7 +14,7 @@
 //! use vi::syllable::Syllable;
 //! use vi::processor::{modify_letter, add_tone, LetterModification, ToneMark};
 //!
-//! let mut syllable = Syllable::empty();
+//! let mut syllable = Syllable::default();
 //! syllable.push('t');
 //! syllable.push('u');
 //! syllable.push('y');
@@ -32,13 +32,14 @@ use std::fmt::Display;
 use crate::{
     editing::{add_modification_char, add_tone_char, get_tone_mark_placement, replace_nth_char},
     parsing::{extract_letter_modifications, extract_tone, parse_syllable},
-    processor::{modify_letter, LetterModification, ToneMark},
+    processor::{modify_letter, AccentStyle, LetterModification, ToneMark},
     util::clean_char,
 };
 
 /// Represent a syllable that is being transformed. This is so the syllable doesn't need to be re-parsed
 /// during transformation stage. After all transformation is applied, the final state of the syllable
 /// can be retreieved via the `to_string` method.
+#[derive(Default)]
 pub struct Syllable {
     /// The initial consonant of the syllable. This is always a clean text with no transformation applied.
     pub initial_consonant: String,
@@ -48,22 +49,13 @@ pub struct Syllable {
     pub final_consonant: String,
     /// The tone mark of the syllable. This could be empty for syllable with no tone mark or "thanh ngang".
     pub tone_mark: Option<ToneMark>,
+    /// The accent style used when rendering the syllable. Default to the [`AccentStyle::New`]
+    pub accent_style: AccentStyle,
     /// Letter modifications on the syllable, along with the index that the modification is applying to.
     pub letter_modifications: Vec<(usize, LetterModification)>,
 }
 
 impl Syllable {
-    /// Construct an empty syllable
-    pub fn empty() -> Self {
-        Self {
-            initial_consonant: String::new(),
-            vowel: String::new(),
-            final_consonant: String::new(),
-            tone_mark: None,
-            letter_modifications: Vec::new(),
-        }
-    }
-
     /// The length of the syllable in characters instead of bytes.
     pub fn len(&self) -> usize {
         self.initial_consonant.chars().count()
@@ -160,7 +152,7 @@ impl Display for Syllable {
         }
 
         if let Some(tone_mark) = &self.tone_mark {
-            let tone_mark_position = get_tone_mark_placement(&result);
+            let tone_mark_position = get_tone_mark_placement(&result, &self.accent_style);
             let ch = result.chars().nth(tone_mark_position).unwrap();
             let replace_char = add_tone_char(ch, tone_mark);
             replace_nth_char(&mut result, tone_mark_position, replace_char);
@@ -173,7 +165,7 @@ impl Display for Syllable {
 #[cfg(test)]
 impl From<&str> for Syllable {
     fn from(value: &str) -> Self {
-        let mut syllable = Syllable::empty();
+        let mut syllable = Syllable::default();
         syllable.set(value.to_string());
         syllable
     }

@@ -54,10 +54,11 @@ use phf::{phf_map, Map};
 
 use crate::{
     processor::{
-        add_tone, modify_letter, remove_tone, LetterModification, ToneMark, Transformation,
+        add_tone, modify_letter, remove_tone, AccentStyle, LetterModification, ToneMark,
+        Transformation,
     },
-    validation::is_valid_syllable,
     syllable::Syllable,
+    validation::is_valid_syllable,
 };
 
 /// An action to be listed as part of a typing definition.
@@ -168,26 +169,36 @@ pub static TELEX: Definition = phf_map! {
     'z' => &[Action::RemoveToneMark],
 };
 
-/// Transform a buffer of characters using a typing method definition.
+/// Transforms a buffer of characters using a typing method definition with a given accent style.
+///
+/// This is the customizable version of [`transform_buffer`] that lets you choose how accents are applied.
 ///
 /// # Example
 ///
 /// ```
-/// use vi::methods::transform_buffer;
+/// use vi::{
+///     processor::AccentStyle,
+///     methods::transform_buffer_with_style
+/// };
 ///
 /// let mut result = String::new();
-/// transform_buffer(&vi::VNI, "viet65".chars(), &mut result);
-/// assert_eq!(result, "việt".to_owned());
+/// transform_buffer_with_style(&vi::TELEX, AccentStyle::Old, "hoas".chars(), &mut result);
+/// assert_eq!(result, "hóa".to_owned());
 /// ```
-pub fn transform_buffer<I>(
+pub fn transform_buffer_with_style<I>(
     definition: &Definition,
+    accent_style: AccentStyle,
     buffer: I,
     output: &mut String,
 ) -> TransformResult
 where
     I: IntoIterator<Item = char>,
 {
-    let mut syllable = Syllable::empty();
+    let mut syllable = Syllable {
+        accent_style,
+        ..Default::default()
+    };
+
     let mut tone_mark_removed = false;
     let mut letter_modification_removed = false;
 
@@ -222,7 +233,8 @@ where
                     if syllable.vowel.is_empty() || syllable.to_string() == "gi" {
                         syllable.push(if ch.is_lowercase() { 'u' } else { 'U' });
                         let last_index = syllable.len() - 1;
-                        syllable.letter_modifications
+                        syllable
+                            .letter_modifications
                             .push((last_index, LetterModification::Horn));
                         Transformation::LetterModificationAdded
                     } else {
@@ -286,3 +298,26 @@ where
         letter_modification_removed,
     }
 }
+
+/// Transform a buffer of characters using a typing method definition.
+///
+/// # Example
+///
+/// ```
+/// use vi::methods::transform_buffer;
+///
+/// let mut result = String::new();
+/// transform_buffer(&vi::VNI, "viet65".chars(), &mut result);
+/// assert_eq!(result, "việt".to_owned());
+/// ```
+pub fn transform_buffer<I>(
+    definition: &Definition,
+    buffer: I,
+    output: &mut String,
+) -> TransformResult
+where
+    I: IntoIterator<Item = char>,
+{
+    transform_buffer_with_style(definition, AccentStyle::default(), buffer, output)
+}
+

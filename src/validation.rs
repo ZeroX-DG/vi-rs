@@ -6,7 +6,7 @@
 //!
 //! The starting consonant are called initial consonant, while the consonant at the end is called the final consonant.
 //! A cluster of consonant can contains 1 -> 3 characters.
-//! See: https://en.wikibooks.org/wiki/Vietnamese/Consonants
+//! See: <https://en.wikibooks.org/wiki/Vietnamese/Consonants>
 
 use phf::{phf_set, Set};
 
