@@ -320,4 +320,3 @@ where
 {
     transform_buffer_with_style(definition, AccentStyle::default(), buffer, output)
 }
-

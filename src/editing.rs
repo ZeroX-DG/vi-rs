@@ -171,7 +171,10 @@ pub fn get_modification_positions(
             return Vec::new();
         }
 
-        if vowel == "uo" && !syllable.initial_consonant.is_empty() && syllable.final_consonant.is_empty() {
+        if vowel == "uo"
+            && !syllable.initial_consonant.is_empty()
+            && syllable.final_consonant.is_empty()
+        {
             return vec![vowel_index + 1];
         }
 
