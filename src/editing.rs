@@ -1,14 +1,14 @@
 //! Functions used for character editing.
 //!
-//! These functions work directly with character & string instead of the abstract word struct.
+//! These functions work directly with character & string instead of the abstract syllable struct.
 use crate::{
     maps::{
         ACCUTE_MAP, BREVE_MAP, CIRCUMFLEX_MAP, DOT_MAP, DYET_MAP, GRAVE_MAP, HOOK_ABOVE_MAP,
         HORN_MAP, TILDE_MAP,
     },
-    parsing::parse_word,
-    processor::{LetterModification, ToneMark},
-    word::Word,
+    parsing::parse_syllable,
+    processor::{AccentStyle, LetterModification, ToneMark},
+    syllable::Syllable,
 };
 
 const SPECIAL_VOWEL_PAIRS: [&str; 6] = ["oa", "oe", "oo", "uy", "uo", "ie"];
@@ -18,14 +18,20 @@ const SPECIAL_VOWEL_PAIRS: [&str; 6] = ["oa", "oe", "oo", "uy", "uo", "ie"];
 /// # Rules:
 /// 1. If a vowel contains ơ or ê, tone mark goes there
 /// 2. If a vowel contains `oa`, `oe`, `oo`, `oy`, tone mark should be on the
-/// second character
-/// 3. If a vowel end with 2 put it on the first one
-/// 4. Else, but tone mark on second vowel character
-pub fn get_tone_mark_placement(raw_word: &str) -> usize {
-    let (_, word) = parse_word(raw_word).unwrap();
-    let vowel = &word.vowel;
+///    second character
+///
+/// If the accent style is [`AccentStyle::Old`], then:
+/// - 3. For vowel length 3 or vowel length 2 with a final consonant, put it on the second vowel character
+/// - 4. Else, put it on the first vowel character
+///
+/// Otherwise:
+/// - 3. If a vowel has 2 characters, put the tone mark on the first one
+/// - 4. Otherwise, put the tone mark on the second vowel character
+pub fn get_tone_mark_placement(raw_syllable: &str, accent_style: &AccentStyle) -> usize {
+    let (_, syllable) = parse_syllable(raw_syllable).unwrap();
+    let vowel = &syllable.vowel;
     let vowel_len = vowel.chars().count();
-    let vowel_index = word.initial_consonant.chars().count();
+    let vowel_index = syllable.initial_consonant.chars().count();
     // If there's only one vowel, then it's guaranteed that the tone mark will go there
     if vowel_len == 1 {
         return vowel_index;
@@ -46,13 +52,26 @@ pub fn get_tone_mark_placement(raw_word: &str) -> usize {
         return vowel_index + index;
     }
 
+    // For old-style accent placement:
+    // - If the vowel has 3 characters (e.g. "nghieu") or
+    //   has 2 characters with a final consonant (e.g. "hoang"),
+    //   the tone mark is placed on the second vowel character.
+    // - Otherwise, place the tone mark on the first vowel character.
+    if *accent_style == AccentStyle::Old {
+        if vowel_len == 3 || (vowel_len == 2 && !syllable.final_consonant.is_empty()) {
+            return vowel_index + 1;
+        }
+
+        return vowel_index;
+    }
+
     // Special vowels require the tone mark to be placed on the second character
     if SPECIAL_VOWEL_PAIRS.iter().any(|pair| vowel.contains(pair)) {
         return vowel_index + 1;
     }
 
-    // If a word end with 2 character vowel, put it on the first character
-    if word.final_consonant.is_empty() && vowel_len == 2 {
+    // If a syllable end with 2 character vowel, put it on the first character
+    if syllable.final_consonant.is_empty() && vowel_len == 2 {
         return vowel_index;
     }
 
@@ -109,18 +128,21 @@ pub fn add_modification_char(ch: char, modification: &LetterModification) -> cha
 /// 2. If the modification is Circumflex, it's always on a, o, or e, which ever come first.
 /// 3. If the modification is Breve, it's always on a.
 /// 4. If the modification is Horn:
-///     a. if the vowel is oa, ignore
-///     b. if the vowel is uo & only the initial consonant is present, then it's on the o
-///     c. if the vowel is uo, uoi or uou, then it's on the first two chars
-///     d. if the vowel contains u then it's on u, otherwise if it contains o then it's on o
-pub fn get_modification_positions(word: &Word, modification: &LetterModification) -> Vec<usize> {
+///    a. if the vowel is oa, ignore
+///    b. if the vowel is uo & only the initial consonant is present, then it's on the o
+///    c. if the vowel is uo, uoi or uou, then it's on the first two chars
+///    d. if the vowel contains u then it's on u, otherwise if it contains o then it's on o
+pub fn get_modification_positions(
+    syllable: &Syllable,
+    modification: &LetterModification,
+) -> Vec<usize> {
     if let LetterModification::Dyet = modification {
         return vec![0];
     }
 
-    let vowel_index = word.initial_consonant.chars().count();
+    let vowel_index = syllable.initial_consonant.chars().count();
 
-    let vowel = word.vowel.to_lowercase();
+    let vowel = syllable.vowel.to_lowercase();
 
     if let LetterModification::Circumflex = modification {
         let indexes = [vowel.find('a'), vowel.find('o'), vowel.find('e')]
@@ -149,7 +171,10 @@ pub fn get_modification_positions(word: &Word, modification: &LetterModification
             return Vec::new();
         }
 
-        if vowel == "uo" && !word.initial_consonant.is_empty() && word.final_consonant.is_empty() {
+        if vowel == "uo"
+            && !syllable.initial_consonant.is_empty()
+            && syllable.final_consonant.is_empty()
+        {
             return vec![vowel_index + 1];
         }
 
@@ -169,44 +194,51 @@ mod tests {
     use super::*;
 
     #[test]
+    fn get_tone_mark_placement_old() {
+        let result = get_tone_mark_placement("hoa", &AccentStyle::Old);
+        let expected = 1;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn get_tone_mark_placement_normal() {
-        let result = get_tone_mark_placement("choe");
+        let result = get_tone_mark_placement("choe", &AccentStyle::New);
         let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_special() {
-        let result = get_tone_mark_placement("chieu");
+        let result = get_tone_mark_placement("chieu", &AccentStyle::New);
         let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_mid_not_end() {
-        let result = get_tone_mark_placement("hoang");
+        let result = get_tone_mark_placement("hoang", &AccentStyle::New);
         let expected = 2;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_u_and_o() {
-        let result = get_tone_mark_placement("ngươi");
+        let result = get_tone_mark_placement("ngươi", &AccentStyle::New);
         let expected = 3;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_tone_mark_placement_uppercase() {
-        let result = get_tone_mark_placement("chÊt");
+        let result = get_tone_mark_placement("chÊt", &AccentStyle::New);
         let expected = 2;
         assert_eq!(result, expected);
 
-        let result = get_tone_mark_placement("chiÊt");
+        let result = get_tone_mark_placement("chiÊt", &AccentStyle::New);
         let expected = 3;
         assert_eq!(result, expected);
 
-        let result = get_tone_mark_placement("cAu");
+        let result = get_tone_mark_placement("cAu", &AccentStyle::New);
         let expected = 1;
         assert_eq!(result, expected);
     }

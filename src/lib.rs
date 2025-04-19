@@ -7,7 +7,7 @@
 //! # Aspirations
 //!
 //! - Minimal to zero configuration. The engine should have a default configurations that fit with most usecases.
-//! - Support all transformation behaviours & orders. Adding a tonemark during or after typing a word should just work.
+//! - Support all transformation behaviours & orders. Adding a tonemark during or after typing a syllable should just work.
 //! - Be as fast as possible.
 //! - Be as simple as possible.
 //!
@@ -37,12 +37,12 @@ pub mod maps;
 pub mod methods;
 pub mod parsing;
 pub mod processor;
+pub mod syllable;
 #[deprecated(since = "0.7.0")]
 pub mod telex;
 pub mod util;
 pub mod validation;
 #[deprecated(since = "0.7.0")]
 pub mod vni;
-pub mod word;
 
 pub use methods::*;
