@@ -27,3 +27,7 @@ rustyline = "16"
 [[bench]]
 name = "transform_benchmark"
 harness = false
+
+[[bench]]
+name = "incremental_benchmark"
+harness = false
