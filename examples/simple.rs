@@ -1,4 +1,4 @@
-extern crate vi;
+
 
 fn main() {
     let inputs = vec![vec!['v', 'i', 'e', 't', '5', '6'], vec!['n', 'a', 'm']];

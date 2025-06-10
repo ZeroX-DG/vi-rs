@@ -1,4 +1,4 @@
-extern crate vi;
+
 
 use rustyline::DefaultEditor;
 
