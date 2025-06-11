@@ -62,7 +62,7 @@ use crate::{
 };
 
 /// An action to be listed as part of a typing definition.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
     /// Add a tonemark
     AddTonemark(ToneMark),
@@ -116,14 +116,14 @@ pub struct TransformResult {
 ///
 /// - `1` -> Acute (thêm dấu sắc)
 /// - `2` -> Grave (thêm dấu huyền)
-/// - `3` -> HookAbove (thêm dấu hỏi)
+/// - `3` -> `HookAbove` (thêm dấu hỏi)
 /// - `4` -> Tilde (thêm dấu ngã)
 /// - `5` -> Underdot (thêm dấu nặng)
 /// - `6` -> Circumflex (thêm dấu ^)
 /// - `7` -> Horn (thêm dấu móc cho ư hoặc ơ)
 /// - `8` -> Breve (thêm dấu cho a thành ă)
 /// - `9` -> Dyet (thêm dấu gạch cho d thành đ)
-/// - `0` -> RemoveToneMark bỏ dấu thanh (sắc, hỏi, ngã, huyền)
+/// - `0` -> `RemoveToneMark` bỏ dấu thanh (sắc, hỏi, ngã, huyền)
 pub static VNI: Definition = phf_map! {
     '1' => &[Action::AddTonemark(ToneMark::Acute)],
     '2' => &[Action::AddTonemark(ToneMark::Grave)],
@@ -141,7 +141,7 @@ pub static VNI: Definition = phf_map! {
 ///
 /// - `s` -> Acute (thêm dấu sắc)
 /// - `f` -> Grave (thêm dấu huyền)
-/// - `r` -> HookAbove (thêm dấu hỏi)
+/// - `r` -> `HookAbove` (thêm dấu hỏi)
 /// - `x` -> Tilde (thêm dấu ngã)
 /// - `j` -> Underdot (thêm dấu nặng)
 /// - `a` -> Circumflex for a (thêm dấu ^ cho chữ a)
@@ -149,7 +149,7 @@ pub static VNI: Definition = phf_map! {
 /// - `o` -> Circumflex for o (thêm dấu ^ cho chữ o)
 /// - `w` -> Horn for ư/ơ or Breve for a (thêm dấu móc cho ư hoặc ơ hoặc thêm dấu cho a thành ă)
 /// - `d` -> Dyet (thêm dấu gạch cho d thành đ)
-/// - `z` -> RemoveToneMark bỏ dấu thanh (sắc, hỏi, ngã, huyền)
+/// - `z` -> `RemoveToneMark` bỏ dấu thanh (sắc, hỏi, ngã, huyền)
 ///
 /// **Note:**
 /// - By default `w` inserted by itself will be inserted as `ư` in the syllable.
@@ -172,6 +172,11 @@ pub static TELEX: Definition = phf_map! {
 /// Transforms a buffer of characters using a typing method definition with a given accent style.
 ///
 /// This is the customizable version of [`transform_buffer`] that lets you choose how accents are applied.
+///
+/// # Panics
+///
+/// Panics if the definition contains a character key that maps to an empty action list.
+/// This should not happen with well-formed definitions like [`TELEX`] or [`VNI`].
 ///
 /// # Example
 ///
@@ -213,7 +218,7 @@ where
             continue;
         }
 
-        let fallback = format!("{}{}", syllable, ch);
+        let fallback = format!("{syllable}{ch}");
         let actions = definition.get(&lowercase_ch).unwrap();
 
         let mut action_iter = actions.iter();
@@ -383,6 +388,7 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert_eq!(buffer.view(), "");
     /// ```
     #[inline]
+    #[must_use]
     pub fn new(definition: &'def Definition) -> Self {
         Self::new_with_style(definition, AccentStyle::default())
     }
@@ -398,6 +404,7 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert_eq!(buffer.view(), "");
     /// ```
     #[inline]
+    #[must_use]
     pub fn new_with_style(definition: &'def Definition, accent_style: AccentStyle) -> Self {
         Self {
             definition,
@@ -418,6 +425,11 @@ impl<'def> IncrementalBuffer<'def> {
     /// Adds a character to the buffer and updates the transformation result.
     ///
     /// Returns the transformation result for this character addition.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the definition contains a character key that maps to an empty action list.
+    /// This should not happen with well-formed definitions like [`TELEX`] or [`VNI`].
     ///
     /// # Examples
     ///
@@ -444,7 +456,7 @@ impl<'def> IncrementalBuffer<'def> {
             };
         }
 
-        let fallback = format!("{}{}", self.syllable, ch);
+        let fallback = format!("{}{ch}", self.syllable);
         let actions = self.definition.get(&lowercase_ch).unwrap();
 
         let mut action_iter = actions.iter();
@@ -551,7 +563,8 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert_eq!(buffer.view(), "viét");
     /// ```
     #[inline]
-    pub fn view(&self) -> &str {
+    #[must_use]
+    pub const fn view(&self) -> &str {
         &self.output
     }
 
@@ -577,7 +590,8 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert!(result.tone_mark_removed);
     /// ```
     #[inline]
-    pub fn result(&self) -> &TransformResult {
+    #[must_use]
+    pub const fn result(&self) -> &TransformResult {
         &self.result
     }
 
@@ -598,7 +612,8 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert_eq!(buffer.input(), &['v', 'i', 'e', 't', 's']);
     /// ```
     #[inline]
-    pub fn input(&self) -> &[char] {
+    #[must_use]
+    pub const fn input(&self) -> &[char] {
         &self.input
     }
 
@@ -656,6 +671,7 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert!(buffer.is_empty());
     /// ```
     #[inline]
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.input.is_empty()
     }
@@ -678,6 +694,7 @@ impl<'def> IncrementalBuffer<'def> {
     /// assert_eq!(buffer.len(), 5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn len(&self) -> usize {
         self.input.len()
     }
@@ -711,6 +728,7 @@ impl<'def> IncrementalBuffer<'def> {
 /// assert_eq!(buffer.view(), "viét");
 /// ```
 #[inline]
+#[must_use]
 pub fn transform_buffer_incremental(definition: &Definition) -> IncrementalBuffer<'_> {
     IncrementalBuffer::new(definition)
 }
@@ -732,6 +750,7 @@ pub fn transform_buffer_incremental(definition: &Definition) -> IncrementalBuffe
 /// assert_eq!(buffer.view(), "hóa");
 /// ```
 #[inline]
+#[must_use]
 pub fn transform_buffer_incremental_with_style(
     definition: &Definition,
     accent_style: AccentStyle,
