@@ -564,7 +564,7 @@ impl<'def> IncrementalBuffer<'def> {
     /// ```
     #[inline]
     #[must_use]
-    pub const fn view(&self) -> &str {
+    pub fn view(&self) -> &str {
         &self.output
     }
 
@@ -613,7 +613,7 @@ impl<'def> IncrementalBuffer<'def> {
     /// ```
     #[inline]
     #[must_use]
-    pub const fn input(&self) -> &[char] {
+    pub fn input(&self) -> &[char] {
         &self.input
     }
 
