@@ -9,7 +9,7 @@ fn incremental_vs_batch_telex(c: &mut Criterion) {
         b.iter(|| {
             let mut buffer = transform_buffer_incremental(&TELEX);
             for ch in black_box(test_input.chars()) {
-                buffer.push(ch);
+                let _ = buffer.push(ch);
             }
             black_box(buffer.view().to_string())
         })
@@ -31,7 +31,7 @@ fn incremental_vs_batch_vni(c: &mut Criterion) {
         b.iter(|| {
             let mut buffer = transform_buffer_incremental(&VNI);
             for ch in black_box(test_input.chars()) {
-                buffer.push(ch);
+                let _ = buffer.push(ch);
             }
             black_box(buffer.view().to_string())
         })
@@ -55,7 +55,7 @@ fn incremental_character_by_character(c: &mut Criterion) {
             // Simulate real-time typing where we need the result after each character
             let mut results = Vec::new();
             for ch in black_box(test_input.chars()) {
-                buffer.push(ch);
+                let _ = buffer.push(ch);
                 results.push(buffer.view().to_string());
             }
             black_box(results)
@@ -73,7 +73,7 @@ fn incremental_reuse_buffer(c: &mut Criterion) {
             for input in black_box(&test_inputs) {
                 buffer.clear();
                 for ch in input.chars() {
-                    buffer.push(ch);
+                    let _ = buffer.push(ch);
                 }
                 results.push(buffer.view().to_string());
             }
@@ -89,7 +89,7 @@ fn incremental_long_input(c: &mut Criterion) {
         b.iter(|| {
             let mut buffer = transform_buffer_incremental(&TELEX);
             for ch in black_box(long_input.chars()) {
-                buffer.push(ch);
+                let _ = buffer.push(ch);
             }
             black_box(buffer.view().to_string())
         })
@@ -112,7 +112,7 @@ fn incremental_memory_efficiency(c: &mut Criterion) {
             // Simulate typing and clearing multiple times
             for _ in 0..100 {
                 for ch in black_box("vietj".chars()) {
-                    buffer.push(ch);
+                    let _ = buffer.push(ch);
                 }
                 black_box(buffer.view().to_string());
                 buffer.clear();

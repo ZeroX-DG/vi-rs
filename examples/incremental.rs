@@ -36,7 +36,7 @@ fn main() {
     let vni_chars = ['v', 'i', 'e', 't', '6', '5'];
     
     for ch in vni_chars {
-        vni_buffer.push(ch);
+        let _ = vni_buffer.push(ch);
         println!("Input: '{}' -> Output: '{}'", ch, vni_buffer.view());
     }
     
@@ -51,7 +51,7 @@ fn main() {
     
     // Build "việt"
     for ch in ['v', 'i', 'e', 't', 'j'] {
-        buffer.push(ch);
+        let _ = buffer.push(ch);
     }
     println!("Built word: '{}'", buffer.view());
     
@@ -67,17 +67,17 @@ fn main() {
     buffer.clear();
     
     // Circumflex on 'a'
-    buffer.push('a');
+    let _ = buffer.push('a');
     println!("Input: 'a' -> Output: '{}'", buffer.view());
-    buffer.push('a');
+    let _ = buffer.push('a');
     println!("Input: 'a' -> Output: '{}' (circumflex added)", buffer.view());
-    
+
     buffer.clear();
-    
+
     // Horn on 'u'
-    buffer.push('u');
+    let _ = buffer.push('u');
     println!("Input: 'u' -> Output: '{}'", buffer.view());
-    buffer.push('w');
+    let _ = buffer.push('w');
     println!("Input: 'w' -> Output: '{}' (horn added)", buffer.view());
     
     println!();
@@ -91,9 +91,9 @@ fn main() {
     let word_chars = ['n', 'g', 'h', 'i', 'e', 'e', 'n', 'g'];
     
     for (i, ch) in word_chars.iter().enumerate() {
-        buffer.push(*ch);
+        let _ = buffer.push(*ch);
         println!("Step {}: '{}' -> '{}'", i + 1, ch, buffer.view());
-        
+
         // Simulate typing delay
         std::thread::sleep(std::time::Duration::from_millis(200));
     }
@@ -113,7 +113,7 @@ fn main() {
         io::stdout().flush().unwrap();
         
         for ch in word.chars() {
-            buffer.push(ch);
+            let _ = buffer.push(ch);
             print!("{} ", buffer.view());
             io::stdout().flush().unwrap();
             std::thread::sleep(std::time::Duration::from_millis(100));

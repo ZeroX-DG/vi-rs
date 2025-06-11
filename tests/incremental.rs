@@ -15,27 +15,27 @@ fn test_incremental_buffer_basic_telex() {
     assert_eq!(buffer.input(), &[]);
     
     // Test single character
-    buffer.push('v');
+    let _ = buffer.push('v');
     assert_eq!(buffer.view(), "v");
     assert!(!buffer.is_empty());
     assert_eq!(buffer.len(), 1);
     assert_eq!(buffer.input(), &['v']);
-    
+
     // Test building up a word
-    buffer.push('i');
+    let _ = buffer.push('i');
     assert_eq!(buffer.view(), "vi");
     assert_eq!(buffer.len(), 2);
-    
-    buffer.push('e');
+
+    let _ = buffer.push('e');
     assert_eq!(buffer.view(), "vie");
     assert_eq!(buffer.len(), 3);
-    
-    buffer.push('t');
+
+    let _ = buffer.push('t');
     assert_eq!(buffer.view(), "viet");
     assert_eq!(buffer.len(), 4);
-    
+
     // Test tone mark addition
-    buffer.push('s');
+    let _ = buffer.push('s');
     assert_eq!(buffer.view(), "viét");
     assert_eq!(buffer.len(), 5);
     assert_eq!(buffer.input(), &['v', 'i', 'e', 't', 's']);
@@ -45,12 +45,12 @@ fn test_incremental_buffer_basic_telex() {
 fn test_incremental_buffer_basic_vni() {
     let mut buffer = transform_buffer_incremental(&VNI);
     
-    buffer.push('v');
-    buffer.push('i');
-    buffer.push('e');
-    buffer.push('t');
-    buffer.push('6');
-    buffer.push('5');
+    let _ = buffer.push('v');
+    let _ = buffer.push('i');
+    let _ = buffer.push('e');
+    let _ = buffer.push('t');
+    let _ = buffer.push('6');
+    let _ = buffer.push('5');
     
     assert_eq!(buffer.view(), "việt");
     assert_eq!(buffer.input(), &['v', 'i', 'e', 't', '6', '5']);
@@ -60,11 +60,11 @@ fn test_incremental_buffer_basic_vni() {
 fn test_incremental_buffer_clear() {
     let mut buffer = transform_buffer_incremental(&TELEX);
     
-    buffer.push('v');
-    buffer.push('i');
-    buffer.push('e');
-    buffer.push('t');
-    buffer.push('s');
+    let _ = buffer.push('v');
+    let _ = buffer.push('i');
+    let _ = buffer.push('e');
+    let _ = buffer.push('t');
+    let _ = buffer.push('s');
 
     assert_eq!(buffer.view(), "viét");
     assert!(!buffer.is_empty());
@@ -82,11 +82,11 @@ fn test_incremental_buffer_clear() {
 fn test_incremental_buffer_tone_removal() {
     let mut buffer = transform_buffer_incremental(&TELEX);
     
-    buffer.push('v');
-    buffer.push('i');
-    buffer.push('e');
-    buffer.push('t');
-    buffer.push('s');
+    let _ = buffer.push('v');
+    let _ = buffer.push('i');
+    let _ = buffer.push('e');
+    let _ = buffer.push('t');
+    let _ = buffer.push('s');
     assert_eq!(buffer.view(), "viét");
 
     // Remove tone mark with 'z'
@@ -100,20 +100,20 @@ fn test_incremental_buffer_tone_removal() {
 fn test_incremental_buffer_letter_modification() {
     let mut buffer = transform_buffer_incremental(&TELEX);
     
-    buffer.push('a');
-    buffer.push('a');
+    let _ = buffer.push('a');
+    let _ = buffer.push('a');
     assert_eq!(buffer.view(), "â");
-    
+
     buffer.clear();
-    
-    buffer.push('o');
-    buffer.push('o');
+
+    let _ = buffer.push('o');
+    let _ = buffer.push('o');
     assert_eq!(buffer.view(), "ô");
-    
+
     buffer.clear();
-    
-    buffer.push('u');
-    buffer.push('w');
+
+    let _ = buffer.push('u');
+    let _ = buffer.push('w');
     assert_eq!(buffer.view(), "ư");
 }
 
@@ -124,7 +124,7 @@ fn test_incremental_buffer_complex_word() {
     // Build "nghiêng" character by character
     let chars = ['n', 'g', 'h', 'i', 'e', 'e', 'n', 'g'];
     for ch in chars {
-        buffer.push(ch);
+        let _ = buffer.push(ch);
     }
     
     assert_eq!(buffer.view(), "nghiêng");
@@ -136,11 +136,11 @@ fn test_incremental_buffer_w_insertion() {
     let mut buffer = transform_buffer_incremental(&TELEX);
     
     // Test 'w' insertion behavior
-    buffer.push('w');
+    let _ = buffer.push('w');
     assert_eq!(buffer.view(), "ư");
-    
+
     // Test 'w' after 'w' should replace with 'w'
-    buffer.push('w');
+    let _ = buffer.push('w');
     assert_eq!(buffer.view(), "w");
 }
 
@@ -151,8 +151,8 @@ fn test_incremental_buffer_accent_style() {
     
     // Build "hoà" vs "hòa"
     for ch in ['h', 'o', 'a', 's'] {
-        buffer_new.push(ch);
-        buffer_old.push(ch);
+        let _ = buffer_new.push(ch);
+        let _ = buffer_old.push(ch);
     }
     
     assert_eq!(buffer_new.view(), "hoá");
@@ -176,7 +176,7 @@ fn test_incremental_vs_batch_consistency() {
         let mut buffer = transform_buffer_incremental(&TELEX);
         
         for ch in test_case.chars() {
-            buffer.push(ch);
+            let _ = buffer.push(ch);
         }
         incremental_result.push_str(buffer.view());
         
@@ -194,7 +194,7 @@ fn test_incremental_vs_batch_consistency() {
         let mut buffer = transform_buffer_incremental(&VNI);
         
         for ch in test_case.chars() {
-            buffer.push(ch);
+            let _ = buffer.push(ch);
         }
         incremental_result.push_str(buffer.view());
         
@@ -214,21 +214,21 @@ fn test_incremental_buffer_non_vietnamese_chars() {
     let mut buffer = transform_buffer_incremental(&TELEX);
     
     // Test mixing Vietnamese and non-Vietnamese characters
-    buffer.push('h');
-    buffer.push('e');
-    buffer.push('l');
-    buffer.push('l');
-    buffer.push('o');
-    
+    let _ = buffer.push('h');
+    let _ = buffer.push('e');
+    let _ = buffer.push('l');
+    let _ = buffer.push('l');
+    let _ = buffer.push('o');
+
     assert_eq!(buffer.view(), "hello");
-    
+
     buffer.clear();
-    
+
     // Test numbers and symbols
-    buffer.push('1');
-    buffer.push('2');
-    buffer.push('3');
-    buffer.push('!');
+    let _ = buffer.push('1');
+    let _ = buffer.push('2');
+    let _ = buffer.push('3');
+    let _ = buffer.push('!');
     
     assert_eq!(buffer.view(), "123!");
 }
