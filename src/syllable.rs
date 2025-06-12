@@ -27,8 +27,8 @@
 //! println!("{}", syllable); // tuyết
 //!
 //! ```
-use std::fmt::Display;
 use smallvec::SmallVec;
+use std::fmt::Display;
 
 use crate::{
     editing::{add_modification_char, add_tone_char, get_tone_mark_placement, replace_nth_char},

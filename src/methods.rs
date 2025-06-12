@@ -470,16 +470,23 @@ impl<'def> IncrementalBuffer<'def> {
         loop {
             let transformation = match action {
                 Action::AddTonemark(tonemark) => add_tone(&mut self.syllable, tonemark),
-                Action::ModifyLetter(modification) => modify_letter(&mut self.syllable, modification),
+                Action::ModifyLetter(modification) => {
+                    modify_letter(&mut self.syllable, modification)
+                }
                 Action::ModifyLetterOnCharacterFamily(modification, family_char)
-                    if self.syllable.vowel.to_ascii_lowercase().contains(*family_char) =>
+                    if self
+                        .syllable
+                        .vowel
+                        .to_ascii_lowercase()
+                        .contains(*family_char) =>
                 {
                     modify_letter(&mut self.syllable, modification)
                 }
                 Action::RemoveToneMark => remove_tone(&mut self.syllable),
                 Action::InsertƯ => {
                     if self.syllable.vowel.is_empty() || self.syllable.to_string() == "gi" {
-                        self.syllable.push(if ch.is_lowercase() { 'u' } else { 'U' });
+                        self.syllable
+                            .push(if ch.is_lowercase() { 'u' } else { 'U' });
                         let last_index = self.syllable.len() - 1;
                         self.syllable
                             .letter_modifications
@@ -489,7 +496,8 @@ impl<'def> IncrementalBuffer<'def> {
                         Transformation::Ignored
                     }
                 }
-                Action::ResetInsertedƯ if matches!(self.last_executed_action, Some(Action::InsertƯ)) =>
+                Action::ResetInsertedƯ
+                    if matches!(self.last_executed_action, Some(Action::InsertƯ)) =>
                 {
                     self.syllable.replace_last_char(ch);
                     Transformation::LetterModificationRemoved

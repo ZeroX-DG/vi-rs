@@ -1,5 +1,3 @@
-
-
 use vi::{transform_buffer, VNI};
 
 fn main() {
