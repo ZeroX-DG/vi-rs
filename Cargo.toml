@@ -31,3 +31,7 @@ harness = false
 [[bench]]
 name = "incremental_benchmark"
 harness = false
+
+[[bench]]
+name = "clean_char_benchmark"
+harness = false
