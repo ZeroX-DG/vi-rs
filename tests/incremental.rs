@@ -151,7 +151,7 @@ fn test_incremental_buffer_accent_style() {
     let mut buffer_new = transform_buffer_incremental_with_style(&TELEX, AccentStyle::New);
     let mut buffer_old = transform_buffer_incremental_with_style(&TELEX, AccentStyle::Old);
 
-    // Build "hoà" vs "hòa"
+    // Build "hoá" vs "hóa"
     for ch in ['h', 'o', 'a', 's'] {
         let _ = buffer_new.push(ch);
         let _ = buffer_old.push(ch);

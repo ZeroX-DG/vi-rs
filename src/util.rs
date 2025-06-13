@@ -15,30 +15,39 @@
 /// assert_eq!(clean_char('ự'), 'u');
 /// ```
 #[inline]
-pub fn clean_char(ch: char) -> char {
-    let is_uppercase = ch.is_uppercase();
-    static ACCENTS: [&str; 7] = [
-        "aàảãáạăằẳẵắặâầẩẫấậ",
-        "dđ",
-        "eèẻẽéẹêềểễếệ",
-        "iìỉĩíị",
-        "oòỏõóọôồổỗốộơờởỡớợ",
-        "uùủũúụưừửữứự",
-        "yỳỷỹýỵ",
-    ];
-    let ch_lowercase = ch.to_lowercase().to_string();
-    let mut result = ch;
-    for accent in ACCENTS {
-        if accent.contains(&ch_lowercase) {
-            result = accent.chars().next().unwrap();
-        }
+pub const fn clean_char(ch: char) -> char {
+    match ch {
+        // Lowercase a family
+        'a' | 'à' | 'ả' | 'ã' | 'á' | 'ạ' | 'ă' | 'ằ' | 'ẳ' | 'ẵ' | 'ắ' | 'ặ' | 'â' | 'ầ' | 'ẩ' | 'ẫ' | 'ấ' | 'ậ' => 'a',
+        // Uppercase A family
+        'A' | 'À' | 'Ả' | 'Ã' | 'Á' | 'Ạ' | 'Ă' | 'Ằ' | 'Ẳ' | 'Ẵ' | 'Ắ' | 'Ặ' | 'Â' | 'Ầ' | 'Ẩ' | 'Ẫ' | 'Ấ' | 'Ậ' => 'A',
+        // Lowercase d family
+        'd' | 'đ' => 'd',
+        // Uppercase D family
+        'D' | 'Đ' => 'D',
+        // Lowercase e family
+        'e' | 'è' | 'ẻ' | 'ẽ' | 'é' | 'ẹ' | 'ê' | 'ề' | 'ể' | 'ễ' | 'ế' | 'ệ' => 'e',
+        // Uppercase E family
+        'E' | 'È' | 'Ẻ' | 'Ẽ' | 'É' | 'Ẹ' | 'Ê' | 'Ề' | 'Ể' | 'Ễ' | 'Ế' | 'Ệ' => 'E',
+        // Lowercase i family
+        'i' | 'ì' | 'ỉ' | 'ĩ' | 'í' | 'ị' => 'i',
+        // Uppercase I family
+        'I' | 'Ì' | 'Ỉ' | 'Ĩ' | 'Í' | 'Ị' => 'I',
+        // Lowercase o family
+        'o' | 'ò' | 'ỏ' | 'õ' | 'ó' | 'ọ' | 'ô' | 'ồ' | 'ổ' | 'ỗ' | 'ố' | 'ộ' | 'ơ' | 'ờ' | 'ở' | 'ỡ' | 'ớ' | 'ợ' => 'o',
+        // Uppercase O family
+        'O' | 'Ò' | 'Ỏ' | 'Õ' | 'Ó' | 'Ọ' | 'Ô' | 'Ồ' | 'Ổ' | 'Ỗ' | 'Ố' | 'Ộ' | 'Ơ' | 'Ờ' | 'Ở' | 'Ỡ' | 'Ớ' | 'Ợ' => 'O',
+        // Lowercase u family
+        'u' | 'ù' | 'ủ' | 'ũ' | 'ú' | 'ụ' | 'ư' | 'ừ' | 'ử' | 'ữ' | 'ứ' | 'ự' => 'u',
+        // Uppercase U family
+        'U' | 'Ù' | 'Ủ' | 'Ũ' | 'Ú' | 'Ụ' | 'Ư' | 'Ừ' | 'Ử' | 'Ữ' | 'Ứ' | 'Ự' => 'U',
+        // Lowercase y family
+        'y' | 'ỳ' | 'ỷ' | 'ỹ' | 'ý' | 'ỵ' => 'y',
+        // Uppercase Y family
+        'Y' | 'Ỳ' | 'Ỷ' | 'Ỹ' | 'Ý' | 'Ỵ' => 'Y',
+        // Any other character remains unchanged
+        _ => ch,
     }
-
-    if is_uppercase {
-        result = result.to_ascii_uppercase();
-    }
-
-    result
 }
 
 /// Check if a character is a vowel.

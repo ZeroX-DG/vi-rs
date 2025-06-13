@@ -199,109 +199,14 @@ pub fn transform_buffer_with_style<I>(
 where
     I: IntoIterator<Item = char>,
 {
-    let mut syllable = Syllable {
-        accent_style,
-        ..Default::default()
-    };
-
-    let mut tone_mark_removed = false;
-    let mut letter_modification_removed = false;
-
-    let mut last_executed_action = None;
+    let mut incremental_buffer = IncrementalBuffer::new_with_style(definition, accent_style);
 
     for ch in buffer {
-        let lowercase_ch = ch.to_ascii_lowercase();
-
-        // If a character is not recognised as a transformation character in definition. Skip it.
-        if !definition.contains_key(&lowercase_ch) {
-            syllable.push(ch);
-            continue;
-        }
-
-        let fallback = format!("{syllable}{ch}");
-        let actions = definition.get(&lowercase_ch).unwrap();
-
-        let mut action_iter = actions.iter();
-        let mut action = action_iter.next().unwrap();
-
-        loop {
-            let transformation = match action {
-                Action::AddTonemark(tonemark) => add_tone(&mut syllable, tonemark),
-                Action::ModifyLetter(modification) => modify_letter(&mut syllable, modification),
-                Action::ModifyLetterOnCharacterFamily(modification, family_char)
-                    if syllable.vowel.to_ascii_lowercase().contains(*family_char) =>
-                {
-                    modify_letter(&mut syllable, modification)
-                }
-                Action::RemoveToneMark => remove_tone(&mut syllable),
-                Action::InsertƯ => {
-                    if syllable.vowel.is_empty() || syllable.to_string() == "gi" {
-                        syllable.push(if ch.is_lowercase() { 'u' } else { 'U' });
-                        let last_index = syllable.len() - 1;
-                        syllable
-                            .letter_modifications
-                            .push((last_index, LetterModification::Horn));
-                        Transformation::LetterModificationAdded
-                    } else {
-                        Transformation::Ignored
-                    }
-                }
-                Action::ResetInsertedƯ if matches!(last_executed_action, Some(Action::InsertƯ)) =>
-                {
-                    syllable.replace_last_char(ch);
-                    Transformation::LetterModificationRemoved
-                }
-                _ => Transformation::Ignored,
-            };
-
-            // If the transformation cannot be applied, try the next action if there's one.
-            if transformation == Transformation::Ignored {
-                if let Some(next_action) = action_iter.next() {
-                    action = next_action;
-                    continue;
-                }
-            }
-
-            if transformation == Transformation::ToneMarkRemoved {
-                tone_mark_removed = true;
-            }
-
-            if transformation == Transformation::LetterModificationRemoved {
-                letter_modification_removed = true;
-            }
-
-            let action_performed = match transformation {
-                Transformation::Ignored | Transformation::LetterModificationRemoved => false,
-                // If tone mark was intentionally removed with z character then it's count as an action.
-                Transformation::ToneMarkRemoved => *action == Action::RemoveToneMark,
-                _ => true,
-            };
-
-            // If the action is to trigger reset ư insert then we don't need further processing
-            if *action == Action::ResetInsertedƯ {
-                last_executed_action = Some(action.clone());
-                break;
-            }
-
-            if !action_performed {
-                syllable.push(ch);
-                last_executed_action = None;
-            } else if !is_valid_syllable(&syllable.to_string()) {
-                syllable.set(fallback);
-                last_executed_action = None;
-            } else {
-                last_executed_action = Some(action.clone());
-            }
-            break;
-        }
+        let _ = incremental_buffer.push(ch);
     }
 
-    output.push_str(&syllable.to_string());
-
-    TransformResult {
-        tone_mark_removed,
-        letter_modification_removed,
-    }
+    output.push_str(incremental_buffer.view());
+    incremental_buffer.result().clone()
 }
 
 /// Transform a buffer of characters using a typing method definition.
@@ -440,7 +345,6 @@ impl<'def> IncrementalBuffer<'def> {
     /// let result = buffer.push('v');
     /// assert_eq!(buffer.view(), "v");
     /// ```
-    #[must_use]
     pub fn push(&mut self, ch: char) -> TransformResult {
         self.input.push(ch);
 
