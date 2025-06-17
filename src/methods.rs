@@ -104,7 +104,7 @@ pub enum Action {
 pub type Definition = Map<char, &'static [Action]>;
 
 /// A result of a buffer transformation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TransformResult {
     /// Indicates whether a tone mark has been removed after the transformation.
     pub tone_mark_removed: bool,
@@ -319,10 +319,7 @@ impl<'def> IncrementalBuffer<'def> {
             },
             input: Vec::new(),
             output: String::new(),
-            result: TransformResult {
-                tone_mark_removed: false,
-                letter_modification_removed: false,
-            },
+            result: TransformResult::default(),
             last_executed_action: None,
         }
     }
@@ -354,10 +351,7 @@ impl<'def> IncrementalBuffer<'def> {
         if !self.definition.contains_key(&lowercase_ch) {
             self.syllable.push(ch);
             self.update_output();
-            return TransformResult {
-                tone_mark_removed: false,
-                letter_modification_removed: false,
-            };
+            return TransformResult::default();
         }
 
         let fallback = format!("{}{ch}", self.syllable);
@@ -366,10 +360,7 @@ impl<'def> IncrementalBuffer<'def> {
         let mut action_iter = actions.iter();
         let mut action = action_iter.next().unwrap();
 
-        let mut char_result = TransformResult {
-            tone_mark_removed: false,
-            letter_modification_removed: false,
-        };
+        let mut char_result = TransformResult::default();
 
         loop {
             let transformation = match action {
@@ -559,10 +550,7 @@ impl<'def> IncrementalBuffer<'def> {
         };
         self.input.clear();
         self.output.clear();
-        self.result = TransformResult {
-            tone_mark_removed: false,
-            letter_modification_removed: false,
-        };
+        self.result = TransformResult::default();
         self.last_executed_action = None;
     }
 
