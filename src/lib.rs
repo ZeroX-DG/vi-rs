@@ -46,3 +46,4 @@ pub mod validation;
 pub mod vni;
 
 pub use methods::*;
+pub use syllable::Syllable;

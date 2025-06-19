@@ -33,22 +33,18 @@ vi = "0.7.0"
 With vi, you can start building your own Vietnamese IME without worrying about how Vietnamese tone mark placement works. All you have to do is to implement a keyboard listener & a key sending system.
 
 ```rust
-extern crate vi;
-
-use vi::vni;
-
 fn main() {
     let inputs = vec![
-        vec!['v', 'i', 'e', 't', '6', '5'],
-        vec!['n', 'a', 'm']
+        "viet65",
+        "nam"
     ];
 
     let mut result = String::new();
     for input in inputs {
-        vni::transform_buffer(input.iter().cloned(), &mut result);
+        vi::transform_buffer(&vi::VNI, input.chars(), &mut result);
         result.push(' ');
     }
-    
+
     println!("{}", result); // prints "việt nam "
 }
 ```

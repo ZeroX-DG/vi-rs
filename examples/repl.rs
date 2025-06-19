@@ -1,5 +1,3 @@
-extern crate vi;
-
 use rustyline::DefaultEditor;
 
 // A REPL for testing transformation result.

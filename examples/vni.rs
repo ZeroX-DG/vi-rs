@@ -1,5 +1,3 @@
-extern crate vi;
-
 fn main() {
     let inputs = "anh se4 lam2, lam2 ta6t1 ca3 de963 d9uo75c che6t1 thay em";
 

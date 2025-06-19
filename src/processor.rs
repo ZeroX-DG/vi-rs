@@ -8,18 +8,20 @@ use crate::{editing::get_modification_positions, syllable::Syllable};
 /// Maximum length of a Vietnamese "syllable" is 7 letters long (nghiêng)
 const MAX_WORD_LENGTH: usize = 7;
 
-/// Vietnamese's tone mark
-#[derive(Debug, PartialEq, Clone)]
+/// Vietnamese tone marks.
+///
+/// Represents the five tone marks used in Vietnamese writing system.
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum ToneMark {
-    /// Dấu sắc
+    /// Dấu sắc (acute accent) - rising tone
     Acute,
-    /// Dấu huyền
+    /// Dấu huyền (grave accent) - falling tone
     Grave,
-    /// Dấu hỏi
+    /// Dấu hỏi (hook above) - dipping tone
     HookAbove,
-    /// Dấu ngã
+    /// Dấu ngã (tilde) - creaky rising tone
     Tilde,
-    /// Dấu nặng
+    /// Dấu nặng (dot below) - creaky falling tone
     Underdot,
 }
 
@@ -33,42 +35,58 @@ pub enum AccentStyle {
     New,
 }
 
-/// A modification to be apply to a letter
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+/// A modification to be applied to a letter.
+///
+/// Represents the diacritical marks that modify the base form of Vietnamese letters.
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum LetterModification {
-    /// The chevron shaped (ˆ) part on top of a character.
+    /// The circumflex (ˆ) diacritic - changes a, e, o to â, ê, ô
     Circumflex,
-    /// The part that shaped like a bottom half of a circle (˘)
+    /// The breve (˘) diacritic - changes a to ă
     Breve,
-    /// The hook that attach to the character. For example, ư
+    /// The horn diacritic - changes o, u to ơ, ư
     Horn,
-    /// The line that go through the character d (đ).
+    /// The stroke through d - changes d to đ
     Dyet,
 }
 
-/// A resulted transformation
-#[derive(Debug, PartialEq, Clone)]
+/// Result of a transformation operation.
+///
+/// Indicates what happened when attempting to apply a transformation to a syllable.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Transformation {
-    /// A tone mark has been successfully added on a "tone-less" syllable.
+    /// A tone mark has been successfully added to a syllable without a tone mark.
     ToneMarkAdded,
     /// A new tone mark has been placed to replace an existing tone mark.
     ToneMarkReplaced,
-    /// A tone mark has been removed from the syllable
+    /// A tone mark has been removed from the syllable.
     ToneMarkRemoved,
 
-    /// A letter modification has been added on a syllable without removing any existing modification.
+    /// A letter modification has been added without removing any existing modification.
     LetterModificationAdded,
     /// A letter modification has been added to replace an existing modification.
     LetterModificationReplaced,
-    /// A letter modification has been removed from the syllable
+    /// A letter modification has been removed from the syllable.
     LetterModificationRemoved,
 
-    /// The transformation cannot be applied and has been ignored
+    /// The transformation cannot be applied and has been ignored.
     Ignored,
 }
 
 /// Add tone mark to input.
-/// Return AddToneResult
+///
+/// Returns the result of the transformation operation.
+///
+/// # Examples
+///
+/// ```
+/// use vi::{Syllable, processor::{add_tone, ToneMark, Transformation}};
+///
+/// let mut syllable = Syllable::new("hello");
+/// let result = add_tone(&mut syllable, &ToneMark::Acute);
+/// assert_eq!(result, Transformation::ToneMarkAdded);
+/// ```
+#[must_use]
 pub fn add_tone(syllable: &mut Syllable, tone_mark: &ToneMark) -> Transformation {
     if syllable.is_empty() || syllable.len() > MAX_WORD_LENGTH {
         return Transformation::Ignored;
@@ -78,22 +96,34 @@ pub fn add_tone(syllable: &mut Syllable, tone_mark: &ToneMark) -> Transformation
         return Transformation::Ignored;
     }
 
-    if let Some(existing_tone_mark) = syllable.tone_mark.clone() {
+    if let Some(existing_tone_mark) = syllable.tone_mark {
         if existing_tone_mark == *tone_mark {
             syllable.tone_mark = None;
             Transformation::ToneMarkRemoved
         } else {
-            syllable.tone_mark = Some(tone_mark.clone());
+            syllable.tone_mark = Some(*tone_mark);
             Transformation::ToneMarkReplaced
         }
     } else {
-        syllable.tone_mark = Some(tone_mark.clone());
+        syllable.tone_mark = Some(*tone_mark);
         Transformation::ToneMarkAdded
     }
 }
 
-/// change a letter to vietnamese modified letter.
-/// Return if the letter has been modified or not and what's the output.
+/// Change a letter to Vietnamese modified letter.
+///
+/// Returns the result of the modification operation.
+///
+/// # Examples
+///
+/// ```
+/// use vi::{Syllable, processor::{modify_letter, LetterModification, Transformation}};
+///
+/// let mut syllable = Syllable::new("a");
+/// let result = modify_letter(&mut syllable, &LetterModification::Circumflex);
+/// assert_eq!(result, Transformation::LetterModificationAdded);
+/// ```
+#[must_use]
 pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification) -> Transformation {
     if syllable.is_empty() || syllable.len() > MAX_WORD_LENGTH {
         return Transformation::Ignored;
@@ -188,7 +218,7 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
         for position in positions {
             syllable
                 .letter_modifications
-                .push((position, modification.clone()));
+                .push((position, *modification));
         }
 
         return Transformation::LetterModificationAdded;
@@ -207,7 +237,7 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
     for position in positions {
         syllable
             .letter_modifications
-            .push((position, modification.clone()));
+            .push((position, *modification));
     }
     Transformation::LetterModificationReplaced
 }

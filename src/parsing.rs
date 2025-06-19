@@ -10,8 +10,7 @@ use crate::{
 use nom::{
     branch::alt,
     bytes::complete::{tag_no_case, take_till, take_while},
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 
 pub struct SyllableComponents<'a> {
@@ -22,22 +21,24 @@ pub struct SyllableComponents<'a> {
 
 fn initial_consonant(input: &str) -> IResult<&str, &str> {
     if input.to_lowercase().starts_with("gi") && !input.chars().nth(2).is_some_and(is_vowel) {
-        return tag_no_case("g")(input);
+        return tag_no_case("g").parse(input);
     }
-    alt((tag_no_case("gi"), tag_no_case("qu"), take_till(is_vowel)))(input)
+    alt((tag_no_case("gi"), tag_no_case("qu"), take_till(is_vowel))).parse(input)
 }
 
 fn vowel(input: &str) -> IResult<&str, &str> {
-    take_while(is_vowel)(input)
+    take_while(is_vowel).parse(input)
 }
 
 pub fn parse_vowel(input: &str) -> IResult<&str, &str> {
-    let (rest, (_, vowel)) = tuple((initial_consonant, vowel))(input)?;
+    let (rest, _) = initial_consonant(input)?;
+    let (rest, vowel) = vowel(rest)?;
     Ok((rest, vowel))
 }
 
 pub fn parse_syllable(input: &str) -> IResult<&str, SyllableComponents<'_>> {
-    let (rest, (initial_consonant, vowel)) = tuple((initial_consonant, vowel))(input)?;
+    let (rest, initial_consonant) = initial_consonant(input)?;
+    let (rest, vowel) = vowel(rest)?;
     Ok((
         rest,
         SyllableComponents {

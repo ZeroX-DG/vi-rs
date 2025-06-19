@@ -62,7 +62,7 @@ use crate::{
 };
 
 /// An action to be listed as part of a typing definition.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
     /// Add a tonemark
     AddTonemark(ToneMark),
@@ -104,7 +104,7 @@ pub enum Action {
 pub type Definition = Map<char, &'static [Action]>;
 
 /// A result of a buffer transformation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TransformResult {
     /// Indicates whether a tone mark has been removed after the transformation.
     pub tone_mark_removed: bool,
@@ -116,14 +116,14 @@ pub struct TransformResult {
 ///
 /// - `1` -> Acute (thêm dấu sắc)
 /// - `2` -> Grave (thêm dấu huyền)
-/// - `3` -> HookAbove (thêm dấu hỏi)
+/// - `3` -> `HookAbove` (thêm dấu hỏi)
 /// - `4` -> Tilde (thêm dấu ngã)
 /// - `5` -> Underdot (thêm dấu nặng)
 /// - `6` -> Circumflex (thêm dấu ^)
 /// - `7` -> Horn (thêm dấu móc cho ư hoặc ơ)
 /// - `8` -> Breve (thêm dấu cho a thành ă)
 /// - `9` -> Dyet (thêm dấu gạch cho d thành đ)
-/// - `0` -> RemoveToneMark bỏ dấu thanh (sắc, hỏi, ngã, huyền)
+/// - `0` -> `RemoveToneMark` bỏ dấu thanh (sắc, hỏi, ngã, huyền)
 pub static VNI: Definition = phf_map! {
     '1' => &[Action::AddTonemark(ToneMark::Acute)],
     '2' => &[Action::AddTonemark(ToneMark::Grave)],
@@ -141,7 +141,7 @@ pub static VNI: Definition = phf_map! {
 ///
 /// - `s` -> Acute (thêm dấu sắc)
 /// - `f` -> Grave (thêm dấu huyền)
-/// - `r` -> HookAbove (thêm dấu hỏi)
+/// - `r` -> `HookAbove` (thêm dấu hỏi)
 /// - `x` -> Tilde (thêm dấu ngã)
 /// - `j` -> Underdot (thêm dấu nặng)
 /// - `a` -> Circumflex for a (thêm dấu ^ cho chữ a)
@@ -149,7 +149,7 @@ pub static VNI: Definition = phf_map! {
 /// - `o` -> Circumflex for o (thêm dấu ^ cho chữ o)
 /// - `w` -> Horn for ư/ơ or Breve for a (thêm dấu móc cho ư hoặc ơ hoặc thêm dấu cho a thành ă)
 /// - `d` -> Dyet (thêm dấu gạch cho d thành đ)
-/// - `z` -> RemoveToneMark bỏ dấu thanh (sắc, hỏi, ngã, huyền)
+/// - `z` -> `RemoveToneMark` bỏ dấu thanh (sắc, hỏi, ngã, huyền)
 ///
 /// **Note:**
 /// - By default `w` inserted by itself will be inserted as `ư` in the syllable.
@@ -173,6 +173,11 @@ pub static TELEX: Definition = phf_map! {
 ///
 /// This is the customizable version of [`transform_buffer`] that lets you choose how accents are applied.
 ///
+/// # Panics
+///
+/// Panics if the definition contains a character key that maps to an empty action list.
+/// This should not happen with well-formed definitions like [`TELEX`] or [`VNI`].
+///
 /// # Example
 ///
 /// ```
@@ -194,109 +199,14 @@ pub fn transform_buffer_with_style<I>(
 where
     I: IntoIterator<Item = char>,
 {
-    let mut syllable = Syllable {
-        accent_style,
-        ..Default::default()
-    };
-
-    let mut tone_mark_removed = false;
-    let mut letter_modification_removed = false;
-
-    let mut last_executed_action = None;
+    let mut incremental_buffer = IncrementalBuffer::new_with_style(definition, accent_style);
 
     for ch in buffer {
-        let lowercase_ch = ch.to_ascii_lowercase();
-
-        // If a character is not recognised as a transformation character in definition. Skip it.
-        if !definition.contains_key(&lowercase_ch) {
-            syllable.push(ch);
-            continue;
-        }
-
-        let fallback = format!("{}{}", syllable, ch);
-        let actions = definition.get(&lowercase_ch).unwrap();
-
-        let mut action_iter = actions.iter();
-        let mut action = action_iter.next().unwrap();
-
-        loop {
-            let transformation = match action {
-                Action::AddTonemark(tonemark) => add_tone(&mut syllable, tonemark),
-                Action::ModifyLetter(modification) => modify_letter(&mut syllable, modification),
-                Action::ModifyLetterOnCharacterFamily(modification, family_char)
-                    if syllable.vowel.to_ascii_lowercase().contains(*family_char) =>
-                {
-                    modify_letter(&mut syllable, modification)
-                }
-                Action::RemoveToneMark => remove_tone(&mut syllable),
-                Action::InsertƯ => {
-                    if syllable.vowel.is_empty() || syllable.to_string() == "gi" {
-                        syllable.push(if ch.is_lowercase() { 'u' } else { 'U' });
-                        let last_index = syllable.len() - 1;
-                        syllable
-                            .letter_modifications
-                            .push((last_index, LetterModification::Horn));
-                        Transformation::LetterModificationAdded
-                    } else {
-                        Transformation::Ignored
-                    }
-                }
-                Action::ResetInsertedƯ if matches!(last_executed_action, Some(Action::InsertƯ)) =>
-                {
-                    syllable.replace_last_char(ch);
-                    Transformation::LetterModificationRemoved
-                }
-                _ => Transformation::Ignored,
-            };
-
-            // If the transformation cannot be applied, try the next action if there's one.
-            if transformation == Transformation::Ignored {
-                if let Some(next_action) = action_iter.next() {
-                    action = next_action;
-                    continue;
-                }
-            }
-
-            if transformation == Transformation::ToneMarkRemoved {
-                tone_mark_removed = true;
-            }
-
-            if transformation == Transformation::LetterModificationRemoved {
-                letter_modification_removed = true;
-            }
-
-            let action_performed = match transformation {
-                Transformation::Ignored | Transformation::LetterModificationRemoved => false,
-                // If tone mark was intentionally removed with z character then it's count as an action.
-                Transformation::ToneMarkRemoved => *action == Action::RemoveToneMark,
-                _ => true,
-            };
-
-            // If the action is to trigger reset ư insert then we don't need further processing
-            if *action == Action::ResetInsertedƯ {
-                last_executed_action = Some(action.clone());
-                break;
-            }
-
-            if !action_performed {
-                syllable.push(ch);
-                last_executed_action = None;
-            } else if !is_valid_syllable(&syllable.to_string()) {
-                syllable.set(fallback);
-                last_executed_action = None;
-            } else {
-                last_executed_action = Some(action.clone());
-            }
-            break;
-        }
+        let _ = incremental_buffer.push(ch);
     }
 
-    output.push_str(&syllable.to_string());
-
-    TransformResult {
-        tone_mark_removed,
-        letter_modification_removed,
-    }
+    output.push_str(incremental_buffer.view());
+    incremental_buffer.result().clone()
 }
 
 /// Transform a buffer of characters using a typing method definition.
@@ -319,4 +229,431 @@ where
     I: IntoIterator<Item = char>,
 {
     transform_buffer_with_style(definition, AccentStyle::default(), buffer, output)
+}
+
+/// An incremental buffer for character-by-character Vietnamese text transformation.
+///
+/// This structure allows for incremental processing of Vietnamese input, where characters
+/// are added one at a time and the transformation result can be viewed at any point.
+/// This is particularly useful for input method engines that need to display preview
+/// text as the user types.
+///
+/// # Memory Optimization
+///
+/// The buffer caches the current syllable state and transformation history to avoid
+/// recomputing the entire transformation on each character addition.
+///
+/// # Examples
+///
+/// ```
+/// use vi::methods::transform_buffer_incremental;
+///
+/// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+///
+/// buffer.push('v');
+/// assert_eq!(buffer.view(), "v");
+///
+/// buffer.push('i');
+/// assert_eq!(buffer.view(), "vi");
+///
+/// buffer.push('e');
+/// assert_eq!(buffer.view(), "vie");
+///
+/// buffer.push('t');
+/// assert_eq!(buffer.view(), "viet");
+///
+/// buffer.push('s');
+/// assert_eq!(buffer.view(), "viét");
+/// ```
+#[derive(Debug, Clone)]
+pub struct IncrementalBuffer<'def> {
+    /// Reference to the typing method definition
+    definition: &'def Definition,
+    /// The current syllable state
+    syllable: Syllable,
+    /// Input characters received so far
+    input: Vec<char>,
+    /// Cached output string to avoid recomputation
+    output: String,
+    /// Cumulative transformation result
+    result: TransformResult,
+    /// The last executed action for state tracking
+    last_executed_action: Option<Action>,
+}
+
+impl<'def> IncrementalBuffer<'def> {
+    /// Creates a new incremental buffer with the specified typing definition.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::IncrementalBuffer;
+    ///
+    /// let buffer = IncrementalBuffer::new(&vi::TELEX);
+    /// assert_eq!(buffer.view(), "");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn new(definition: &'def Definition) -> Self {
+        Self::new_with_style(definition, AccentStyle::default())
+    }
+
+    /// Creates a new incremental buffer with the specified typing definition and accent style.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::{methods::IncrementalBuffer, processor::AccentStyle};
+    ///
+    /// let buffer = IncrementalBuffer::new_with_style(&vi::TELEX, AccentStyle::Old);
+    /// assert_eq!(buffer.view(), "");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn new_with_style(definition: &'def Definition, accent_style: AccentStyle) -> Self {
+        Self {
+            definition,
+            syllable: Syllable {
+                accent_style,
+                ..Default::default()
+            },
+            input: Vec::new(),
+            output: String::new(),
+            result: TransformResult::default(),
+            last_executed_action: None,
+        }
+    }
+
+    /// Adds a character to the buffer and updates the transformation result.
+    ///
+    /// Returns the transformation result for this character addition.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the definition contains a character key that maps to an empty action list.
+    /// This should not happen with well-formed definitions like [`TELEX`] or [`VNI`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::VNI);
+    /// let result = buffer.push('v');
+    /// assert_eq!(buffer.view(), "v");
+    /// ```
+    pub fn push(&mut self, ch: char) -> TransformResult {
+        self.input.push(ch);
+
+        let lowercase_ch = ch.to_ascii_lowercase();
+
+        // If a character is not recognised as a transformation character in definition. Skip it.
+        if !self.definition.contains_key(&lowercase_ch) {
+            self.syllable.push(ch);
+            self.update_output();
+            return TransformResult::default();
+        }
+
+        let fallback = format!("{}{ch}", self.syllable);
+        let actions = self.definition.get(&lowercase_ch).unwrap();
+
+        let mut action_iter = actions.iter();
+        let mut action = action_iter.next().unwrap();
+
+        let mut char_result = TransformResult::default();
+
+        loop {
+            let transformation = match action {
+                Action::AddTonemark(tonemark) => add_tone(&mut self.syllable, tonemark),
+                Action::ModifyLetter(modification) => {
+                    modify_letter(&mut self.syllable, modification)
+                }
+                Action::ModifyLetterOnCharacterFamily(modification, family_char)
+                    if self
+                        .syllable
+                        .vowel
+                        .to_ascii_lowercase()
+                        .contains(*family_char) =>
+                {
+                    modify_letter(&mut self.syllable, modification)
+                }
+                Action::RemoveToneMark => remove_tone(&mut self.syllable),
+                Action::InsertƯ => {
+                    if self.syllable.vowel.is_empty() || self.syllable.to_string() == "gi" {
+                        self.syllable
+                            .push(if ch.is_lowercase() { 'u' } else { 'U' });
+                        let last_index = self.syllable.len() - 1;
+                        self.syllable
+                            .letter_modifications
+                            .push((last_index, LetterModification::Horn));
+                        Transformation::LetterModificationAdded
+                    } else {
+                        Transformation::Ignored
+                    }
+                }
+                Action::ResetInsertedƯ
+                    if matches!(self.last_executed_action, Some(Action::InsertƯ)) =>
+                {
+                    self.syllable.replace_last_char(ch);
+                    Transformation::LetterModificationRemoved
+                }
+                _ => Transformation::Ignored,
+            };
+
+            // If the transformation cannot be applied, try the next action if there's one.
+            if transformation == Transformation::Ignored {
+                if let Some(next_action) = action_iter.next() {
+                    action = next_action;
+                    continue;
+                }
+            }
+
+            if transformation == Transformation::ToneMarkRemoved {
+                char_result.tone_mark_removed = true;
+                self.result.tone_mark_removed = true;
+            }
+
+            if transformation == Transformation::LetterModificationRemoved {
+                char_result.letter_modification_removed = true;
+                self.result.letter_modification_removed = true;
+            }
+
+            let action_performed = match transformation {
+                Transformation::Ignored | Transformation::LetterModificationRemoved => false,
+                // If tone mark was intentionally removed with z character then it's count as an action.
+                Transformation::ToneMarkRemoved => *action == Action::RemoveToneMark,
+                _ => true,
+            };
+
+            // If the action is to trigger reset ư insert then we don't need further processing
+            if *action == Action::ResetInsertedƯ {
+                self.last_executed_action = Some(action.clone());
+                break;
+            }
+
+            if !action_performed {
+                self.syllable.push(ch);
+                self.last_executed_action = None;
+            } else if !is_valid_syllable(&self.syllable.to_string()) {
+                self.syllable.set(fallback);
+                self.last_executed_action = None;
+            } else {
+                self.last_executed_action = Some(action.clone());
+            }
+            break;
+        }
+
+        self.update_output();
+        char_result
+    }
+
+    /// Returns the current transformed output as a string slice.
+    ///
+    /// This provides immediate access to the current state of the transformation
+    /// without needing to recompute it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+    /// buffer.push('v');
+    /// buffer.push('i');
+    /// buffer.push('e');
+    /// buffer.push('t');
+    /// buffer.push('s');
+    /// assert_eq!(buffer.view(), "viét");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn view(&self) -> &str {
+        &self.output
+    }
+
+    /// Returns the cumulative transformation result.
+    ///
+    /// This includes information about whether any tone marks or letter modifications
+    /// have been removed during the entire transformation process.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+    /// buffer.push('v');
+    /// buffer.push('i');
+    /// buffer.push('e');
+    /// buffer.push('t');
+    /// buffer.push('s');
+    /// buffer.push('z'); // Remove tone mark
+    ///
+    /// let result = buffer.result();
+    /// assert!(result.tone_mark_removed);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn result(&self) -> &TransformResult {
+        &self.result
+    }
+
+    /// Returns the input characters received so far.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+    /// buffer.push('v');
+    /// buffer.push('i');
+    /// buffer.push('e');
+    /// buffer.push('t');
+    /// buffer.push('s');
+    ///
+    /// assert_eq!(buffer.input(), &['v', 'i', 'e', 't', 's']);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn input(&self) -> &[char] {
+        &self.input
+    }
+
+    /// Clears the buffer, resetting it to an empty state.
+    ///
+    /// This removes all input characters, resets the syllable state, and clears
+    /// the output and transformation results.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+    /// buffer.push('v');
+    /// buffer.push('i');
+    /// buffer.push('e');
+    /// buffer.push('t');
+    /// buffer.push('s');
+    /// assert_eq!(buffer.view(), "viét");
+    ///
+    /// buffer.clear();
+    /// assert_eq!(buffer.view(), "");
+    /// assert!(buffer.input().is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        let accent_style = self.syllable.accent_style.clone();
+        self.syllable = Syllable {
+            accent_style,
+            ..Default::default()
+        };
+        self.input.clear();
+        self.output.clear();
+        self.result = TransformResult::default();
+        self.last_executed_action = None;
+    }
+
+    /// Returns whether the buffer is empty (contains no input characters).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+    /// assert!(buffer.is_empty());
+    ///
+    /// buffer.push('v');
+    /// assert!(!buffer.is_empty());
+    ///
+    /// buffer.clear();
+    /// assert!(buffer.is_empty());
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.input.is_empty()
+    }
+
+    /// Returns the number of input characters in the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::methods::transform_buffer_incremental;
+    ///
+    /// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+    /// assert_eq!(buffer.len(), 0);
+    ///
+    /// buffer.push('v');
+    /// buffer.push('i');
+    /// buffer.push('e');
+    /// buffer.push('t');
+    /// buffer.push('s');
+    /// assert_eq!(buffer.len(), 5);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.input.len()
+    }
+
+    /// Updates the cached output string from the current syllable state.
+    ///
+    /// This is called internally after each transformation to maintain
+    /// the cached output for efficient access via `view()`.
+    fn update_output(&mut self) {
+        self.output.clear();
+        self.output.push_str(&self.syllable.to_string());
+    }
+}
+
+/// Creates a new incremental buffer for character-by-character Vietnamese text transformation.
+///
+/// This is a convenience function that creates an [`IncrementalBuffer`] with the default
+/// accent style.
+///
+/// # Examples
+///
+/// ```
+/// use vi::methods::transform_buffer_incremental;
+///
+/// let mut buffer = transform_buffer_incremental(&vi::TELEX);
+/// buffer.push('v');
+/// buffer.push('i');
+/// buffer.push('e');
+/// buffer.push('t');
+/// buffer.push('s');
+/// assert_eq!(buffer.view(), "viét");
+/// ```
+#[inline]
+#[must_use]
+pub fn transform_buffer_incremental(definition: &Definition) -> IncrementalBuffer<'_> {
+    IncrementalBuffer::new(definition)
+}
+
+/// Creates a new incremental buffer with a specific accent style.
+///
+/// This allows you to choose between old and new accent placement styles.
+///
+/// # Examples
+///
+/// ```
+/// use vi::{methods::transform_buffer_incremental_with_style, processor::AccentStyle};
+///
+/// let mut buffer = transform_buffer_incremental_with_style(&vi::TELEX, AccentStyle::Old);
+/// buffer.push('h');
+/// buffer.push('o');
+/// buffer.push('a');
+/// buffer.push('s');
+/// assert_eq!(buffer.view(), "hóa");
+/// ```
+#[inline]
+#[must_use]
+pub fn transform_buffer_incremental_with_style(
+    definition: &Definition,
+    accent_style: AccentStyle,
+) -> IncrementalBuffer<'_> {
+    IncrementalBuffer::new_with_style(definition, accent_style)
 }

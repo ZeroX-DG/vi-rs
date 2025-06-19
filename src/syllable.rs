@@ -27,6 +27,7 @@
 //! println!("{}", syllable); // tuyết
 //!
 //! ```
+use smallvec::SmallVec;
 use std::fmt::Display;
 
 use crate::{
@@ -36,34 +37,80 @@ use crate::{
     util::clean_char,
 };
 
-/// Represent a syllable that is being transformed. This is so the syllable doesn't need to be re-parsed
-/// during transformation stage. After all transformation is applied, the final state of the syllable
-/// can be retreieved via the `to_string` method.
-#[derive(Default)]
+/// Represents a syllable that is being transformed.
+///
+/// This structure caches the parsed components of a Vietnamese syllable to avoid
+/// re-parsing during transformation operations. After all transformations are applied,
+/// the final state can be retrieved via the `to_string` method or `Display` trait.
+///
+/// # Memory Optimization
+///
+/// Uses `SmallVec` for letter modifications since most syllables have 0-2 modifications,
+/// avoiding heap allocation in the common case.
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Syllable {
-    /// The initial consonant of the syllable. This is always a clean text with no transformation applied.
+    /// The initial consonant of the syllable. This is always clean text with no transformation applied.
     pub initial_consonant: String,
-    /// The vowel of the syllable. This is always a clean text with no transformation applied.
+    /// The vowel of the syllable. This is always clean text with no transformation applied.
     pub vowel: String,
-    /// The final consonant of the syllable. This is always a clean text with no transformation applied.
+    /// The final consonant of the syllable. This is always clean text with no transformation applied.
     pub final_consonant: String,
-    /// The tone mark of the syllable. This could be empty for syllable with no tone mark or "thanh ngang".
+    /// The tone mark of the syllable. None for syllables with no tone mark ("thanh ngang").
     pub tone_mark: Option<ToneMark>,
-    /// The accent style used when rendering the syllable. Default to the [`AccentStyle::New`]
+    /// The accent style used when rendering the syllable. Defaults to [`AccentStyle::New`].
     pub accent_style: AccentStyle,
-    /// Letter modifications on the syllable, along with the index that the modification is applying to.
-    pub letter_modifications: Vec<(usize, LetterModification)>,
+    /// Letter modifications on the syllable, with their positions. Uses SmallVec for efficiency.
+    pub letter_modifications: SmallVec<[(usize, LetterModification); 2]>,
 }
 
 impl Syllable {
-    /// The length of the syllable in characters instead of bytes.
+    /// Creates a new syllable from a string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::Syllable;
+    ///
+    /// let syllable = Syllable::new("hello");
+    /// assert_eq!(syllable.to_string(), "hello");
+    /// ```
+    pub fn new(input: &str) -> Self {
+        let mut syllable = Self::default();
+        syllable.set(input.to_string());
+        syllable
+    }
+
+    /// The length of the syllable in characters (not bytes).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::Syllable;
+    ///
+    /// let syllable = Syllable::new("việt");
+    /// assert_eq!(syllable.len(), 4);
+    /// ```
+    #[inline]
     pub fn len(&self) -> usize {
         self.initial_consonant.chars().count()
             + self.vowel.chars().count()
             + self.final_consonant.chars().count()
     }
 
-    /// Indicate whether the syllable have no initial consonant, vowel & final consonant.
+    /// Indicates whether the syllable has no initial consonant, vowel, or final consonant.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::Syllable;
+    ///
+    /// let empty = Syllable::default();
+    /// assert!(empty.is_empty());
+    ///
+    /// let syllable = Syllable::new("a");
+    /// assert!(!syllable.is_empty());
+    /// ```
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.initial_consonant.is_empty()
             && self.vowel.is_empty()
@@ -103,10 +150,10 @@ impl Syllable {
         }
 
         let mut modifications = std::mem::take(&mut self.letter_modifications);
-        modifications.dedup_by_key(|(_, modifcation)| modifcation.clone());
+        modifications.dedup_by_key(|(_, modification)| *modification);
 
         for (_, modification) in modifications {
-            modify_letter(self, &modification);
+            let _ = modify_letter(self, &modification);
         }
     }
 
@@ -117,7 +164,7 @@ impl Syllable {
         self.vowel = syllable.vowel.chars().map(clean_char).collect();
         self.final_consonant = syllable.final_consonant.to_string();
 
-        self.letter_modifications = extract_letter_modifications(&raw);
+        self.letter_modifications = extract_letter_modifications(&raw).into();
         self.tone_mark = extract_tone(&raw);
     }
 
@@ -162,11 +209,34 @@ impl Display for Syllable {
     }
 }
 
-#[cfg(test)]
 impl From<&str> for Syllable {
+    /// Creates a syllable from a string slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::Syllable;
+    ///
+    /// let syllable: Syllable = "việt".into();
+    /// assert_eq!(syllable.to_string(), "việt");
+    /// ```
     fn from(value: &str) -> Self {
-        let mut syllable = Syllable::default();
-        syllable.set(value.to_string());
-        syllable
+        Self::new(value)
+    }
+}
+
+impl From<String> for Syllable {
+    /// Creates a syllable from a String.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use vi::Syllable;
+    ///
+    /// let syllable: Syllable = "nam".to_string().into();
+    /// assert_eq!(syllable.to_string(), "nam");
+    /// ```
+    fn from(value: String) -> Self {
+        Self::new(&value)
     }
 }
