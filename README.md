@@ -15,9 +15,15 @@
 
 ## What is this?
 
-Since typing Vietnamese on Linux is pretty painful at the momment, a better input engine is always needed. To accommodate the future engines that will be built in Rust, this library existed to transform key inputs into the Vietnamese string output.
+Since typing Vietnamese on Linux is pretty painful at the momment, a better
+input engine is always needed. To accommodate the future engines that will be
+built in Rust, this library existed to transform key inputs into the Vietnamese
+string output.
 
-If you wish to find out how it works, I have written a short blog post (in Vietnamese) on how the library place a tone mark when it received the user input. Read it [here](https://zerox-dg.github.io/blog/2020/07/14/Bo-dau-trong-tieng-Viet/).
+If you wish to find out how it works, I have written a short blog post (in
+Vietnamese) on how the library place a tone mark when it received the user
+input. Read it
+[here](https://zerox-dg.github.io/blog/2020/07/14/Bo-dau-trong-tieng-Viet/).
 
 ## Installation
 
@@ -25,12 +31,14 @@ Add `vi` to your dependencies in `Cargo.toml`.
 
 ```
 [dependencies]
-vi = "0.7.0"
+vi = "0.8.0"
 ```
 
 ## Examples
 
-With vi, you can start building your own Vietnamese IME without worrying about how Vietnamese tone mark placement works. All you have to do is to implement a keyboard listener & a key sending system.
+With vi, you can start building your own Vietnamese IME without worrying about
+how Vietnamese tone mark placement works. All you have to do is to implement a
+keyboard listener & a key sending system.
 
 ```rust
 fn main() {
@@ -58,11 +66,13 @@ Please refer to the [`examples/`](examples) directory to learn more.
 
 ## Project status
 
-Currently, this project is still at its early stage of development. There might be some minor bugs but overall, it should be 95% functional.
+Currently, this project is still at its early stage of development. There might
+be some minor bugs but overall, it should be 95% functional.
 
 ## Creator
 
-- Viet Hung Nguyen (viethungax@gmail.com) ([Github](https://github.com/ZeroX-DG))
+- Viet Hung Nguyen (viethungax@gmail.com)
+  ([Github](https://github.com/ZeroX-DG))
 
 Want to support me? Consider buying me a coffee:)
 
