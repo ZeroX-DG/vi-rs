@@ -178,7 +178,9 @@ pub unsafe extern "C" fn vi_incremental_buffer_push(buffer_ptr: *mut Incremental
 /// the function returns NULL. The returned string, if not NULL, must be freed by the caller
 /// using `vi_free_string`.
 #[no_mangle]
-pub unsafe extern "C" fn vi_incremental_buffer_view(buffer_ptr: *const IncrementalBuffer) -> *mut c_char {
+pub unsafe extern "C" fn vi_incremental_buffer_view(
+    buffer_ptr: *const IncrementalBuffer,
+) -> *mut c_char {
     if buffer_ptr.is_null() {
         // It's generally better to return a CString for safety, but for a view,
         // we might return null or an empty string CString if the buffer is null.
