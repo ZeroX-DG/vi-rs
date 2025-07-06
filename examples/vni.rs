@@ -9,5 +9,5 @@ fn main() {
         result.push(' ');
     }
 
-    println!("{}", result); // prints " anh sẽ làm, làm tất cả để được chết thay em"
+    println!("{result}"); // prints " anh sẽ làm, làm tất cả để được chết thay em"
 }

@@ -38,11 +38,11 @@ fn main() {
                 let trimmed = syllable.trim();
                 if !trimmed.is_empty() {
                     let result = convert_syllable(trimmed, &conversion_map);
-                    println!("{}", result);
+                    println!("{result}");
                 }
             }
             Err(e) => {
-                eprintln!("Error reading from stdin: {}", e);
+                eprintln!("Error reading from stdin: {e}");
                 process::exit(1);
             }
         }
@@ -97,7 +97,7 @@ fn generate_telex_map() -> HashMap<char, String> {
 
         for (tone_index, &toned_char) in vowel_set.iter().enumerate() {
             let tone_stroke = tone_keys[tone_index];
-            map.insert(toned_char, format!("{}{}", final_base_stroke, tone_stroke));
+            map.insert(toned_char, format!("{final_base_stroke}{tone_stroke}"));
         }
     }
 
@@ -136,7 +136,7 @@ fn generate_vni_map() -> HashMap<char, String> {
 
         for (tone_index, &toned_char) in vowel_set.iter().enumerate() {
             let tone_stroke = tone_keys[tone_index];
-            map.insert(toned_char, format!("{}{}", final_base_stroke, tone_stroke));
+            map.insert(toned_char, format!("{final_base_stroke}{tone_stroke}"));
         }
     }
 

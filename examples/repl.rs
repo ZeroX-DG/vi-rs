@@ -23,6 +23,6 @@ fn main() {
             result.push(' ');
         }
 
-        println!("(output): {}", result);
+        println!("(output): {result}");
     }
 }
