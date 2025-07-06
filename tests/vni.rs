@@ -18,7 +18,4 @@ gen_test_vi!(
     non_vietnamese_vni,
     "../testdata/input/non_vietnamese_vni.txt"
 );
-gen_test_vi!(
-    all_vietnamese_vni,
-    "../testdata/input/all_vni.txt"
-);
+gen_test_vi!(all_vietnamese_vni, "../testdata/input/all_vni.txt");
