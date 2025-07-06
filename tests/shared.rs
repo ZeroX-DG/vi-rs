@@ -34,7 +34,7 @@ where
         let mut transformed_line = String::new();
         for word in words {
             let transformed_words = transformer(word);
-            write!(&mut transformed_line, "{} ", transformed_words).unwrap();
+            write!(&mut transformed_line, "{transformed_words} ").unwrap();
         }
         writeln!(&mut result, "{}", transformed_line.trim()).unwrap();
     }
