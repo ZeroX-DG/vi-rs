@@ -18,7 +18,7 @@ fn main() {
                 continue;
             }
 
-            let base_syllable = format!("{}{}", initial, rhyme);
+            let base_syllable = format!("{initial}{rhyme}");
 
             // Rule 2: Apply tones based on whether the rhyme is "checked" or not.
             let is_checked_rhyme = rhyme.ends_with('c')
@@ -44,11 +44,11 @@ fn main() {
 
     // Sort the results for consistent, readable output.
     let mut sorted_syllables: Vec<String> = generated_syllables.into_iter().collect();
-    sorted_syllables.sort_by(|a, b| a.cmp(b));
+    sorted_syllables.sort();
 
     // Print each syllable to stdout.
     for syllable in &sorted_syllables {
-        println!("{}", syllable);
+        println!("{syllable}");
     }
 
     // Print a summary to stderr.
