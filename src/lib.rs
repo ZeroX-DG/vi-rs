@@ -71,8 +71,14 @@ pub enum AccentStyle {
 /// @return A newly allocated C string with the transformed text.
 ///         The caller is responsible for freeing this string using `vi_free_string`.
 ///         Returns NULL if the input string is NULL or not valid UTF-8, or if memory allocation fails.
+///
+/// # Safety
+///
+/// The `input_str` pointer must be a valid, null-terminated C string. If it's non-NULL,
+/// it must point to readable memory that contains valid UTF-8 data. The memory
+/// referenced by `input_str` must be valid for the duration of this call.
 #[no_mangle]
-pub extern "C" fn vi_transform_string(
+pub unsafe extern "C" fn vi_transform_string(
     input_str: *const c_char,
     method: InputMethod,
     accent_style: AccentStyle,
@@ -139,8 +145,15 @@ pub extern "C" fn vi_incremental_buffer_create(
 ///           For C, this typically means passing a `wchar_t` or ensuring the `char` can represent the intended Unicode codepoint if it's multi-byte.
 ///           The `cbindgen` tool will typically map Rust `char` to `uint32_t` or `wchar_t` depending on the C standard and target.
 ///           Ensure the character encoding is handled correctly on the C side.
+///
+/// # Safety
+///
+/// The `buffer_ptr` must be a valid pointer to an `IncrementalBuffer` obtained from
+/// `vi_incremental_buffer_create` and not yet destroyed by `vi_incremental_buffer_destroy`.
+/// If `buffer_ptr` is NULL, the function will return early.
 #[no_mangle]
-pub extern "C" fn vi_incremental_buffer_push(buffer_ptr: *mut IncrementalBuffer, ch: char) {
+#[allow(improper_ctypes_definitions)]
+pub unsafe extern "C" fn vi_incremental_buffer_push(buffer_ptr: *mut IncrementalBuffer, ch: char) {
     if buffer_ptr.is_null() {
         return;
     }
@@ -157,8 +170,15 @@ pub extern "C" fn vi_incremental_buffer_push(buffer_ptr: *mut IncrementalBuffer,
 /// @return A newly allocated C string with the current transformed text in the buffer.
 ///         The caller MUST free this string using `vi_free_string`.
 ///         Returns NULL if the buffer_ptr is NULL or if memory allocation fails.
+///
+/// # Safety
+///
+/// The `buffer_ptr` must be a valid pointer to an `IncrementalBuffer` obtained from
+/// `vi_incremental_buffer_create` and not yet destroyed. If `buffer_ptr` is NULL,
+/// the function returns NULL. The returned string, if not NULL, must be freed by the caller
+/// using `vi_free_string`.
 #[no_mangle]
-pub extern "C" fn vi_incremental_buffer_view(buffer_ptr: *const IncrementalBuffer) -> *mut c_char {
+pub unsafe extern "C" fn vi_incremental_buffer_view(buffer_ptr: *const IncrementalBuffer) -> *mut c_char {
     if buffer_ptr.is_null() {
         // It's generally better to return a CString for safety, but for a view,
         // we might return null or an empty string CString if the buffer is null.
@@ -178,13 +198,18 @@ pub extern "C" fn vi_incremental_buffer_view(buffer_ptr: *const IncrementalBuffe
     }
 }
 
-
 /// Destroys an incremental buffer and frees its associated memory.
 ///
 /// @param buffer_ptr A pointer to the incremental buffer to destroy.
 ///                   If NULL, no operation is performed.
+///
+/// # Safety
+///
+/// If `buffer_ptr` is non-NULL, it must be a valid pointer to an `IncrementalBuffer`
+/// that was allocated by `vi_incremental_buffer_create` and has not been previously destroyed.
+/// After this call, the pointer is no longer valid and must not be used.
 #[no_mangle]
-pub extern "C" fn vi_incremental_buffer_destroy(buffer_ptr: *mut IncrementalBuffer) {
+pub unsafe extern "C" fn vi_incremental_buffer_destroy(buffer_ptr: *mut IncrementalBuffer) {
     if buffer_ptr.is_null() {
         return;
     }
@@ -196,8 +221,16 @@ pub extern "C" fn vi_incremental_buffer_destroy(buffer_ptr: *mut IncrementalBuff
 /// Frees a C string that was allocated by `vi_transform_string` or `vi_incremental_buffer_view`.
 ///
 /// @param s The C string to free. If s is NULL, no operation is performed.
+///
+/// # Safety
+///
+/// If `s` is non-NULL, it must be a valid pointer to a C string that was previously
+/// returned by `vi_transform_string` or `vi_incremental_buffer_view`.
+/// After this call, the pointer `s` is no longer valid and must not be used.
+/// Calling this function with a pointer not obtained from the mentioned functions,
+/// or calling it more than once on the same pointer, leads to undefined behavior.
 #[no_mangle]
-pub extern "C" fn vi_free_string(s: *mut c_char) {
+pub unsafe extern "C" fn vi_free_string(s: *mut c_char) {
     if s.is_null() {
         return;
     }
