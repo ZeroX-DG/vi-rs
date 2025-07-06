@@ -14,5 +14,5 @@ fn main() {
         result.push(' ');
     }
 
-    println!("{result}"); // prints "ra tạp hóa nhà bà thủy mua hoa hòe"
+    println!("{}", result); // prints "ra tạp hóa nhà bà thủy mua hoa hòe"
 }

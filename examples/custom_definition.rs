@@ -30,5 +30,5 @@ fn main() {
         result.push(' ');
     }
 
-    println!("{result}"); // prints "Xin hãy mở toang hết những cánh cửa của quá khứ để thuyền tôi nương gió lãng quên ra khơi"
+    println!("{}", result); // prints "Xin hãy mở toang hết những cánh cửa của quá khứ để thuyền tôi nương gió lãng quên ra khơi"
 }

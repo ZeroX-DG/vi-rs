@@ -6,7 +6,14 @@ use std::path::PathBuf;
 fn main() {
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let package_name = env::var("CARGO_PKG_NAME").unwrap();
-    let output_file = target_dir()
+
+    // Define the output path for the header file
+    let header_output_path = PathBuf::from(&crate_dir).join("headers");
+    if !header_output_path.exists() {
+        std::fs::create_dir_all(&header_output_path)
+            .expect("Failed to create headers directory");
+    }
+    let output_file = header_output_path
         .join(format!("{}.h", package_name))
         .display()
         .to_string();
@@ -23,27 +30,4 @@ fn main() {
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(&output_file);
-}
-
-/// Find the location of the `target/` directory. Note that this may be
-/// overridden by `cmake`, so we also need to check the `CARGO_TARGET_DIR`
-/// variable. If `CARGO_TARGET_DIR` is not set, it defaults to `target/`
-/// within the crate's root directory.
-fn target_dir() -> PathBuf {
-    if let Ok(target) = env::var("CARGO_TARGET_DIR") {
-        PathBuf::from(target)
-    } else {
-        // If CARGO_TARGET_DIR is not set, default to <manifest_dir>/target
-        // However, the header should ideally go into target/debug or target/release
-        // Let's ensure it goes into a path that `cc` can find, like target/{profile}
-        // For simplicity, `target/` is fine for now, but typically cbindgen places it
-        // in `target/{profile}/` or a user-defined output path.
-        // The default behavior of cargo build places artifacts in target/debug or target/release.
-        // Let's put the header in target/ for now, assuming the C compiler will be configured.
-        // A better approach is to place it in OUT_DIR and have C build system pick it from there,
-        // or a fixed location like target/include.
-        // For this example, `target/` should be okay.
-        let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-        manifest_dir.join("target")
-    }
 }

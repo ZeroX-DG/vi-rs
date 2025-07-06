@@ -121,7 +121,7 @@ fn main() {
 
     for word in words {
         buffer.clear();
-        print!("Typing '{word}': ");
+        print!("Typing '{}': ", word);
         io::stdout().flush().unwrap();
 
         for ch in word.chars() {

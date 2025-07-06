@@ -205,7 +205,7 @@ impl Display for Syllable {
             replace_nth_char(&mut result, tone_mark_position, replace_char);
         }
 
-        write!(f, "{result}")
+        write!(f, "{}", result)
     }
 }
 

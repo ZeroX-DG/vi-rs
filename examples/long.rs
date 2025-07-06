@@ -11,5 +11,5 @@ fn main() {
         result.push(' ');
     }
 
-    println!("{result}"); // prints "xin chào tôi là Hưng, tôi đến từ Việt Nam"
+    println!("{}", result); // prints "xin chào tôi là Hưng, tôi đến từ Việt Nam"
 }

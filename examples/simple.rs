@@ -7,5 +7,5 @@ fn main() {
         result.push(' ');
     }
 
-    println!("{result}"); // prints "việt nam "
+    println!("{}", result); // prints "việt nam "
 }
