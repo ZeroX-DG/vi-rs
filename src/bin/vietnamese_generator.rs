@@ -21,7 +21,10 @@ fn main() {
             let base_syllable = format!("{initial}{rhyme}");
 
             // Rule 2: Apply tones based on whether the rhyme is "checked" or not.
-            let is_checked_rhyme = rhyme.ends_with('c') || rhyme.ends_with("ch") || rhyme.ends_with('p') || rhyme.ends_with('t');
+            let is_checked_rhyme = rhyme.ends_with('c')
+                || rhyme.ends_with("ch")
+                || rhyme.ends_with('p')
+                || rhyme.ends_with('t');
 
             if is_checked_rhyme {
                 // Checked rhymes only allow Sắc (index 2) and Nặng (index 5) tones.
@@ -49,7 +52,10 @@ fn main() {
     }
 
     // Print a summary to stderr.
-    eprintln!("\nSuccessfully generated {} unique Vietnamese syllables.", sorted_syllables.len());
+    eprintln!(
+        "\nSuccessfully generated {} unique Vietnamese syllables.",
+        sorted_syllables.len()
+    );
 }
 
 /// Checks if an initial consonant can legally precede a rhyme.
@@ -61,19 +67,27 @@ fn is_valid_combination(initial: &str, rhyme: &str) -> bool {
     // Rule: k/g/ng vs c/gh/ngh
     match initial {
         "c" | "g" | "ng" => {
-            if is_front_vowel_rhyme { return false; } // c, g, ng must be followed by other vowels.
-        },
+            if is_front_vowel_rhyme {
+                return false;
+            } // c, g, ng must be followed by other vowels.
+        }
         "k" | "gh" | "ngh" => {
-            if !is_front_vowel_rhyme { return false; } // k, gh, ngh must be followed by i, e, ê, y.
-        },
+            if !is_front_vowel_rhyme {
+                return false;
+            } // k, gh, ngh must be followed by i, e, ê, y.
+        }
         "qu" => {
             // 'qu' acts as a single unit and cannot be followed by a rhyme starting with 'u' or 'o'.
-            if "uo".contains(first_char_of_rhyme) { return false; }
-        },
+            if "uo".contains(first_char_of_rhyme) {
+                return false;
+            }
+        }
         "gi" => {
-             // Avoid "gi" + i-initial rhyme like "giiên", which is not a valid word.
-            if first_char_of_rhyme == 'i' { return false; }
-        },
+            // Avoid "gi" + i-initial rhyme like "giiên", which is not a valid word.
+            if first_char_of_rhyme == 'i' {
+                return false;
+            }
+        }
         _ => {}
     }
 
@@ -119,7 +133,7 @@ fn apply_tone(
     // Find the byte position of the character to be replaced and build the new string.
     if let Some(char_to_tone) = tone_char {
         if let Some(pos) = base_syllable.find(char_to_tone) {
-             if let Some(toned_vowels) = tone_map.get(&char_to_tone) {
+            if let Some(toned_vowels) = tone_map.get(&char_to_tone) {
                 let toned_vowel_str = toned_vowels[tone_index];
                 let mut result = String::with_capacity(base_syllable.len() + 3);
                 result.push_str(&base_syllable[..pos]);
@@ -138,9 +152,8 @@ fn apply_tone(
 
 fn get_initials() -> Vec<&'static str> {
     vec![
-        "", "b", "c", "ch", "d", "đ", "g", "gh", "gi", "h", "k", "kh",
-        "l", "m", "n", "ng", "ngh", "nh", "p", "ph", "qu", "r", "s",
-        "t", "th", "tr", "v", "x",
+        "", "b", "c", "ch", "d", "đ", "g", "gh", "gi", "h", "k", "kh", "l", "m", "n", "ng", "ngh",
+        "nh", "p", "ph", "qu", "r", "s", "t", "th", "tr", "v", "x",
     ]
 }
 
@@ -149,29 +162,23 @@ fn get_initials() -> Vec<&'static str> {
 fn get_rhymes() -> Vec<&'static str> {
     // This list is a direct, deduplicated, and sorted result of parsing the provided table.
     vec![
-        "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ao", "ap", "at", "au", "ay",
-        "e", "ec", "em", "en", "eng", "enh", "eo", "ep", "et",
-        "i", "ia", "ich", "iêc", "iêm", "iên", "iêng", "iêp", "iêt", "iêu", "im", "in", "inh", "ip", "it", "iu",
-        "o", "oa", "oac", "oach", "oai", "oam", "oan", "oang", "oanh", "oap", "oat", "oay", "oc", "oe",
-        "oem", "oen", "oeo", "oep", "oet", "oi", "om", "on", "ong", "ooc", "oong", "op", "ot",
-        "u", "ua", "uac", "uach", "uai", "uam", "uan", "uang", "uanh", "uap", "uat", "uay", "uc", "ue",
-        "uem", "uen", "ueo", "uep", "uet", "ui", "um", "un", "ung", "uoc", "uôc", "uôi", "uôm", "uôn",
-        "uông", "uôp", "uôt", "up", "ut", "uy", "uych", "uyêc", "uyêm", "uyên", "uyêng", "uyêp",
-        "uyêt", "uyêu", "uym", "uyn", "uynh", "uyp", "uyt", "uyu",
-        "y", "yêc", "yêm", "yên", "yêng", "yêp", "yêt", "yêu",
-        "ă", "ăc", "ăm", "ăn", "ăng", "ăp", "ăt",
-        "â", "âc", "âm", "ân", "âng", "âp", "ât", "âu", "ây",
-        "ê", "êc", "êch", "êm", "ên", "êng", "ênh", "êp", "êt", "êu",
-        "ô", "ôc", "ôi", "ôm", "ôn", "ông", "ôp", "ôt",
-        "ơ", "ơc", "ơm", "ơn", "ơng", "ơp", "ơt", "ơu", "ơi",
-        "ư", "ưc", "ưi", "ưm", "ưn", "ưng", "ưp", "ưt", "ưu",
-        "ưa", "ươc", "ươi", "ươm", "ươn", "ương", "ươp", "ươt", "ươu",
-        "oăc", "oăm", "oăn", "oăng", "oăp", "oăt",
-        "uăc", "uăm", "uăn", "uăng", "uăp", "uăt",
-        "uâc", "uâm", "uân", "uâng", "uâp", "uât", "uâu", "uây",
-        "uê", "uêch", "uêm", "uên", "uênh", "uêp", "uêt", "uêu",
-        "uơ", "uơc", "uơm", "uơn", "uơng", "uơp", "uơt", "uơu", "uơi",
-        "uya"
+        "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ao", "ap", "at", "au", "ay", "e", "ec",
+        "em", "en", "eng", "enh", "eo", "ep", "et", "i", "ia", "ich", "iêc", "iêm", "iên", "iêng",
+        "iêp", "iêt", "iêu", "im", "in", "inh", "ip", "it", "iu", "o", "oa", "oac", "oach", "oai",
+        "oam", "oan", "oang", "oanh", "oap", "oat", "oay", "oc", "oe", "oem", "oen", "oeo", "oep",
+        "oet", "oi", "om", "on", "ong", "ooc", "oong", "op", "ot", "u", "ua", "uac", "uach", "uai",
+        "uam", "uan", "uang", "uanh", "uap", "uat", "uay", "uc", "ue", "uem", "uen", "ueo", "uep",
+        "uet", "ui", "um", "un", "ung", "uoc", "uôc", "uôi", "uôm", "uôn", "uông", "uôp", "uôt",
+        "up", "ut", "uy", "uych", "uyêc", "uyêm", "uyên", "uyêng", "uyêp", "uyêt", "uyêu", "uym",
+        "uyn", "uynh", "uyp", "uyt", "uyu", "y", "yêc", "yêm", "yên", "yêng", "yêp", "yêt", "yêu",
+        "ă", "ăc", "ăm", "ăn", "ăng", "ăp", "ăt", "â", "âc", "âm", "ân", "âng", "âp", "ât", "âu",
+        "ây", "ê", "êc", "êch", "êm", "ên", "êng", "ênh", "êp", "êt", "êu", "ô", "ôc", "ôi", "ôm",
+        "ôn", "ông", "ôp", "ôt", "ơ", "ơc", "ơm", "ơn", "ơng", "ơp", "ơt", "ơu", "ơi", "ư", "ưc",
+        "ưi", "ưm", "ưn", "ưng", "ưp", "ưt", "ưu", "ưa", "ươc", "ươi", "ươm", "ươn", "ương", "ươp",
+        "ươt", "ươu", "oăc", "oăm", "oăn", "oăng", "oăp", "oăt", "uăc", "uăm", "uăn", "uăng",
+        "uăp", "uăt", "uâc", "uâm", "uân", "uâng", "uâp", "uât", "uâu", "uây", "uê", "uêch", "uêm",
+        "uên", "uênh", "uêp", "uêt", "uêu", "uơ", "uơc", "uơm", "uơn", "uơng", "uơp", "uơt", "uơu",
+        "uơi", "uya",
     ]
 }
 
