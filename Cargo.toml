@@ -32,6 +32,10 @@ harness = false
 name = "vietnamese_generator"
 path = "src/bin/vietnamese_generator.rs"
 
+[[bin]]
+name = "vn2ime"
+path = "src/bin/vn2ime.rs"
+
 [[bench]]
 name = "incremental_benchmark"
 harness = false

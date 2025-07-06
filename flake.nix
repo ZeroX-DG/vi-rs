@@ -21,6 +21,7 @@
       pkgs = nixpkgs.legacyPackages.${system}.extend inputs.fenix.overlays.default;
       commonBuildInputs = with pkgs; [
         rust-analyzer
+        cargo-insta
       ];
     in
     {

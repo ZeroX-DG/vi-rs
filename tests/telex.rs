@@ -18,3 +18,7 @@ gen_test_telex!(
     non_vietnamese_telex,
     "../testdata/input/non_vietnamese_telex.txt"
 );
+gen_test_telex!(
+    all_vietnamese_telex,
+    "../testdata/input/all_telex.txt"
+);
