@@ -21,7 +21,10 @@ fn main() {
             let base_syllable = format!("{}{}", initial, rhyme);
 
             // Rule 2: Apply tones based on whether the rhyme is "checked" or not.
-            let is_checked_rhyme = rhyme.ends_with('c') || rhyme.ends_with("ch") || rhyme.ends_with('p') || rhyme.ends_with('t');
+            let is_checked_rhyme = rhyme.ends_with('c')
+                || rhyme.ends_with("ch")
+                || rhyme.ends_with('p')
+                || rhyme.ends_with('t');
 
             if is_checked_rhyme {
                 // Checked rhymes only allow Sắc (index 2) and Nặng (index 5) tones.
@@ -49,7 +52,10 @@ fn main() {
     }
 
     // Print a summary to stderr.
-    eprintln!("\nSuccessfully generated {} unique Vietnamese syllables.", sorted_syllables.len());
+    eprintln!(
+        "\nSuccessfully generated {} unique Vietnamese syllables.",
+        sorted_syllables.len()
+    );
 }
 
 /// Checks if an initial consonant can legally precede a rhyme.
@@ -61,19 +67,27 @@ fn is_valid_combination(initial: &str, rhyme: &str) -> bool {
     // Rule: k/g/ng vs c/gh/ngh
     match initial {
         "c" | "g" | "ng" => {
-            if is_front_vowel_rhyme { return false; } // c, g, ng must be followed by other vowels.
-        },
+            if is_front_vowel_rhyme {
+                return false;
+            } // c, g, ng must be followed by other vowels.
+        }
         "k" | "gh" | "ngh" => {
-            if !is_front_vowel_rhyme { return false; } // k, gh, ngh must be followed by i, e, ê, y.
-        },
+            if !is_front_vowel_rhyme {
+                return false;
+            } // k, gh, ngh must be followed by i, e, ê, y.
+        }
         "qu" => {
             // 'qu' acts as a single unit and cannot be followed by a rhyme starting with 'u' or 'o'.
-            if "uo".contains(first_char_of_rhyme) { return false; }
-        },
+            if "uo".contains(first_char_of_rhyme) {
+                return false;
+            }
+        }
         "gi" => {
-             // Avoid "gi" + i-initial rhyme like "giiên", which is not a valid word.
-            if first_char_of_rhyme == 'i' { return false; }
-        },
+            // Avoid "gi" + i-initial rhyme like "giiên", which is not a valid word.
+            if first_char_of_rhyme == 'i' {
+                return false;
+            }
+        }
         _ => {}
     }
 
@@ -126,7 +140,7 @@ fn apply_tone(
     if let Some(char_to_tone) = tone_char {
         // Find the character in the full syllable to get the correct byte index.
         if let Some(pos) = base_syllable.find(char_to_tone) {
-             if let Some(toned_vowels) = tone_map.get(&char_to_tone) {
+            if let Some(toned_vowels) = tone_map.get(&char_to_tone) {
                 let toned_vowel_str = toned_vowels[tone_index];
                 let mut result = String::with_capacity(base_syllable.len() + 3); // Pre-allocate
                 result.push_str(&base_syllable[..pos]);
@@ -145,27 +159,26 @@ fn apply_tone(
 
 fn get_initials() -> Vec<&'static str> {
     vec![
-        "", "b", "c", "ch", "d", "đ", "g", "gh", "gi", "h", "k", "kh",
-        "l", "m", "n", "ng", "ngh", "nh", "p", "ph", "qu", "r", "s",
-        "t", "th", "tr", "v", "x",
+        "", "b", "c", "ch", "d", "đ", "g", "gh", "gi", "h", "k", "kh", "l", "m", "n", "ng", "ngh",
+        "nh", "p", "ph", "qu", "r", "s", "t", "th", "tr", "v", "x",
     ]
 }
 
 fn get_rhymes() -> Vec<&'static str> {
     // This is an exhaustive list of Vietnamese rhymes (vần).
     vec![
-        "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ao", "ap", "at", "au", "ay",
-        "ă", "ăc", "ăm", "ăn", "ăng", "ăp", "ăt",
-        "â", "âc", "âm", "ân", "âng", "âp", "ât", "âu", "ây",
-        "e", "ec", "em", "en", "eng", "eo", "ep", "et",
-        "ê", "êch", "êm", "ên", "ênh", "êp", "êt", "êu",
-        "i", "ia", "ich", "iêc", "iêm", "iên", "iêng", "iêp", "iêt", "iêu", "im", "in", "inh", "ip", "it", "iu",
-        "o", "oa", "oac", "oach", "oai", "oam", "oan", "oang", "oanh", "oap", "oat", "oay", "oc", "oe", "oem", "oen", "om", "on", "ong", "op", "ot", "oi",
-        "ô", "ôc", "ôi", "ôm", "ôn", "ông", "ôp", "ôt",
-        "ơ", "ơi", "ơm", "ơn", "ơp", "ơt",
-        "u", "ua", "uân", "uât", "uc", "uê", "uêch", "uênh", "uêt", "uây", "ui", "uich", "um", "un", "ung", "uôc", "uôi", "uôm", "uôn", "uông", "uôt", "up", "ut", "uy", "uyn", "uynh", "uyp", "uyt", "uyên", "uyêt",
-        "ư", "ưa", "ưc", "ưi", "ưm", "ưn", "ưng", "ươc", "ươi", "ươm", "ươn", "ương", "ươp", "ươt", "ưu", "ưp", "ưt",
-        "y", "ya", "ych", "yêm", "yên", "yêng", "yêp", "yêt", "yêu", "ynh"
+        "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ao", "ap", "at", "au", "ay", "ă", "ăc",
+        "ăm", "ăn", "ăng", "ăp", "ăt", "â", "âc", "âm", "ân", "âng", "âp", "ât", "âu", "ây", "e",
+        "ec", "em", "en", "eng", "eo", "ep", "et", "ê", "êch", "êm", "ên", "ênh", "êp", "êt", "êu",
+        "i", "ia", "ich", "iêc", "iêm", "iên", "iêng", "iêp", "iêt", "iêu", "im", "in", "inh",
+        "ip", "it", "iu", "o", "oa", "oac", "oach", "oai", "oam", "oan", "oang", "oanh", "oap",
+        "oat", "oay", "oc", "oe", "oem", "oen", "om", "on", "ong", "op", "ot", "oi", "ô", "ôc",
+        "ôi", "ôm", "ôn", "ông", "ôp", "ôt", "ơ", "ơi", "ơm", "ơn", "ơp", "ơt", "u", "ua", "uân",
+        "uât", "uc", "uê", "uêch", "uênh", "uêt", "uây", "ui", "uich", "um", "un", "ung", "uôc",
+        "uôi", "uôm", "uôn", "uông", "uôt", "up", "ut", "uy", "uyn", "uynh", "uyp", "uyt", "uyên",
+        "uyêt", "ư", "ưa", "ưc", "ưi", "ưm", "ưn", "ưng", "ươc", "ươi", "ươm", "ươn", "ương",
+        "ươp", "ươt", "ưu", "ưp", "ưt", "y", "ya", "ych", "yêm", "yên", "yêng", "yêp", "yêt",
+        "yêu", "ynh",
     ]
 }
 
