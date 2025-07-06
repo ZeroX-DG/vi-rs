@@ -93,52 +93,51 @@ fn apply_tone(
         return base_syllable.to_string();
     }
 
-    let mut tone_char_pos: Option<usize> = None;
     let mut tone_char: Option<char> = None;
 
-    // Rule 1: Special diphthongs 'ươ' and 'uô' have priority. Tone goes on 'ơ' and 'ô'.
-    if let Some(_) = rhyme.find("ươ") {
-        tone_char = Some('ơ');
-    } else if let Some(_) = rhyme.find("uô") {
-        tone_char = Some('ô');
+    // Rule 1: Handle special diphthong exceptions first.
+    // For 'ua', 'ưa', 'ia', the tone goes on the first vowel.
+    if rhyme == "ua" || rhyme == "ưa" || rhyme == "ia" {
+        tone_char = rhyme.chars().next();
+    }
+    // For 'uy', the tone goes on the second vowel, 'y'.
+    else if rhyme.ends_with("uy") {
+        tone_char = Some('y');
     }
 
-    // Rule 2: Find the main vowel based on a priority list.
+    // Rule 2: If no special case was met, apply the general priority rule.
+    // The tone goes on the first vowel found from this priority list: a, ă, â, o, ô, ơ, e, ê.
     if tone_char.is_none() {
-        for v in ['a', 'ă', 'â', 'o', 'ô', 'ơ', 'e', 'ê'] {
-            if rhyme.contains(v) {
-                tone_char = Some(v);
+        for c in ['a', 'ă', 'â', 'o', 'ô', 'ơ', 'e', 'ê'] {
+            if rhyme.contains(c) {
+                tone_char = Some(c);
                 break;
             }
         }
     }
 
-    // Rule 3: If no priority vowel was found (e.g., in 'uy', 'iu'), the tone goes on the last vowel of the rhyme.
+    // Rule 3: Final fallback for rhymes without any priority vowels (e.g., 'iu', 'ưu').
+    // The tone goes on the first vowel.
     if tone_char.is_none() {
-        if let Some(c) = rhyme.chars().filter(|c| "aăâeêioôơuưy".contains(*c)).last() {
-            tone_char = Some(c);
-        }
+        tone_char = rhyme.chars().find(|c| "iuưy".contains(*c));
     }
 
-    // Find the byte position of the character to be replaced.
+    // Now, find the byte position of the character to be replaced and build the new string.
     if let Some(char_to_tone) = tone_char {
-        // We must find the character in the full syllable, not just the rhyme, to get the correct byte index.
-        tone_char_pos = base_syllable.find(char_to_tone);
-    }
-
-    // Reconstruct the string with the toned vowel.
-    if let (Some(pos), Some(c)) = (tone_char_pos, tone_char) {
-        if let Some(toned_vowels) = tone_map.get(&c) {
-            let toned_vowel_str = toned_vowels[tone_index];
-            let mut result = String::with_capacity(base_syllable.len() + 3);
-            result.push_str(&base_syllable[..pos]);
-            result.push_str(toned_vowel_str);
-            result.push_str(&base_syllable[pos + c.len_utf8()..]);
-            return result;
+        // Find the character in the full syllable to get the correct byte index.
+        if let Some(pos) = base_syllable.find(char_to_tone) {
+             if let Some(toned_vowels) = tone_map.get(&char_to_tone) {
+                let toned_vowel_str = toned_vowels[tone_index];
+                let mut result = String::with_capacity(base_syllable.len() + 3); // Pre-allocate
+                result.push_str(&base_syllable[..pos]);
+                result.push_str(toned_vowel_str);
+                result.push_str(&base_syllable[pos + char_to_tone.len_utf8()..]);
+                return result;
+            }
         }
     }
 
-    // Fallback: if no rule matched, return the untoned syllable.
+    // Fallback: If no rule matched, return the untoned syllable.
     base_syllable.to_string()
 }
 
