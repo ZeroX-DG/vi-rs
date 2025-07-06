@@ -180,8 +180,7 @@ fn test_incremental_vs_batch_consistency() {
 
         assert_eq!(
             incremental_result, batch_result,
-            "TELEX: Incremental and batch results differ for input '{}'",
-            test_case
+            "TELEX: Incremental and batch results differ for input '{test_case}'"
         );
 
         // Test with VNI
@@ -198,8 +197,7 @@ fn test_incremental_vs_batch_consistency() {
 
         assert_eq!(
             incremental_result, batch_result,
-            "VNI: Incremental and batch results differ for input '{}'",
-            test_case
+            "VNI: Incremental and batch results differ for input '{test_case}'"
         );
     }
 }

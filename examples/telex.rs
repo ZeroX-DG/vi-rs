@@ -9,5 +9,5 @@ fn main() {
         result.push(' ');
     }
 
-    println!("{}", result); // prints "hỡi anh tình yêu giống như cái chết nuốt trôi tất cả"
+    println!("{result}"); // prints "hỡi anh tình yêu giống như cái chết nuốt trôi tất cả"
 }
