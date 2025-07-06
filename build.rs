@@ -10,8 +10,7 @@ fn main() {
     // Define the output path for the header file
     let header_output_path = PathBuf::from(&crate_dir).join("headers");
     if !header_output_path.exists() {
-        std::fs::create_dir_all(&header_output_path)
-            .expect("Failed to create headers directory");
+        std::fs::create_dir_all(&header_output_path).expect("Failed to create headers directory");
     }
     let output_file = header_output_path
         .join(format!("{}.h", package_name))
