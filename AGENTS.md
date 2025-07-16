@@ -19,6 +19,7 @@ this codebase.
 ### General Conventions for Implementation
 
 - Always format the project after applying changes by running `cargo fmt`.
+- Always check for linting issues after applying changes by running `cargo clippy`.
 - AI agent should follow the existing Rust langnuage code style in each file.
 - Variable and function names should be meaningful and easy to read.
 - AI agent should add comments to document functions. Especially public
