@@ -43,3 +43,7 @@ harness = false
 [[bench]]
 name = "clean_char_benchmark"
 harness = false
+
+[[bench]]
+name = "all_syllables_benchmark"
+harness = false
