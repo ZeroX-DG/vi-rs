@@ -11,8 +11,9 @@ fn benchmark_all_telex_txt(c: &mut Criterion) {
 
     c.bench_function("all telex", |b| {
         b.iter(|| {
+            let mut output = String::new();
             for word in words.iter() {
-                let mut output = String::new();
+                output.clear();
                 vi::transform_buffer(&vi::TELEX, black_box(word.chars()), &mut output);
             }
         })
@@ -29,8 +30,9 @@ fn benchmark_all_vni_txt(c: &mut Criterion) {
 
     c.bench_function("all vni", |b| {
         b.iter(|| {
+            let mut output = String::new();
             for word in words.iter() {
-                let mut output = String::new();
+                output.clear();
                 vi::transform_buffer(&vi::VNI, black_box(word.chars()), &mut output);
             }
         })
