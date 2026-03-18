@@ -23,7 +23,7 @@ string output.
 If you wish to find out how it works, I have written a short blog post (in
 Vietnamese) on how the library place a tone mark when it received the user
 input. Read it
-[here](https://zerox-dg.github.io/blog/2020/07/14/Bo-dau-trong-tieng-Viet/).
+[here](https://zerox-dg.github.io/blog/Bo-dau-trong-tieng-Viet/).
 
 ## Installation
 
