@@ -5,11 +5,7 @@ fn main() {
     let method = "telex";
     let mut rl = DefaultEditor::new().unwrap();
 
-    loop {
-        let Ok(input) = rl.readline("(input): ") else {
-            break;
-        };
-
+    while let Ok(input) = rl.readline("(input): ") {
         let mut result = String::new();
 
         for word in input.split_whitespace() {
