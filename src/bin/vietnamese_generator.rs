@@ -66,32 +66,16 @@ fn is_valid_combination(initial: &str, rhyme: &str) -> bool {
 
     // Rule: k/g/ng vs c/gh/ngh
     match initial {
-        "c" | "g" | "ng" => {
-            if is_front_vowel_rhyme {
-                return false;
-            } // c, g, ng must be followed by other vowels.
-        }
-        "k" | "gh" | "ngh" => {
-            if !is_front_vowel_rhyme {
-                return false;
-            } // k, gh, ngh must be followed by i, e, ê, y.
-        }
-        "qu" => {
-            // 'qu' acts as a single unit and cannot be followed by a rhyme starting with 'u' or 'o'.
-            if "uo".contains(first_char_of_rhyme) {
-                return false;
-            }
-        }
-        "gi" => {
-            // Avoid "gi" + i-initial rhyme like "giiên", which is not a valid word.
-            if first_char_of_rhyme == 'i' {
-                return false;
-            }
-        }
-        _ => {}
+        // c, g, ng must be followed by other vowels.
+        "c" | "g" | "ng" if is_front_vowel_rhyme => false,
+        // k, gh, ngh must be followed by i, e, ê, y.
+        "k" | "gh" | "ngh" if !is_front_vowel_rhyme => false,
+        // 'qu' acts as a single unit and cannot be followed by a rhyme starting with 'u' or 'o'.
+        "qu" if "uo".contains(first_char_of_rhyme) => false,
+        // Avoid "gi" + i-initial rhyme like "giiên", which is not a valid word.
+        "gi" if first_char_of_rhyme == 'i' => false,
+        _ => true,
     }
-
-    true
 }
 
 /// Applies a tone mark to the correct vowel in a syllable.
