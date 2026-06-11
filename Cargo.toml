@@ -2,7 +2,8 @@
 name = "vi"
 version = "0.8.0"
 authors = ["Nguyễn Việt Hưng <viethungax@gmail.com>"]
-edition = "2021"
+edition = "2024"
+rust-version = "1.96"
 description = "An input method library for vietnamese IME"
 
 homepage = "https://github.com/ZeroX-DG/vi-rs/"

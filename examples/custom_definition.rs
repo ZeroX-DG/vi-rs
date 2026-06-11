@@ -1,7 +1,7 @@
 use phf::phf_map;
 use vi::{
-    processor::{LetterModification, ToneMark},
     Action, Definition,
+    processor::{LetterModification, ToneMark},
 };
 
 // Custom vni method with ư short hand using the w character

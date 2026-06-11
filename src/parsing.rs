@@ -8,9 +8,9 @@ use crate::{
     util::is_vowel,
 };
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::{tag_no_case, take_till, take_while},
-    IResult, Parser,
 };
 
 pub struct SyllableComponents<'a> {

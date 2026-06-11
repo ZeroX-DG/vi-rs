@@ -33,7 +33,7 @@ use std::fmt::Display;
 use crate::{
     editing::{add_modification_char, add_tone_char, get_tone_mark_placement, replace_nth_char},
     parsing::{extract_letter_modifications, extract_tone, parse_syllable},
-    processor::{modify_letter, AccentStyle, LetterModification, ToneMark},
+    processor::{AccentStyle, LetterModification, ToneMark, modify_letter},
     util::clean_char,
 };
 

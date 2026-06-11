@@ -115,17 +115,16 @@ fn apply_tone(
     }
 
     // Find the byte position of the character to be replaced and build the new string.
-    if let Some(char_to_tone) = tone_char {
-        if let Some(pos) = base_syllable.find(char_to_tone) {
-            if let Some(toned_vowels) = tone_map.get(&char_to_tone) {
-                let toned_vowel_str = toned_vowels[tone_index];
-                let mut result = String::with_capacity(base_syllable.len() + 3);
-                result.push_str(&base_syllable[..pos]);
-                result.push_str(toned_vowel_str);
-                result.push_str(&base_syllable[pos + char_to_tone.len_utf8()..]);
-                return result;
-            }
-        }
+    if let Some(char_to_tone) = tone_char
+        && let Some(pos) = base_syllable.find(char_to_tone)
+        && let Some(toned_vowels) = tone_map.get(&char_to_tone)
+    {
+        let toned_vowel_str = toned_vowels[tone_index];
+        let mut result = String::with_capacity(base_syllable.len() + 3);
+        result.push_str(&base_syllable[..pos]);
+        result.push_str(toned_vowel_str);
+        result.push_str(&base_syllable[pos + char_to_tone.len_utf8()..]);
+        return result;
     }
 
     // Fallback: If no rule matched, return the untoned syllable.

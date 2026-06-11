@@ -143,8 +143,9 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
             let vowel = syllable.vowel.to_lowercase();
             let vowel_index = syllable.initial_consonant.chars().count();
             let modification_possibilities: Vec<usize> = [vowel.find('u'), vowel.find('o')]
-                .iter()
-                .filter_map(|index| index.map(|index| vowel_index + index))
+                .into_iter()
+                .flatten()
+                .map(|index| vowel_index + index)
                 .collect();
 
             let max_horn_modification_possible = modification_possibilities.len();
@@ -176,13 +177,13 @@ pub fn modify_letter(syllable: &mut Syllable, modification: &LetterModification)
 
     // Add the modification if it's dyet (because you can't replace dyet with anything, only add or remove)
     if *modification == LetterModification::Dyet {
-        if let Some(first_char) = syllable.initial_consonant.chars().next() {
-            if DYET_MAP.contains_key(&first_char) {
-                syllable
-                    .letter_modifications
-                    .push((0, LetterModification::Dyet));
-                return Transformation::LetterModificationAdded;
-            }
+        if let Some(first_char) = syllable.initial_consonant.chars().next()
+            && DYET_MAP.contains_key(&first_char)
+        {
+            syllable
+                .letter_modifications
+                .push((0, LetterModification::Dyet));
+            return Transformation::LetterModificationAdded;
         }
         return Transformation::Ignored;
     }

@@ -146,8 +146,8 @@ pub fn get_modification_positions(
 
     if let LetterModification::Circumflex = modification {
         let indexes = [vowel.find('a'), vowel.find('o'), vowel.find('e')]
-            .iter()
-            .filter_map(|index| *index)
+            .into_iter()
+            .flatten()
             .collect::<Vec<usize>>();
 
         // There has to be exactly 1 character that is valid for circumflex. Never 2 or more.

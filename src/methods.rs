@@ -50,12 +50,12 @@
 //! transform_buffer(&MY_VNI, "chza".chars(), &mut result);
 //! assert_eq!(result, "chưa".to_owned());
 //! ```
-use phf::{phf_map, Map};
+use phf::{Map, phf_map};
 
 use crate::{
     processor::{
-        add_tone, modify_letter, remove_tone, AccentStyle, LetterModification, ToneMark,
-        Transformation,
+        AccentStyle, LetterModification, ToneMark, Transformation, add_tone, modify_letter,
+        remove_tone,
     },
     syllable::Syllable,
     validation::is_valid_syllable,
@@ -401,11 +401,11 @@ impl<'def> IncrementalBuffer<'def> {
             };
 
             // If the transformation cannot be applied, try the next action if there's one.
-            if transformation == Transformation::Ignored {
-                if let Some(next_action) = action_iter.next() {
-                    action = next_action;
-                    continue;
-                }
+            if transformation == Transformation::Ignored
+                && let Some(next_action) = action_iter.next()
+            {
+                action = next_action;
+                continue;
             }
 
             if transformation == Transformation::ToneMarkRemoved {

@@ -1,6 +1,6 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
-use vi::{methods::transform_buffer_incremental, transform_buffer, TELEX, VNI};
+use vi::{TELEX, VNI, methods::transform_buffer_incremental, transform_buffer};
 
 fn incremental_vs_batch_telex(c: &mut Criterion) {
     let test_input = "nghienge";

@@ -1,9 +1,10 @@
 use vi::{
+    TELEX, VNI,
     methods::{
-        transform_buffer_incremental, transform_buffer_incremental_with_style, IncrementalBuffer,
+        IncrementalBuffer, transform_buffer_incremental, transform_buffer_incremental_with_style,
     },
     processor::AccentStyle,
-    transform_buffer, TELEX, VNI,
+    transform_buffer,
 };
 
 #[test]
