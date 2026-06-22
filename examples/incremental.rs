@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use vi::{methods::transform_buffer_incremental, TELEX, VNI};
+use vi::{TELEX, VNI, methods::transform_buffer_incremental};
 
 fn main() {
     println!("Vietnamese Incremental Input Demo");

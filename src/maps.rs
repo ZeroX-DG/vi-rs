@@ -1,6 +1,6 @@
 //! Static character mappings for transformation.
 
-use phf::{phf_map, phf_ordered_set, Map, OrderedSet};
+use phf::{Map, OrderedSet, phf_map, phf_ordered_set};
 
 /// An ordered set of lowercase vowels, complete with and without accents or tone marks.
 pub static VOWELS: OrderedSet<char> = phf_ordered_set![

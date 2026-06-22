@@ -8,12 +8,13 @@
 //! A cluster of consonant can contains 1 -> 3 characters.
 //! See: <https://en.wikibooks.org/wiki/Vietnamese/Consonants>
 
-use phf::{phf_set, Set};
+use phf::{Set, phf_set};
 
 use crate::{parsing::parse_syllable, util::clean_char};
 
-const SINGLE_INITIAL_CONSONANTS: Set<char> =
-    phf_set!['b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',];
+const SINGLE_INITIAL_CONSONANTS: Set<char> = phf_set![
+    'b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',
+];
 
 const DIGRAPHS_INITIAL_CONSONANTS: Set<&'static str> =
     phf_set!["ch", "gh", "gi", "kh", "nh", "ng", "ph", "th", "tr", "qu"];
@@ -63,10 +64,10 @@ pub fn is_valid_syllable(input: &str) -> bool {
 pub fn is_valid_initial_consonant(consonant: &str) -> bool {
     let consonant = consonant.to_lowercase();
     let consonant_length = consonant.chars().count();
-    if consonant_length == 1 {
-        if let Some(c) = consonant.chars().next() {
-            return SINGLE_INITIAL_CONSONANTS.contains(&c);
-        }
+    if consonant_length == 1
+        && let Some(c) = consonant.chars().next()
+    {
+        return SINGLE_INITIAL_CONSONANTS.contains(&c);
     }
 
     if consonant_length == 2 {

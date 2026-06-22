@@ -1,4 +1,4 @@
-use vi::{transform_buffer, VNI};
+use vi::{VNI, transform_buffer};
 
 fn main() {
     let inputs = "xin chao2 toi6 la2 Hung7, toi6 den961 tu72 Viet65 Nam";
